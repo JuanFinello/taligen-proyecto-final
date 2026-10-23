@@ -1,0 +1,4 @@
+/* Etiquetas de grupo del canvas más grandes, para leerlas con el zoom alejado */
+.canvas-group-label {
+  font-size: 1.6em;
+}

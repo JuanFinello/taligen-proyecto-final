@@ -1,0 +1,421 @@
+descripcion: 'Estructura de la base: tablas, columnas, joins y dimensiones. Las métricas están en medidas.yaml. Tipos,
+  filas y valores se extrajeron de la base; el resto se escribe a mano.'
+tablas:
+  fechas:
+    tipo: dimension
+    alias: f
+    grano: ''
+    join: ''
+    descripcion: 'Calendario: un día por fila, del 01-05-2024 al 30-04-2026. AF2025 y AF2026 completos (365 días cada uno). Primera y última semana incompletas (ver semana_inicio).'
+    filas: 730
+    columnas:
+      fecha:
+        tipo: DATE
+        rango:
+        - '2024-05-01'
+        - '2026-04-30'
+        descripcion: 'El día.'
+        une_con: ''
+      anio:
+        tipo: INTEGER
+        rango:
+        - 2024
+        - 2026
+        descripcion: 'Año calendario.'
+        une_con: ''
+      mes:
+        tipo: INTEGER
+        rango:
+        - 1
+        - 12
+        descripcion: 'Mes calendario (1 = enero).'
+        une_con: ''
+      dia:
+        tipo: INTEGER
+        rango:
+        - 1
+        - 31
+        descripcion: 'Día del mes.'
+        une_con: ''
+      nombre_mes:
+        tipo: VARCHAR
+        valores:
+        - abril
+        - agosto
+        - diciembre
+        - enero
+        - febrero
+        - julio
+        - junio
+        - marzo
+        - mayo
+        - noviembre
+        - octubre
+        - septiembre
+        descripcion: 'Nombre del mes en minúscula (''enero''…).'
+        une_con: ''
+      dia_semana:
+        tipo: INTEGER
+        rango:
+        - 1
+        - 7
+        descripcion: '1 = lunes … 7 = domingo.'
+        une_con: ''
+      anio_fiscal:
+        tipo: BIGINT
+        rango:
+        - 2025
+        - 2026
+        descripcion: 'Año fiscal, va de mayo a abril y lleva el nombre del año en que termina (AF2026 = may-2025 a abr-2026).'
+        une_con: ''
+      mes_fiscal:
+        tipo: BIGINT
+        rango:
+        - 1
+        - 12
+        descripcion: '1 = mayo … 12 = abril.'
+        une_con: ''
+      trimestre_fiscal:
+        tipo: BIGINT
+        rango:
+        - 1
+        - 4
+        descripcion: 'T1 may–jul, T2 ago–oct, T3 nov–ene, T4 feb–abr.'
+        une_con: ''
+      semana_inicio:
+        tipo: DATE
+        rango:
+        - '2024-04-29'
+        - '2026-04-27'
+        descripcion: 'Lunes de esa semana (105 semanas). La primera (29-04-2024) solo tiene 5 días (mié 01-05 a dom 05-05) y la última (27-04-2026) solo 4 (lun a jue 30-04): al comparar por semana, excluirlas o aclararlo, porque parecen caídas.'
+        une_con: ''
+  presupuesto:
+    tipo: hecho
+    alias: pz
+    grano: mes x sucursal x categoría
+    join: presupuesto pz JOIN fechas f ON pz.mes = f.fecha JOIN sucursales s ON pz.sucursal_id = s.sucursal_id
+    descripcion: 'Objetivo mensual de ventas netas por sucursal y categoría. S39 y S40 tienen presupuesto desde su mes de apertura. Error de carga conocido: ene-2026, Perfumería, región Sur (10 filas), el importe viene 10 veces más alto.'
+    filas: 5598
+    columnas:
+      mes:
+        tipo: DATE
+        rango:
+        - '2024-05-01'
+        - '2026-04-01'
+        descripcion: 'Primer día del mes presupuestado.'
+        une_con: ''
+      sucursal_id:
+        tipo: VARCHAR
+        distintos: 40
+        descripcion: 'Sucursal (S01…S40).'
+        une_con: ''
+      categoria:
+        tipo: VARCHAR
+        valores:
+        - Almacén
+        - Bebidas
+        - Frescos
+        - Limpieza
+        - Lácteos
+        - Perfumería
+        descripcion: 'Una de 6. No hay sku: se cruza con productos solo por este texto.'
+        une_con: ''
+      importe_presupuesto:
+        tipo: DOUBLE
+        rango:
+        - 302123.02
+        - 91870241.55
+        descripcion: 'Venta neta objetivo, en ARS.'
+        une_con: ''
+  productos:
+    tipo: dimension
+    alias: p
+    grano: ''
+    join: ''
+    descripcion: 'Maestro de productos: uno por fila (308), 6 categorías y 27 subcategorías.'
+    filas: 308
+    columnas:
+      sku:
+        tipo: VARCHAR
+        distintos: 308
+        descripcion: 'Código del producto (P0001…).'
+        une_con: ''
+      descripcion:
+        tipo: VARCHAR
+        distintos: 282
+        descripcion: 'Nombre del producto. No es único: 24 nombres se repiten en 2 o 3 SKU que solo difieren en precio_lista (Perfumería, Lácteos, Limpieza y Bebidas). Filtrar siempre por sku; si piden un producto por nombre, sumar todos sus SKU o aclarar.'
+        une_con: ''
+      marca:
+        tipo: VARCHAR
+        distintos: 31
+        descripcion: 'Marca comercial.'
+        une_con: ''
+      proveedor_id:
+        tipo: VARCHAR
+        distintos: 16
+        descripcion: 'Proveedor que lo abastece.'
+        une_con: ''
+      categoria:
+        tipo: VARCHAR
+        valores:
+        - Almacén
+        - Bebidas
+        - Frescos
+        - Limpieza
+        - Lácteos
+        - Perfumería
+        descripcion: 'Una de 6: Almacén, Bebidas, Frescos, Limpieza, Lácteos, Perfumería.'
+        une_con: ''
+      subcategoria:
+        tipo: VARCHAR
+        distintos: 27
+        descripcion: 'Agrupación dentro de la categoría.'
+        une_con: ''
+      precio_lista:
+        tipo: DOUBLE
+        rango:
+        - 650.0
+        - 11720.0
+        descripcion: 'Precio unitario en ARS, sin descuento.'
+        une_con: ''
+      es_marca_propia:
+        tipo: BOOLEAN
+        descripcion: 'true solo para la marca Del Sur.'
+        une_con: ''
+  promociones:
+    tipo: dimension
+    alias: pm
+    grano: ''
+    join: ''
+    descripcion: 'Promociones: un descuento sobre un SKU, en todas las sucursales, entre dos fechas. Es la única fuente de descuentos: las ventas sin promoción no tienen descuento. Una superposición: P0137 tiene PROMO124 y PROMO053 el 03 y 04-06-2024; esos días las ventas llevan PROMO124.'
+    filas: 133
+    columnas:
+      promocion_id:
+        tipo: VARCHAR
+        distintos: 133
+        descripcion: 'Código (PROMO001…PROMO133). Lo llevan las ventas con descuento; las devoluciones nunca.'
+        une_con: ''
+      nombre:
+        tipo: VARCHAR
+        distintos: 119
+        descripcion: 'Nombre comercial (''Promo Yogur 05/2024''). No es único: 12 nombres se repiten en 2 o 3 promociones de distinto SKU. Filtrar siempre por promocion_id.'
+        une_con: ''
+      sku:
+        tipo: VARCHAR
+        distintos: 104
+        descripcion: 'Producto en promoción, uno por promoción.'
+        une_con: productos.sku
+      descuento_pct:
+        tipo: DOUBLE
+        rango:
+        - 10.0
+        - 25.0
+        descripcion: '% de descuento sobre el precio: 10, 15 o 20. La única de 25 es PROMO001 ''Verano Cola Andina'' (dic-2025).'
+        une_con: ''
+      fecha_desde:
+        tipo: DATE
+        rango:
+        - '2024-05-18'
+        - '2026-03-17'
+        descripcion: 'Primer día de vigencia (incluido).'
+        une_con: ''
+      fecha_hasta:
+        tipo: DATE
+        rango:
+        - '2024-05-24'
+        - '2026-04-06'
+        descripcion: 'Último día de vigencia (incluido). Duran de 7 a 31 días.'
+        une_con: ''
+  proveedores:
+    tipo: dimension
+    alias: pr
+    grano: ''
+    join: ''
+    descripcion: 'Proveedores: 16. Casi todos abastecen una sola categoría; PR16 es la marca propia Del Sur y está en las 6. Desde ago-2025 el costo de PR01 (Molinos del Plata) sube de ~74 % a ~83 % del precio de lista, sin cambio de precio: baja el margen de Almacén (~25,9 % a ~24,4 %).'
+    filas: 16
+    columnas:
+      proveedor_id:
+        tipo: VARCHAR
+        distintos: 16
+        descripcion: 'Código (PR01…PR16).'
+        une_con: ''
+      nombre:
+        tipo: VARCHAR
+        distintos: 16
+        descripcion: 'Razón social.'
+        une_con: ''
+  stock_semanal:
+    tipo: hecho
+    alias: st
+    grano: semana x sucursal x producto
+    join: stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id
+      = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id
+    descripcion: 'Foto semanal del stock por sucursal y SKU. Solo están los pares sucursal × SKU que se venden (7.954 de 12.320). 0 = quiebre.'
+    filas: 807119
+    columnas:
+      semana:
+        tipo: DATE
+        rango:
+        - '2024-05-06'
+        - '2026-04-27'
+        descripcion: 'Lunes de la semana.'
+        une_con: ''
+      sucursal_id:
+        tipo: VARCHAR
+        distintos: 40
+        descripcion: 'Sucursal. S39 desde 02-06-2025 y S40 desde 07-07-2025.'
+        une_con: ''
+      sku:
+        tipo: VARCHAR
+        distintos: 308
+        descripcion: 'Producto.'
+        une_con: ''
+      stock_unidades:
+        tipo: INTEGER
+        rango:
+        - 0
+        - 386
+        descripcion: 'Unidades en stock, nunca negativas.'
+        une_con: ''
+  sucursales:
+    tipo: dimension
+    alias: s
+    grano: ''
+    join: ''
+    descripcion: 'Las 40 sucursales, 10 por región. Ninguna cerró. Desde jun-2025 (apertura de S39) las comparables del Oeste caen ~6 % interanual, mientras las otras regiones crecen 3–5 %.'
+    filas: 40
+    columnas:
+      sucursal_id:
+        tipo: VARCHAR
+        distintos: 40
+        descripcion: 'Código (S01…S40).'
+        une_con: ''
+      nombre:
+        tipo: VARCHAR
+        distintos: 40
+        descripcion: 'Nombre de la sucursal.'
+        une_con: ''
+      region:
+        tipo: VARCHAR
+        valores:
+        - Centro
+        - Norte
+        - Oeste
+        - Sur
+        descripcion: 'Centro, Norte, Oeste o Sur.'
+        une_con: ''
+      formato:
+        tipo: VARCHAR
+        valores:
+        - express
+        - hiper
+        - super
+        descripcion: 'express (252–459 m²), super (1.312–2.559 m²) o hiper (6.324–7.899 m²).'
+        une_con: ''
+      superficie_m2:
+        tipo: BIGINT
+        rango:
+        - 252
+        - 7899
+        descripcion: 'Superficie de venta en m².'
+        une_con: ''
+      fecha_apertura:
+        tipo: DATE
+        rango:
+        - '2009-07-01'
+        - '2025-07-01'
+        descripcion: 'Define si es comparable. Solo S39 (02-06-2025) y S40 (01-07-2025), ambas del Oeste, abrieron dentro del período: no son comparables en el AF2026.'
+        une_con: ''
+  ventas:
+    tipo: hecho
+    alias: v
+    grano: fecha x sucursal x producto x tipo de movimiento
+    join: ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id
+      = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id
+    descripcion: 'Movimientos diarios: una fila por fecha, sucursal, producto y tipo (venta o devolución). Importes en ARS constantes de abr-2026, sin impuestos.'
+    filas: 2802796
+    columnas:
+      fecha:
+        tipo: DATE
+        rango:
+        - '2024-05-01'
+        - '2026-04-30'
+        descripcion: 'Día del movimiento.'
+        une_con: ''
+      sucursal_id:
+        tipo: VARCHAR
+        distintos: 40
+        descripcion: 'Sucursal donde ocurrió.'
+        une_con: ''
+      sku:
+        tipo: VARCHAR
+        distintos: 308
+        descripcion: 'Producto.'
+        une_con: ''
+      tipo_movimiento:
+        tipo: VARCHAR
+        valores:
+        - devolucion
+        - venta
+        descripcion: '''venta'' o ''devolucion''. Las devoluciones van con unidades, importes y costo negativos.'
+        une_con: ''
+      unidades:
+        tipo: BIGINT
+        rango:
+        - -2
+        - 33
+        descripcion: 'Unidades vendidas (negativas si es devolución).'
+        une_con: ''
+      importe_bruto:
+        tipo: DOUBLE
+        rango:
+        - -23440.0
+        - 259710.0
+        descripcion: 'Unidades × precio de lista, antes del descuento.'
+        une_con: ''
+      descuento:
+        tipo: DOUBLE
+        rango:
+        - 0.0
+        - 38956.5
+        descripcion: 'Descuento por promoción. Solo existe si hay promocion_id.'
+        une_con: ''
+      importe_neto:
+        tipo: DOUBLE
+        rango:
+        - -23440.0
+        - 259710.0
+        descripcion: 'importe_bruto - descuento. Base de «ventas».'
+        une_con: ''
+      costo:
+        tipo: DOUBLE
+        rango:
+        - -18043.27
+        - 184950.18
+        descripcion: 'Costo total de las unidades (no unitario), de reposición vigente ese día.'
+        une_con: ''
+      promocion_id:
+        tipo: VARCHAR
+        distintos: 133
+        nulos: 2774003
+        descripcion: 'Promoción aplicada; vacío si no hubo.'
+        une_con: promociones.promocion_id
+dimensiones:
+  fecha: f.fecha
+  anio: f.anio
+  mes: f.mes
+  anio_fiscal: f.anio_fiscal
+  trimestre_fiscal: f.trimestre_fiscal
+  mes_fiscal: f.mes_fiscal
+  semana: f.semana_inicio
+  sucursal: s.sucursal_id
+  nombre_sucursal: s.nombre
+  region: s.region
+  formato: s.formato
+  categoria: p.categoria
+  subcategoria: p.subcategoria
+  marca: p.marca
+  producto: p.sku
+  es_marca_propia: p.es_marca_propia
+  proveedor: pr.nombre
+nota_dimensiones: presupuesto solo se puede abrir por fecha (mes o más), sucursal, región, formato y categoría (usar pz.categoria).

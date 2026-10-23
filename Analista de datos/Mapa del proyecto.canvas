@@ -1,0 +1,123 @@
+{
+	"nodes": [
+		{
+			"id": "titulo",
+			"type": "text",
+			"x": -820, "y": -440, "width": 2260, "height": 140,
+			"color": "6",
+			"text": "# Analista de datos: mapa de los archivos de partida\nUn agente que responde preguntas de negocio sobre **Almacenes del Sur** (40 sucursales, 2 años fiscales). La regla de oro: **cada número sale de una consulta guardada** que se puede mostrar y volver a correr."
+		},
+
+		{
+			"id": "g_base",
+			"type": "group",
+			"x": -820, "y": -260, "width": 520, "height": 780,
+			"color": "4",
+			"label": "Data/base: LOS DATOS"
+		},
+		{
+			"id": "duckdb",
+			"type": "text",
+			"x": -800, "y": -220, "width": 480, "height": 720,
+			"text": "## almacenes_del_sur.duckdb\nBase de datos en un solo archivo (37 MB). **Se consulta en solo lectura.** Es demasiado grande para meterla en el prompt: Claude la consulta con *tools*.\n\n### Hechos (lo que pasó, con números)\n| Tabla | Filas | Una fila es… |\n|---|---|---|\n| `ventas` | 2,8 M | día × sucursal × producto × tipo (venta / devolución) |\n| `stock_semanal` | 807 k | foto del lunes × sucursal × producto |\n| `presupuesto` | 5.598 | mes × sucursal × categoría |\n\n### Dimensiones (quién, qué, cuándo)\n| Tabla | Filas | Para qué |\n|---|---|---|\n| `fechas` | 730 | traduce el día a **año / trimestre fiscal** |\n| `sucursales` | 40 | región, formato, **fecha de apertura** |\n| `productos` | 308 | 6 categorías, marca, proveedor |\n| `proveedores` | 16 | nombres |\n| `promociones` | 133 | descuento por producto entre dos fechas |\n\nSe unen por `sku`, `sucursal_id`, `fecha` y `proveedor_id`."
+		},
+
+		{
+			"id": "g_capa",
+			"type": "group",
+			"x": -220, "y": -260, "width": 520, "height": 780,
+			"color": "5",
+			"label": "Data/capa_semantica: QUÉ SIGNIFICAN"
+		},
+		{
+			"id": "medidas",
+			"type": "text",
+			"x": -200, "y": -220, "width": 480, "height": 420,
+			"text": "## medidas.yaml\nUn **recetario**: no calcula nada, trae las piezas para armar el SQL.\n\n- `medidas`: cada indicador con su **fórmula** y su tabla\n  - `ventas_netas`, `margen_bruto`, `margen_pct`, `unidades`, `presupuesto`, `tasa_quiebre_pct`…\n- `tablas_hecho`: el **join** de cada tabla\n- `dimensiones`: traduce palabras a columnas\n  - `categoria` → `p.categoria`\n  - `anio_fiscal` → `f.anio_fiscal`\n- `medidas_derivadas`: variación interanual, desvío contra presupuesto, participación. **Están en palabras, no en SQL: se calculan en Python.**"
+		},
+		{
+			"id": "glosario",
+			"type": "text",
+			"x": -200, "y": 230, "width": 480, "height": 270,
+			"text": "## glosario.md\nEl **criterio** que las fórmulas no dicen:\n- El año fiscal empieza el **1 de mayo** (AF2026 = may-2025 a abr-2026)\n- \"Ventas\" a secas = **ventas netas**\n- Margen: las variaciones van en **puntos porcentuales**\n- Comparables = sucursales abiertas antes del período anterior\n- **No hay** clientes, tickets ni ventas online"
+		},
+
+		{
+			"id": "g_preguntas",
+			"type": "group",
+			"x": 380, "y": -260, "width": 520, "height": 780,
+			"color": "3",
+			"label": "Data/preguntas: QUÉ TIENE QUE RESPONDER"
+		},
+		{
+			"id": "preguntas",
+			"type": "text",
+			"x": 400, "y": -220, "width": 480, "height": 340,
+			"text": "## preguntas.json (P01–P20)\n| Tipo | Preguntas |\n|---|---|\n| Puntual | P01–P05 |\n| Comparativa | P06–P09 |\n| Ranking | P10–P12 |\n| Diagnóstico (\"¿por qué?\") | P13–P16 |\n| Ambigua (¿fiscal o calendario?) | P17–P18 |\n| Sin dato en la base | P19–P20 |\n\nEl tipo no viene escrito: **reconocerlo es parte del trabajo.**"
+		},
+		{
+			"id": "conversaciones",
+			"type": "text",
+			"x": 400, "y": 150, "width": 480, "height": 170,
+			"text": "## conversaciones.json (C1–C5)\n5 charlas de 3 turnos. Cada turno **hereda** período, filtros y medida del anterior: \"¿Y en la región Sur?\""
+		},
+		{
+			"id": "informes",
+			"type": "text",
+			"x": 400, "y": 350, "width": 480, "height": 150,
+			"text": "## pedidos_de_informe.json (I1–I3)\n3 pedidos que terminan en un **PDF** con resumen, indicadores, gráficos, conclusiones y anexo de consultas."
+		},
+
+		{
+			"id": "pdf",
+			"type": "text",
+			"x": 980, "y": -260, "width": 460, "height": 780,
+			"color": "2",
+			"text": "## Proyecto Final Analista de datos.pdf\nEl **enunciado**.\n\n- Modelo obligatorio: `claude-haiku-5-5`\n- Más de 100k tokens de prompt cuesta 5× → **los datos van por tools**\n- Primero la capa semántica; SQL directo solo para lo que la capa no cubre\n- Ante la ambigüedad: preguntar o **declarar el supuesto**\n- Sin dato: decirlo, **no responder con otro indicador**\n\n### Plan\n| Sem. | Qué |\n|---|---|\n| 1 | Puntuales, comparativas y rankings vía **servidor MCP** + evaluador |\n| 2 | Cuentas en código, ambiguas, sin dato, conversaciones |\n| 3 | Diagnósticos e informes multi-agente |\n| 4 | Corre solo, hooks, permisos |\n| 5 | Salida estructurada, caché, paralelo |\n| 6 | Todo con un comando |\n| 7 | Demo Day |\n\n**Apartar 5 preguntas** desde el principio y no tocarlas hasta la semana 5."
+		},
+
+		{
+			"id": "g_construir",
+			"type": "group",
+			"x": -820, "y": 600, "width": 2260, "height": 400,
+			"color": "1",
+			"label": "LO QUE VAMOS A CONSTRUIR"
+		},
+		{
+			"id": "script",
+			"type": "text",
+			"x": -800, "y": 640, "width": 480, "height": 330,
+			"text": "## capa_semantica.py ⬅ próximo paso\n`calcular(\"margen_bruto\", {\"categoria\": \"Perfumería\", \"anio_fiscal\": 2026})`\n1. Busca la **fórmula** en medidas.yaml\n2. Busca el **join** de su tabla\n3. Traduce los **filtros** con `dimensiones`\n4. Ejecuta y devuelve **número + SQL**\n\nEjemplo P03 → **$460.758.207**"
+		},
+		{
+			"id": "agente",
+			"type": "text",
+			"x": -200, "y": 640, "width": 480, "height": 330,
+			"text": "## Agente (Claude Haiku 5.5)\nEl mismo loop de siempre:\n1. Lee la pregunta\n2. **Elige** la medida y los filtros\n3. Pide la tool → *tu código* la ejecuta\n4. Responde con el resultado\n\nClaude **no escribe la fórmula**: la pone el código. Así no confunde bruto con neto, ni fiscal con calendario."
+		},
+		{
+			"id": "salida",
+			"type": "text",
+			"x": 400, "y": 640, "width": 480, "height": 330,
+			"text": "## Salida trazable\n```\nRespuesta = {\n  pregunta, texto, valor, unidad,\n  supuestos: [...],\n  consultas: [{medida, filtros, sql}],\n  cuentas: [...]\n}\n```\nPara informes: el mismo registro más el **PDF**."
+		},
+		{
+			"id": "evaluador",
+			"type": "text",
+			"x": 980, "y": 640, "width": 440, "height": 330,
+			"text": "## Evaluador\nCasos **verificados a mano** con su valor esperado y su tolerancia.\n- **Acierto de respuesta**: ¿el número da?\n- **Acierto de consulta**: ¿usó la medida y los filtros correctos?\n\nUn número correcto con la medida equivocada es una **coincidencia**, no un acierto."
+		}
+	],
+	"edges": [
+		{ "id": "e1", "fromNode": "medidas", "fromSide": "left", "toNode": "duckdb", "toSide": "right", "label": "fórmulas y joins escritos para estas tablas" },
+		{ "id": "e2", "fromNode": "glosario", "fromSide": "top", "toNode": "medidas", "toSide": "bottom", "label": "completa con criterio" },
+		{ "id": "e3", "fromNode": "g_capa", "fromSide": "bottom", "toNode": "script", "toSide": "top", "label": "lee las recetas" },
+		{ "id": "e4", "fromNode": "script", "fromSide": "top", "toNode": "g_base", "toSide": "bottom", "label": "ejecuta SQL (solo lectura)" },
+		{ "id": "e5", "fromNode": "agente", "fromSide": "left", "toNode": "script", "toSide": "right", "label": "lo usa como tool (vía MCP)" },
+		{ "id": "e6", "fromNode": "g_preguntas", "fromSide": "bottom", "toNode": "agente", "toSide": "top", "label": "entrada" },
+		{ "id": "e7", "fromNode": "agente", "fromSide": "right", "toNode": "salida", "toSide": "left", "label": "produce" },
+		{ "id": "e8", "fromNode": "salida", "fromSide": "right", "toNode": "evaluador", "toSide": "left", "label": "se compara" },
+		{ "id": "e9", "fromNode": "pdf", "fromSide": "bottom", "toNode": "evaluador", "toSide": "top", "label": "define las métricas" },
+		{ "id": "e10", "fromNode": "pdf", "fromSide": "left", "toNode": "g_preguntas", "toSide": "right", "label": "explica los 6 tipos" }
+	]
+}
