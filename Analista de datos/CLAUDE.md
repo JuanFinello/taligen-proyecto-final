@@ -45,7 +45,8 @@ Correr todo con `.venv/bin/python` desde esta carpeta. La API key está en la va
 - [x] Entender los archivos de partida y hacer los diagramas (en la bóveda de Obsidian `../taligent_vault/`: `Mapa del proyecto.canvas` y `Modelo de datos.canvas`).
 - [x] Separar métricas y estructura en `medidas.yaml` y `esquema.yaml`.
 - [x] Completar y revisar a mano las descripciones de `esquema.yaml` (las 8 tablas; también en `Modelo de datos.canvas`).
-- [ ] **Siguiente:** script `procesador_capa_semantica.py` (no confundir con la carpeta `capa_semantica/`, que tiene los 3 archivos): `calcular(medida, filtros)` arma el SQL desde los dos YAML, lo ejecuta y devuelve número + SQL.
+- [x] Script `procesador_capa_semantica.py` (no confundir con la carpeta `capa_semantica/`): `calcular()` con filtros, `agrupar_por`, `comparar_con` y `comparables`. Resuelve las 10 preguntas de semana 1 con los valores de `chequeos` (2026-10-26).
+- [ ] **Siguiente:** servidor MCP con `ver_modelo()` y `calcular()` como tools. Pendiente decidir si va `consultar_sql` y si `Mapa del proyecto.canvas` (hoy fuera de la bóveda) se mueve a `taligent_vault/`.
 - [x] Apartar 5 preguntas hasta la semana 5: **P09, P12, P14, P18 y P19** (no usarlas para ajustar nada). Semana 1 trabaja con P01–P08, P10 y P11.
 - [x] Verificar a mano las 10 preguntas de semana 1 con SQL directo (valores en la card `chequeos` de `../taligent_vault/Diseño del agente.canvas`).
 - [ ] Agente con tools vía un servidor MCP propio (semana 1).

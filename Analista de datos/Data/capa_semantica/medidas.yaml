@@ -94,9 +94,18 @@ medidas:
   tabla: ventas
   formula: COUNT(DISTINCT v.sucursal_id)
   unidad: sucursales
-  descripcion: Sucursales con al menos un movimiento en el período.
+  descripcion: Sucursales con al menos un movimiento en el período. Para contar cuántas sucursales hay, usar sucursales_abiertas.
+  sinonimos: []
+- id: sucursales_abiertas
+  nombre: Sucursales abiertas
+  tabla: sucursales
+  formula: COUNT(*)
+  unidad: sucursales
+  descripcion: Cuántas sucursales existen (ninguna cerró). Se filtra por región o formato; no lleva período.
   sinonimos:
   - sucursales
+  - cantidad de sucursales
+  - locales
 - id: presupuesto
   nombre: Presupuesto
   tabla: presupuesto
