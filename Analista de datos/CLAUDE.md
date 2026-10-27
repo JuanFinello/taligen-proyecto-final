@@ -22,9 +22,9 @@ Data/
 │   └── medidas_original.yaml       copia intacta del curso (solo lectura), solo como referencia
 └── preguntas/                      preguntas.json (P01–P20), conversaciones.json (C1–C5),
                                     pedidos_de_informe.json (I1–I3)
-.venv/                              Python con duckdb, anthropic, python-dotenv, pyyaml
+.venv/                              Python con duckdb, anthropic, python-dotenv, pyyaml, mcp
 ```
-Correr todo con `.venv/bin/python` desde esta carpeta. La API key está en la variable de entorno `ANTHROPIC_API_KEY`.
+Correr todo con `.venv/bin/python` desde esta carpeta (el `pip` del venv está roto por el renombre de la carpeta: usar `.venv/bin/python -m pip`). La API key está en la variable de entorno `ANTHROPIC_API_KEY`.
 
 ## Decisiones tomadas (2026-10-20)
 1. **Sin redundancia entre archivos.** `medidas.yaml` tiene solo métricas y reglas. Toda la estructura de la base (incluidos `tablas_hecho`, `dimensiones` y `nota_dimensiones`, que venían en el original) está en `esquema.yaml`. Las fórmulas usan alias (`v.`, `p.`…) definidos en `esquema.yaml`, así que los dos archivos van juntos.
@@ -46,8 +46,12 @@ Correr todo con `.venv/bin/python` desde esta carpeta. La API key está en la va
 - [x] Separar métricas y estructura en `medidas.yaml` y `esquema.yaml`.
 - [x] Completar y revisar a mano las descripciones de `esquema.yaml` (las 8 tablas; también en `Modelo de datos.canvas`).
 - [x] Script `procesador_capa_semantica.py` (no confundir con la carpeta `capa_semantica/`): `calcular()` con filtros, `agrupar_por`, `comparar_con` y `comparables`. Resuelve las 10 preguntas de semana 1 con los valores de `chequeos` (2026-10-26).
-- [ ] **Siguiente:** servidor MCP con `ver_modelo()` y `calcular()` como tools. Pendiente decidir si va `consultar_sql` y si `Mapa del proyecto.canvas` (hoy fuera de la bóveda) se mueve a `taligent_vault/`.
+- [x] `servidor_mcp.py` (mcp 2.x, `MCPServer`): tools `ver_modelo()` y `calcular()`, sin `consultar_sql` (decisión 14). Probado por stdio: P03 da 460.758.207 (2026-10-27).
+- [ ] Pendiente decidir si `Mapa del proyecto.canvas` (hoy fuera de la bóveda) se mueve a `taligent_vault/`.
 - [x] Apartar 5 preguntas hasta la semana 5: **P09, P12, P14, P18 y P19** (no usarlas para ajustar nada). Semana 1 trabaja con P01–P08, P10 y P11.
 - [x] Verificar a mano las 10 preguntas de semana 1 con SQL directo (valores en la card `chequeos` de `../taligent_vault/Diseño del agente.canvas`).
-- [ ] Agente con tools vía un servidor MCP propio (semana 1).
+- [x] `agente.py`: loop manual de Haiku sobre `servidor_mcp.py`. Primera corrida (2026-10-27): los 10 números dan bien; fallan chequeos de criterio en P03 (elige `margen_pct`, varía entre corridas), P05, P06 (no informa comparables), P10 y P11 (sin códigos). El error de P05 se corrigió (decisión 15).
+- [x] Fallos de la primera corrida corregidos (decisiones 16 a 18): P05, P06, P10 y P11 cumplen el chequeo.
+- [ ] Pendientes de criterio: P03 a veces pone el % antes que los pesos; P07 escribió mal el año del período ("ago a oct de 2026").
+- [ ] **Siguiente:** volver a correr las 10 preguntas juntas para confirmar.
 - [x] `README.md` con las decisiones 1 a 4. **Cada decisión nueva se agrega ahí apenas se toma** (qué se hizo, alternativas, por qué), redactada para que la revise el usuario. Al README van decisiones, no pasos de trabajo. **Estilo conciso**: un párrafo por decisión, en negrita el título, sin subsecciones.

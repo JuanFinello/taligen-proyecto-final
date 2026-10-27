@@ -1,4 +1,6 @@
 """Procesador de la capa semántica: arma el SQL desde medidas.yaml y esquema.yaml, lo corre y devuelve número + SQL."""
+import re
+
 import duckdb
 import yaml
 
@@ -16,7 +18,7 @@ def ver_modelo():
     """Versión compacta para Haiku: lo que necesita para elegir medida y filtros. Sin fórmulas ni joins (decisión 3)."""
     # Las derivadas (variaciones, desvío) se suman cuando calcular() las sepa hacer (pieza 2)
     medidas = [
-        {"id": m["id"], "nombre": m["nombre"], "sinonimos": m["sinonimos"], "unidad": m["unidad"]}
+        {"id": m["id"], "nombre": m["nombre"], "descripcion": m["descripcion"], "sinonimos": m["sinonimos"], "unidad": m["unidad"]}
         for m in MEDIDAS_YAML["medidas"]
     ]
 
@@ -89,6 +91,14 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
     # Una tabla de dimensión (por ejemplo, sucursales) no tiene join: va sola con su alias
     tabla = ESQUEMA["tablas"][m["tabla"]]
     join = tabla["join"] or f"{m['tabla']} {tabla['alias']}"
+
+    # Solo sirven las dimensiones cuya tabla está en el join (alias = la palabra después de cada nombre de tabla)
+    alias_del_join = set(re.findall(r"(?:^|JOIN )\w+ (\w+)", join))
+    validas = [d for d, c in ESQUEMA["dimensiones"].items() if c.split(".")[0] in alias_del_join]
+    for dimension in [*filtros, *agrupar_por]:
+        if dimension in ESQUEMA["dimensiones"] and dimension not in validas:
+            raise ValueError(f"La dimensión {dimension} no se puede usar con {medida}. "
+                             f"Dimensiones válidas para {medida}: {', '.join(validas)}")
 
     # Paso 3: cada filtro va a su columna; el valor, como parámetro
     condiciones, parametros = [], []

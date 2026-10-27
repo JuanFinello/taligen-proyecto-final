@@ -6,6 +6,7 @@ reglas:
 - «Ventas» sin más son ventas netas.
 - El año fiscal empieza el 1 de mayo; AF2026 = mayo de 2025 a abril de 2026. Si un pedido no aclara fiscal o calendario, preguntar
   o declarar el supuesto.
+- «Margen bruto» es en pesos (margen_bruto). «El margen», sin más, es margen % (margen_pct) y se muestran también los pesos.
 - Las variaciones de margen % se informan en puntos porcentuales.
 - 'Comparables (LFL): sucursales con s.fecha_apertura <= primer día del período anterior.'
 - La base no tiene clientes, tickets ni ventas online.
@@ -70,7 +71,6 @@ medidas:
   unidad: ARS
   descripcion: Ventas netas menos costo.
   sinonimos:
-  - margen
   - contribución
 - id: margen_pct
   nombre: Margen bruto %
@@ -79,6 +79,7 @@ medidas:
   unidad: '%'
   descripcion: Margen bruto sobre ventas netas. Sus variaciones se informan en puntos porcentuales.
   sinonimos:
+  - margen
   - margen porcentual
   - rentabilidad
 - id: precio_promedio
