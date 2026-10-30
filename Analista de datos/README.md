@@ -71,6 +71,8 @@ Estudio las preguntas de a una para entender el patrón general. Casi todas se o
 
 **18. Códigos y comparables, por prompt; `proveedor` pasa a ser el código.** En P10 y P11 Haiku mostraba solo nombres, y en P06 no informaba la variación comparable. Agregué dos líneas al prompt de sistema de `agente.py`: mostrar código y nombre al nombrar sucursales o proveedores, e informar la variación total y la comparable al comparar ventas. Para el proveedor no había una dimensión con el código, así que la armé igual que la de sucursal: `proveedor` es ahora `pr.proveedor_id` y el nombre pasó a `nombre_proveedor`. Descarté agregar un `codigo_proveedor` y dejar `proveedor` como nombre: no cambiaba nada existente, pero dejaba dos patrones distintos para lo mismo.
 
+**19. El evaluador compara las consultas del agente contra `esperados.yaml`.** `agente.py` ahora devuelve, además del texto, cada llamada a `calcular` con sus argumentos y su resultado (SQL incluido). Los valores esperados están en `Data/preguntas/esperados.yaml`, separados del código: uno o más chequeos por pregunta, de tipo valor, variación (total o comparables) o ranking (códigos en orden). La tolerancia es la mitad del último dígito con que se verificó cada valor. Un chequeo pasa si alguna consulta usó la métrica esperada y dio ese valor: así un número correcto con la métrica equivocada no cuenta. Descarté guardar los esperados dentro de `evaluador.py` porque mezclaba datos con código. Límite conocido: mira las consultas, no el texto, así que no detecta un número bien calculado y mal escrito, ni el orden de la respuesta (P03 pasa aunque ponga el % primero).
+
 ## Evaluación
 
 *Pendiente.*

@@ -53,5 +53,6 @@ Correr todo con `.venv/bin/python` desde esta carpeta (el `pip` del venv está r
 - [x] `agente.py`: loop manual de Haiku sobre `servidor_mcp.py`. Primera corrida (2026-10-27): los 10 números dan bien; fallan chequeos de criterio en P03 (elige `margen_pct`, varía entre corridas), P05, P06 (no informa comparables), P10 y P11 (sin códigos). El error de P05 se corrigió (decisión 15).
 - [x] Fallos de la primera corrida corregidos (decisiones 16 a 18): P05, P06, P10 y P11 cumplen el chequeo.
 - [ ] Pendientes de criterio: P03 a veces pone el % antes que los pesos; P07 escribió mal el año del período ("ago a oct de 2026").
-- [ ] **Siguiente:** volver a correr las 10 preguntas juntas para confirmar.
+- [x] `evaluador.py` + `Data/preguntas/esperados.yaml` (decisión 19). Primera evaluación (2026-10-27): **10 de 10 pasan**. Correr: `.venv/bin/python evaluador.py [P03 P05 …]`.
+- [ ] **Siguiente:** semana 2 (cuentas en código, criterio ante ambigüedad, conversaciones).
 - [x] `README.md` con las decisiones 1 a 4. **Cada decisión nueva se agrega ahí apenas se toma** (qué se hizo, alternativas, por qué), redactada para que la revise el usuario. Al README van decisiones, no pasos de trabajo. **Estilo conciso**: un párrafo por decisión, en negrita el título, sin subsecciones.

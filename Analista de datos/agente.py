@@ -29,6 +29,7 @@ async def responder(pregunta):
 
         # Paso 2: el loop. Haiku contesta; si pide una tool, la corremos y le devolvemos el resultado
         mensajes = [{"role": "user", "content": pregunta}]
+        consultas = []  # cada llamada a calcular que salió bien: qué pidió y qué volvió (con el SQL)
         while True:
             respuesta = await claude.messages.create(model=MODELO, max_tokens=16000, system=SISTEMA,
                                                      tools=tools, messages=mensajes)
@@ -36,7 +37,8 @@ async def responder(pregunta):
 
             # Si no pidió ninguna tool, terminó: lo que escribió es la respuesta final
             if respuesta.stop_reason != "tool_use":
-                return "".join(b.text for b in respuesta.content if b.type == "text")
+                texto = "".join(b.text for b in respuesta.content if b.type == "text")
+                return {"pregunta": pregunta, "texto": texto, "consultas": consultas}
 
             # Paso 3: correr cada tool que pidió, vía MCP, y juntar los resultados en un solo mensaje
             resultados = []
@@ -45,10 +47,14 @@ async def responder(pregunta):
                     continue
                 print(f"→ {bloque.name}({json.dumps(bloque.input, ensure_ascii=False)})")
                 resultado = await mcp.call_tool(bloque.name, bloque.input)
+                if bloque.name == "calcular" and not resultado.is_error:
+                    consultas.append({"argumentos": bloque.input, "resultado": json.loads(resultado.content[0].text)})
                 resultados.append({"type": "tool_result", "tool_use_id": bloque.id,
                                    "content": resultado.content[0].text, "is_error": resultado.is_error})
             mensajes.append({"role": "user", "content": resultados})
 
 
 if __name__ == "__main__":
-    print(asyncio.run(responder(sys.argv[1])))
+    if len(sys.argv) != 2:
+        sys.exit('Uso: .venv/bin/python agente.py "¿pregunta?"')
+    print(asyncio.run(responder(sys.argv[1]))["texto"])
