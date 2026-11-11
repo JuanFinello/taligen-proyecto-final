@@ -10,16 +10,17 @@ CAPA = "Data/capa_semantica"
 with open(f"{CAPA}/medidas.yaml") as f:
     MEDIDAS_YAML = yaml.safe_load(f)
 MEDIDAS = {m["id"]: m for m in MEDIDAS_YAML["medidas"]}
+DERIVADAS = {m["id"]: m for m in MEDIDAS_YAML["medidas_derivadas"]}
 with open(f"{CAPA}/esquema.yaml") as f:
     ESQUEMA = yaml.safe_load(f)
 
 
 def ver_modelo():
     """Versión compacta para Haiku: lo que necesita para elegir medida y filtros. Sin fórmulas ni joins (decisión 3)."""
-    # Las derivadas (desvío, participación) se suman cuando calcular() las sepa hacer
+    # Variación y participación no son medidas: salen de comparar_con y agrupar_por (decisiones 11 y 29)
     medidas = [
         {"id": m["id"], "nombre": m["nombre"], "descripcion": m["descripcion"], "sinonimos": m["sinonimos"], "unidad": m["unidad"]}
-        for m in MEDIDAS_YAML["medidas"]
+        for m in [*MEDIDAS_YAML["medidas"], *(DERIVADAS[d] for d in CALCULADAS)]  # derivadas: solo las que se piden por id
     ]
 
     # Para cada dimensión, busca su columna en el esquema y copia los valores válidos (o el rango)
@@ -34,6 +35,8 @@ def ver_modelo():
         "medidas": medidas,
         "dimensiones": dimensiones,
         "nota_dimensiones": ESQUEMA["nota_dimensiones"],
+        # Para consultar_sql (decisión 34): solo nombres de tablas y columnas, sin descripciones
+        "tablas_para_sql": {tabla: list(datos["columnas"]) for tabla, datos in ESQUEMA["tablas"].items()},
     }
 
 
@@ -75,6 +78,38 @@ def validar_valores(dimension, columna, valor):
         raise ValueError(f"Valor no válido para {dimension}: {', '.join(map(str, malos))}. {validos}")
 
 
+def buscar_producto(texto, limite=20):
+    """De un nombre a sus códigos (decisión 33): productos cuyo nombre o marca contienen todas las palabras del texto,
+    sin importar mayúsculas ni tildes. Devuelve también el SQL, como calcular()."""
+    palabras = [p for p in texto.lower().replace(",", " ").split() if p]
+    if not palabras:
+        raise ValueError("Texto de búsqueda vacío")
+    condicion = " AND ".join("strip_accents(lower(p.descripcion || ' ' || p.marca)) LIKE '%' || strip_accents(?) || '%'"
+                             for _ in palabras)
+    sql = (f"SELECT p.sku, p.descripcion, p.marca, p.categoria, p.subcategoria, p.precio_lista\nFROM productos p\n"
+           f"WHERE {condicion}\nORDER BY p.sku\nLIMIT {int(limite)}")
+    with duckdb.connect(BASE, read_only=True) as con:
+        columnas = ["sku", "descripcion", "marca", "categoria", "subcategoria", "precio_lista"]
+        filas = [dict(zip(columnas, fila)) for fila in con.execute(sql, palabras).fetchall()]
+    return {"texto": texto, "productos": filas, "sql": sql, "parametros": palabras}
+
+
+MAX_FILAS_SQL = 100
+
+
+def consultar_sql(sql):
+    """SQL de solo lectura para lo que la capa no cubre (decisión 34): la base se abre en read_only, así que no se
+    puede modificar. Devuelve hasta MAX_FILAS_SQL filas y avisa si hay más."""
+    # read_only no alcanza: COPY ... TO igual escribe archivos y read_text lee los del disco. Sin acceso externo, no.
+    with duckdb.connect(BASE, read_only=True, config={"enable_external_access": False}) as con:
+        resultado = con.execute(sql)
+        columnas = [c[0] for c in resultado.description] if resultado.description else []
+        filas = resultado.fetchmany(MAX_FILAS_SQL + 1)
+    filas = [dict(zip(columnas, (v if isinstance(v, (int, float, str, bool, type(None))) else str(v) for v in fila)))
+             for fila in filas]
+    return {"sql": sql, "columnas": columnas, "filas": filas[:MAX_FILAS_SQL], "truncado": len(filas) > MAX_FILAS_SQL}
+
+
 def inicio_del_periodo(filtros):
     """Primer día del período que marcan los filtros de fecha (los que van a la tabla fechas, alias f)."""
     condiciones, parametros = [], []
@@ -91,6 +126,75 @@ def inicio_del_periodo(filtros):
         return con.execute(sql, parametros).fetchone()[0]
 
 
+def variacion(m, actual, anterior):
+    """Variación entre dos valores: en pp si la medida es un %, si no en % (None si falta un valor o el anterior es 0)."""
+    if actual is None or anterior is None:
+        return None
+    if m["unidad"] == "%":
+        return actual - anterior
+    return (actual - anterior) / anterior * 100 if anterior else None
+
+
+def comparar_por_grupo(m, medida, filtros, filtros_anterior, agrupar_por, orden, limite, hasta, total_actual, total_anterior):
+    """Comparar y agrupar a la vez (decisión 28): por grupo, los dos valores, la variación y, si la medida es
+    aditiva, la diferencia y su aporte a la diferencia total (qué parte de la suba o la caída explica)."""
+    actual = calcular(medida, filtros, agrupar_por, abiertas_hasta=hasta)
+    anterior = calcular(medida, filtros_anterior, agrupar_por, abiertas_hasta=hasta)
+    clave = lambda fila: tuple(fila[d] for d in agrupar_por)
+    actuales = {clave(f): f["valor"] for f in actual["filas"]}
+    anteriores = {clave(f): f["valor"] for f in anterior["filas"]}
+    diferencia_total = (total_actual or 0) - (total_anterior or 0)
+
+    filas = []
+    for grupo in [*actuales, *(g for g in anteriores if g not in actuales)]:  # también los que solo están en un período
+        a, b = actuales.get(grupo), anteriores.get(grupo)
+        fila = {**dict(zip(agrupar_por, grupo)), "actual": a, "anterior": b, "variacion": variacion(m, a, b)}
+        if m.get("aditiva"):  # un grupo que no estaba en un período cuenta como 0 en ese período
+            fila["diferencia"] = (a or 0) - (b or 0)
+            fila["aporte_pct"] = fila["diferencia"] / diferencia_total * 100 if diferencia_total else None
+        filas.append(fila)
+
+    # Se ordena por diferencia si la medida es aditiva (lo que más explica), si no por variación; los vacíos, al final
+    criterio = "diferencia" if m.get("aditiva") else "variacion"
+    filas.sort(key=lambda f: (f[criterio] is None, -(f[criterio] or 0) if orden == "desc" else (f[criterio] or 0)))
+    if limite:
+        filas = filas[:int(limite)]
+    return {"filas": filas, "ordenado_por": criterio,
+            "sql": {"actual": actual["sql"], "anterior": anterior["sql"]},
+            "parametros": {"actual": actual["parametros"], "anterior": anterior["parametros"]}}
+
+
+def desvio_presupuesto(filtros, agrupar_por, orden, limite):
+    """Desvío contra presupuesto (decisión 30): ventas_netas y presupuesto con los mismos filtros, y el % lo hace el código."""
+    for dimension in [*filtros, *agrupar_por]:
+        if dimension in ("fecha", "semana"):
+            raise ValueError("El presupuesto es mensual: el desvío se pide por mes o por períodos más largos, no por fecha ni semana")
+    presupuesto = calcular("presupuesto", filtros, agrupar_por)  # primero: rechaza lo que el presupuesto no tiene (producto…)
+    ventas = calcular("ventas_netas", filtros, agrupar_por)
+    desvio = lambda v, p: (v - p) / p * 100 if v is not None and p else None
+    base = {"medida": "desvio_presupuesto_pct", "filtros": filtros, "unidad": "%",
+            "sql": {"ventas_netas": ventas["sql"], "presupuesto": presupuesto["sql"]},
+            "parametros": {"ventas_netas": ventas["parametros"], "presupuesto": presupuesto["parametros"]}}
+    if not agrupar_por:
+        v, p = ventas["valor"], presupuesto["valor"]
+        return {**base, "valor": desvio(v, p), "ventas_netas": v, "presupuesto": p, "diferencia": None if v is None or p is None else v - p}
+
+    clave = lambda fila: tuple(fila[d] for d in agrupar_por)
+    vendido = {clave(f): f["valor"] for f in ventas["filas"]}
+    filas = []
+    for fila in presupuesto["filas"]:
+        v, p = vendido.get(clave(fila)), fila["valor"]
+        filas.append({**{d: fila[d] for d in agrupar_por}, "valor": desvio(v, p), "ventas_netas": v, "presupuesto": p,
+                      "diferencia": None if v is None else v - p})
+    filas.sort(key=lambda f: (f["valor"] is None, -(f["valor"] or 0) if orden == "desc" else (f["valor"] or 0)))
+    total = {"valor": desvio(ventas["total"], presupuesto["total"]), "ventas_netas": ventas["total"], "presupuesto": presupuesto["total"]}
+    return {**base, "filas": filas[:int(limite)] if limite else filas, "total": total}
+
+
+# Medidas derivadas que se piden por id; cada una la calcula su función (las demás salen de parámetros de calcular)
+CALCULADAS = {"desvio_presupuesto_pct": desvio_presupuesto}
+
+
 def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, comparar_con=None,
              comparables=False, abiertas_hasta=None):
     """Calcula una medida con filtros: un valor (columna = valor) o una lista (columna IN lista).
@@ -100,30 +204,37 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
     abiertas_hasta no lo pasa el modelo: lo pone comparables."""
     filtros = filtros or {}
     agrupar_por = agrupar_por or []
+    if medida in CALCULADAS:
+        if comparar_con or comparables:
+            raise ValueError(f"{medida} todavía no se puede comparar entre períodos")
+        if orden not in ("desc", "asc"):
+            raise ValueError(f"Orden inválido: {orden}")
+        return CALCULADAS[medida](filtros, agrupar_por, orden, limite)
     if medida not in MEDIDAS:
         raise ValueError(f"Medida desconocida: {medida}")
     m = MEDIDAS[medida]
     if "tabla" not in m:
         raise ValueError(f"{medida} es una medida derivada: todavía no se calcula")
+    if orden not in ("desc", "asc"):
+        raise ValueError(f"Orden inválido: {orden}")
 
     # Paso 1: comparar dos períodos (decisión 11). El anterior copia los filtros y cambia solo lo de comparar_con
     if comparables and not comparar_con:
         raise ValueError("comparables=True necesita comparar_con")
     if comparar_con:
-        if agrupar_por:
-            raise ValueError("Todavía no se puede comparar y agrupar a la vez")
         filtros_anterior = {**filtros, **comparar_con}
         # Comparables (decisión 12): sucursales con fecha_apertura <= primer día del período anterior
         hasta = inicio_del_periodo(filtros_anterior) if comparables else None
         actual = calcular(medida, filtros, abiertas_hasta=hasta)
         anterior = calcular(medida, filtros_anterior, abiertas_hasta=hasta)
-        if m["unidad"] == "%":
-            variacion, unidad_variacion = actual["valor"] - anterior["valor"], "pp"
-        else:
-            variacion, unidad_variacion = (actual["valor"] - anterior["valor"]) / anterior["valor"] * 100, "%"
-        return {"medida": medida, "unidad": m["unidad"], "actual": actual, "anterior": anterior,
-                "variacion": variacion, "unidad_variacion": unidad_variacion,
-                "comparables": comparables, "abiertas_hasta": hasta}
+        resultado = {"medida": medida, "unidad": m["unidad"], "actual": actual, "anterior": anterior,
+                     "variacion": variacion(m, actual["valor"], anterior["valor"]),
+                     "unidad_variacion": "pp" if m["unidad"] == "%" else "%",
+                     "comparables": comparables, "abiertas_hasta": hasta}
+        if agrupar_por:
+            resultado.update(comparar_por_grupo(m, medida, filtros, filtros_anterior, agrupar_por, orden, limite, hasta,
+                                                actual["valor"], anterior["valor"]))
+        return resultado
 
     # Paso 2: el join completo de la tabla (decisión 9)
     # Una tabla de dimensión (por ejemplo, sucursales) no tiene join: va sola con su alias
@@ -160,8 +271,6 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
         if dimension not in columna_de:
             raise ValueError(f"Dimensión desconocida: {dimension}")
         columnas.append(columna_de[dimension])
-    if orden not in ("desc", "asc"):
-        raise ValueError(f"Orden inválido: {orden}")
 
     seleccion = [f"{c} AS {d}" for c, d in zip(columnas, agrupar_por)] + [f"{m['formula']} AS valor"]
     sql = f"SELECT {', '.join(seleccion)}\nFROM {join}"
@@ -179,4 +288,12 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
             valor = resultado.fetchone()[0]
             return {"medida": medida, "filtros": filtros, "valor": valor, "unidad": m["unidad"], "sql": sql, "parametros": parametros}
         filas = [dict(zip(agrupar_por + ["valor"], fila)) for fila in resultado.fetchall()]
-    return {"medida": medida, "filtros": filtros, "filas": filas, "unidad": m["unidad"], "sql": sql, "parametros": parametros}
+    respuesta = {"medida": medida, "filtros": filtros, "filas": filas, "unidad": m["unidad"], "sql": sql, "parametros": parametros}
+
+    # Participación (decisión 29): solo en medidas aditivas, sobre el total real (con los mismos filtros, sin limite)
+    if m.get("aditiva"):
+        total = calcular(medida, filtros, abiertas_hasta=abiertas_hasta)
+        for fila in filas:
+            fila["participacion_pct"] = fila["valor"] / total["valor"] * 100 if total["valor"] and fila["valor"] is not None else None
+        respuesta.update({"total": total["valor"], "sql_total": total["sql"]})
+    return respuesta

@@ -23,6 +23,13 @@ P10:
   - {medida: ventas_netas, tipo: ranking, dimension: sucursal, esperado: [S02, S11, S21, S01, S22]}
 P11:
   - {medida: margen_bruto, tipo: ranking, dimension: proveedor, esperado: [PR11, PR15, PR07]}
+# Semana 2. Ambigua: con dos lecturas da las dos (decisión 8), así que tiene que haber consultado ambas.
+P17:
+  - {medida: ventas_netas, tipo: valor, esperado: 2514025456.5, tolerancia: 0.5}   # fiscal: T4 AF2026 (feb–abr 2026)
+  - {medida: ventas_netas, tipo: valor, esperado: 2632210699.5, tolerancia: 0.5}   # calendario: ene–mar 2026
+# Sin dato en la base: dice que no está, sin responder con otro indicador, así que no consulta nada.
+P20:
+  - {tipo: ninguna_consulta}
 
 # Hallazgos de los diagnósticos (semana 3), todavía sin chequeo automático.
 # Estaban en las descripciones de esquema.yaml; se movieron acá para no darle la respuesta al agente (decisión 24).
@@ -31,3 +38,36 @@ P11:
 #   P15:      desde jun-2025 (apertura de S39) las comparables del Oeste caen ~6 % interanual,
 #             mientras las otras regiones crecen 3–5 %.
 #   P16:      la única promoción del 25 % es PROMO001 «Verano Cola Andina» (dic-2025).
+
+# Conversaciones (semana 2): un chequeo por turno, verificados con SQL directo el 2026-11-11.
+# Un turno pasa si alguna de SUS consultas cumple; así se ve si heredó período, filtros y medida.
+#   grupo: la consulta agrupó por `dimension` y la fila de `codigo` tiene esa variación
+#   fila: si Haiku agrupa en vez de filtrar, vale el número de esa fila (y solo de esa)
+#   Un turno sin chequeos ([]) se corre igual, pero no se evalúa con números.
+C1:
+  turnos:
+    - - {medida: ventas_netas, tipo: variacion, comparables: false, esperado: 5.4, tolerancia: 0.05}
+      - {medida: ventas_netas, tipo: variacion, comparables: true, esperado: 2.3, tolerancia: 0.05}
+    - - {medida: ventas_netas, tipo: variacion, comparables: false, esperado: 3.7, tolerancia: 0.05, fila: {region: Sur}}
+    # en el Sur el orden difiere del total (ahí Gaseosas es segunda): si pierde la región, falla
+    - - {medida: ventas_netas, tipo: ranking, dimension: subcategoria, esperado: [Vinos, Jugos, Cervezas, Gaseosas, Aguas]}
+C2:
+  turnos:
+    - - {medida: margen_pct, tipo: valor, esperado: 24.5, tolerancia: 0.05, fila: {categoria: Almacén}}
+    - - {medida: margen_pct, tipo: valor, esperado: 25.7, tolerancia: 0.05, fila: {categoria: Almacén}}
+    - - {medida: margen_pct, tipo: grupo, dimension: proveedor, codigo: PR01, esperado: -8.6, tolerancia: 0.05}
+C3:
+  turnos:
+    - - {medida: ventas_netas, tipo: valor, esperado: 1940176821.5, tolerancia: 0.5}
+    - - {medida: ventas_netas, tipo: variacion, comparables: false, esperado: 6.3, tolerancia: 0.05}
+    - - {medida: ventas_netas, tipo: variacion, comparables: true, esperado: -5.7, tolerancia: 0.05}
+C4:
+  turnos:
+    - - {medida: unidades, tipo: valor, esperado: 1806, tolerancia: 0}   # P0298, cola Del Sur 2,25 L
+    - - {medida: unidades, tipo: valor, esperado: 8018, tolerancia: 0}   # P0071, cola Cola Andina 2,25 L (la común)
+    - []   # promociones de gaseosas vigentes en dic-2025: solo PROMO001 (necesita consultar_sql)
+C5:
+  turnos:
+    - []   # ambigua: tiene que preguntar o dar las dos lecturas (fiscal 2.514.025.456,5 · calendario 2.632.210.699,5)
+    - - {medida: ventas_netas, tipo: valor, esperado: 2514025456.5, tolerancia: 0.5}
+    - - {medida: margen_pct, tipo: valor, esperado: 26.6, tolerancia: 0.05}

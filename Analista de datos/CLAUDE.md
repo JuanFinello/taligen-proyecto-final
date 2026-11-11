@@ -7,7 +7,8 @@ El enunciado completo está en `Proyecto Final Analista de datos.pdf` (plan de 7
 ## Comandos
 Todo se corre desde esta carpeta con `.venv/bin/python` (los scripts usan rutas relativas). La API key está en la variable de entorno `ANTHROPIC_API_KEY`.
 - Hacer una pregunta al agente: `.venv/bin/python agente.py "¿Cuál fue el margen bruto de Perfumería en el AF2026?"` (levanta solo `servidor_mcp.py` por stdio; no hace falta correrlo aparte).
-- Evaluar: `.venv/bin/python evaluador.py [--veces N] [P03 P05 …]`. Sin ids corre todas; con `--veces N` cada pregunta aprueba solo si pasa las N veces (Haiku varía entre corridas).
+- Conversación: un argumento por turno. Guardar la traza (respuesta + consultas con SQL): `--traza trazas/X.md` antes de las preguntas.
+- Evaluar: `.venv/bin/python evaluador.py [--veces N] [P03 C1 …]`. Sin ids corre todas (preguntas y conversaciones C1–C5, cada turno con su chequeo); con `--veces N` aprueba solo si pasa las N veces (Haiku varía entre corridas).
 - Instalar paquetes: `.venv/bin/python -m pip install …`. El `pip` del venv está roto desde que se renombró la carpeta.
 
 ## Cómo trabajar con el usuario
@@ -29,7 +30,7 @@ Todo se corre desde esta carpeta con `.venv/bin/python` (los scripts usan rutas 
 - **Cada decisión nueva se agrega al `README.md` apenas se toma** (qué se hizo, alternativas, por qué). Al README van decisiones, no pasos de trabajo. Estilo: un párrafo por decisión, título en negrita, sin subsecciones.
 
 ## Decisiones de diseño (el por qué; el detalle de todas está en el README)
-- **Haiku no escribe SQL: el servidor MCP solo expone `ver_modelo()` y `calcular()`** (decisión 14). Así cada número sale de una métrica definida en la capa semántica y queda registrado su SQL, que es la regla central del proyecto. Si una pregunta no se puede responder así, se agrega una métrica (como `sucursales_abiertas`, decisión 13) en lugar de abrir una tool de SQL libre. El servidor usa mcp 2.x (`MCPServer`, no `FastMCP`).
+- **Las medidas salen siempre de `calcular()`; el SQL libre es solo para lo que la capa no cubre** (decisiones 14 y 34). Así cada número sale de una métrica definida en la capa semántica y queda registrado su SQL, que es la regla central del proyecto. `consultar_sql` (listados, como promociones vigentes) abre la base en solo lectura y **sin acceso externo**: `read_only` solo no frena `COPY … TO` ni la lectura de archivos. `buscar_producto` pasa de un nombre a su sku (decisión 33). El servidor usa mcp 2.x (`MCPServer`, no `FastMCP`).
 - **Cada archivo de la capa responde una sola pregunta y nada está escrito dos veces** (decisiones 1 y 21). `medidas.yaml`: qué se calcula (solo métricas). `esquema.yaml`: sobre qué datos (tablas, alias, joins, dimensiones). `glosario.md`: con qué criterio; es la única fuente de criterio y va entero en el prompt de sistema. Las fórmulas usan los alias de `esquema.yaml`, así que los dos YAML van juntos.
 - **`esquema.yaml` se mantiene a mano.** Tipos, filas y valores se extrajeron una vez de la base, que no va a cambiar; el script que lo generó se borró a propósito. `une_con` se usa solo para relaciones que no están en ningún `join`.
 - **Haiku no lee los YAML tal cual** (decisión 3). El código le arma una versión compacta (`ver_modelo()`, ~1.700 tokens; el glosario, ~1.360) con lo que necesita para elegir la métrica y los filtros. Las fórmulas, los joins y los alias quedan para el código, porque a un modelo chico el texto que no le sirve lo confunde.
@@ -49,6 +50,8 @@ Todo se corre desde esta carpeta con `.venv/bin/python` (los scripts usan rutas 
 - Obsidian es un AppImage sin el enlace `obsidian://` registrado: se abre con `~/Documentos/programas/Obsidian-1.11.5.AppImage "obsidian://open?vault=taligent_vault&file=…"`.
 
 ## Dónde estamos
-Semana 1 cerrada y revisada (2026-11-11): con `--veces 3`, 10 de 10 pasan las 3 veces.
-- Siguiente: semana 2 (cuentas en código, criterio ante ambigüedad, conversaciones). Ya se sabe que falta: comparar y agrupar a la vez (C1), medidas derivadas (desvío contra presupuesto, participación), y conversaciones (`agente.py` responde una pregunta suelta).
+Semana 1 cerrada y revisada. Semana 2 casi cerrada (2026-11-11): cuentas en código (aporte, participación, desvío), conversaciones, ambigua y sin dato, `buscar_producto`, `consultar_sql` y trazas (`trazas/P17.md`, `P20.md`, `C1.md`). El evaluador controla 17 casos: 17 de 17 en corridas parciales y 16 de 17 en la última completa (C2 turno 3 falló una vez y pasó 3 de 3 al repetirlo).
+- Visto: el `aporte_pct` se dispara cuando la diferencia total es casi 0 (margen bruto de Almacén T2: PR01 «aporta» 83.871 %). Haiku no lo citó, pero hay que acotarlo.
+- Falta de la semana 2: gráficos (se dejan para los informes de la semana 3).
+- Visto en las pruebas: Haiku a veces hace cuentas propias en el texto (suma porcentajes, resta montos). Lo frena el hook de la semana 4. Y en un diagnóstico no abrió el desvío por sucursal aunque se puede: criterio de la semana 3.
 - Pendientes: P07 escribió mal el año del período («ago a oct de 2026»); decidir si `Mapa del proyecto.canvas` se mueve a la bóveda.

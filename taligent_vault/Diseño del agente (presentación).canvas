@@ -1,0 +1,41 @@
+{
+	"nodes":[
+		{"id":"srv","type":"group","x":2000,"y":280,"width":780,"height":970,"color":"4","label":"3 · servidor_mcp.py · MCP propio, 4 tools"},
+		{"id":"lbl_procesador","type":"group","x":3320,"y":600,"width":500,"height":330,"label":"4 · Procesador"},
+		{"id":"lbl_agente","type":"group","x":460,"y":540,"width":440,"height":370,"label":"2 · Haiku"},
+		{"id":"lbl_pregunta","type":"group","x":-620,"y":380,"width":600,"height":260,"label":"1 · Pregunta"},
+		{"id":"lbl_capa","type":"group","x":3320,"y":160,"width":620,"height":200,"label":"Capa semántica"},
+		{"id":"lbl_respuesta","type":"group","x":440,"y":1240,"width":420,"height":280,"label":"6 · Respuesta"},
+		{"id":"lbl_t_calc","type":"group","x":2030,"y":565,"width":690,"height":160,"label":"calcular()"},
+		{"id":"lbl_base","type":"group","x":4600,"y":720,"width":400,"height":230,"label":"5 · Base"},
+		{"id":"lbl_evaluador","type":"group","x":-490,"y":1240,"width":380,"height":240,"label":"7 · Evaluador"},
+		{"id":"lbl_glosario","type":"group","x":460,"y":80,"width":440,"height":200,"label":"Glosario"},
+		{"id":"lbl_t_ver","type":"group","x":2030,"y":360,"width":690,"height":120,"label":"ver_modelo()"},
+		{"id":"lbl_t_sql","type":"group","x":2030,"y":990,"width":690,"height":120,"label":"consultar_sql()"},
+		{"id":"lbl_t_buscar","type":"group","x":2030,"y":780,"width":690,"height":110,"label":"buscar_producto()"},
+		{"id":"titulo","type":"text","text":"# Diseño del agente: cómo responde sin inventar\n**Cada número sale de una consulta registrada** que se puede mostrar y volver a correr. Seguí la pregunta P03 por las flechas.","x":-680,"y":-180,"width":5640,"height":170},
+		{"id":"evaluador","type":"text","text":"## 7 · Evaluador\nValores verificados a mano con SQL directo. Mira **las consultas**: número bien con medida mal = coincidencia · *dec. 19*\n17 casos: **16 o 17** según la corrida · `--veces N`, porque Haiku varía · *dec. 27*","x":-490,"y":1240,"width":380,"height":240,"color":"4"},
+		{"id":"agente","type":"text","text":"## 2 · Haiku elige qué pedir\n`agente.py` · `claude-haiku-5-5`\n1. Traduce las palabras a ids: medida y filtros\n2. Pide tools y lee lo que vuelve\n3. Responde **sin hacer cuentas propias**\n\nConversaciones: recibe el historial · *dec. 31*\nAmbigua → da las dos lecturas · sin dato → lo dice, sin otro indicador · *dec. 35*\nMáximo 10 llamadas por turno · *dec. 26*","x":460,"y":540,"width":440,"height":370,"color":"4"},
+		{"id":"pregunta","type":"text","text":"## 1 · Entra una pregunta\n- **P01–P20** sueltas: puntuales, comparativas, rankings, diagnósticos, ambiguas y sin dato\n- **C1–C5** conversaciones de 3 turnos\n- **I1–I3** pedidos de informe\n\nEl tipo no viene escrito: reconocerlo es parte del trabajo.","x":-620,"y":380,"width":600,"height":260},
+		{"id":"glosario","type":"text","text":"### glosario.md · el criterio\nVentas = netas · año fiscal desde mayo · «margen bruto» = pesos · margen en pp · no hay clientes ni tickets.\nVa **entero en el prompt**: única fuente de criterio · *dec. 21*","x":460,"y":80,"width":440,"height":200,"color":"4"},
+		{"id":"t_sql","type":"text","text":"### `consultar_sql()`\nSolo lo que la capa no cubre (promociones vigentes). Solo lectura, **sin acceso a archivos** · *dec. 34*","x":2030,"y":990,"width":690,"height":120,"color":"4"},
+		{"id":"t_buscar","type":"text","text":"### `buscar_producto()`\nDel nombre al código: «cola Del Sur» → P0298 · *dec. 33*","x":2030,"y":780,"width":690,"height":110,"color":"4"},
+		{"id":"t_calc","type":"text","text":"### `calcular()` · el camino principal\nMedida + filtros → **número + SQL**. **Las cuentas las hace el código**: compara, agrupa, comparables, aporte, participación, desvío · *dec. 10–12, 28–30*","x":2030,"y":565,"width":690,"height":160,"color":"4"},
+		{"id":"t_ver","type":"text","text":"### `ver_modelo()`\nMedidas y dimensiones con sus valores válidos, versión compacta (~2.300 tokens). Sin fórmulas ni joins · *dec. 3*","x":2030,"y":360,"width":690,"height":120,"color":"4"},
+		{"id":"procesador","type":"text","text":"## 4 · El código calcula\n`procesador_capa_semantica.py`\n- Arma el SQL desde los YAML: **la fórmula no la escribe Haiku** · *dec. 2*\n  \n- Valida cada valor: «perfumeria» → error con los válidos · *dec. 25*\n  \n- Si algo falla, Haiku recibe **el motivo** y corrige · *dec. 15*","x":3320,"y":600,"width":640,"height":330,"color":"4"},
+		{"id":"respuesta","type":"text","text":"## 6 · Respuesta trazable\nTexto + **cada consulta con su SQL**: cada número se puede mostrar y volver a correr.\n`--traza trazas/X.md` la guarda · *dec. 36*\nSemana 2: `trazas/P17.md` (ambigua), `P20.md` (sin dato), `C1.md` (conversación)\n🟪 Registro estructurado: semana 5","x":410,"y":1240,"width":540,"height":320,"color":"4"},
+		{"id":"base","type":"text","text":"## 5 · La base\n`almacenes_del_sur.duckdb`\n8 tablas, ventas = 2,8 M filas. **Solo lectura.** No entra en el prompt: se consulta por tools.","x":4600,"y":720,"width":400,"height":230},
+		{"id":"capa","type":"text","text":"### Capa semántica · las recetas\n\n`medidas.yaml`: **qué** se calcula (fórmula, unidad, sinónimos, si es aditiva)\n\n`esquema.yaml`: **sobre qué datos** (tablas, alias, joins, dimensiones) · *dec. 1*","x":3320,"y":160,"width":620,"height":200,"color":"4"}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"pregunta","fromSide":"right","toNode":"agente","toSide":"left","label":"«¿Margen bruto de Perfumería en el AF2026?»"},
+		{"id":"e2","fromNode":"glosario","fromSide":"bottom","toNode":"agente","toSide":"top","label":"criterio, en el prompt"},
+		{"id":"e3","fromNode":"agente","fromSide":"right","toNode":"t_ver","toSide":"left","label":"1º ¿qué hay?"},
+		{"id":"e4","fromNode":"agente","fromSide":"right","toNode":"t_calc","toSide":"left","label":"2º margen_bruto + {categoria: Perfumería, anio_fiscal: 2026}"},
+		{"id":"e5","fromNode":"srv","fromSide":"right","toNode":"procesador","toSide":"left","label":"las ejecuta"},
+		{"id":"e6","fromNode":"capa","fromSide":"bottom","toNode":"procesador","toSide":"top","label":"recetas"},
+		{"id":"e7","fromNode":"procesador","fromSide":"right","toNode":"base","toSide":"left","label":"SQL armado → 460.758.207 ARS"},
+		{"id":"e8","fromNode":"agente","fromSide":"bottom","toNode":"respuesta","toSide":"top","label":"texto + consultas con SQL"},
+		{"id":"e9","fromNode":"respuesta","fromSide":"left","toNode":"evaluador","toSide":"right","label":"se compara"}
+	]
+}

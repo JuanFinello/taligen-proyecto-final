@@ -1,13 +1,15 @@
 version: 1
 descripcion: 'Capa semántica de Almacenes del Sur. Cada medida trae su fórmula ya definida: para responder con una medida
   de esta lista no hace falta rearmar la fórmula en SQL. El criterio de negocio que las fórmulas no dicen está en glosario.md.
-  La estructura de la base (tablas, alias, joins y dimensiones) está en esquema.yaml.'
+  La estructura de la base (tablas, alias, joins y dimensiones) está en esquema.yaml. aditiva: true si el valor de un
+  total es la suma del de sus partes; solo esas medidas admiten aporte y participación.'
 medidas:
 - id: ventas_netas
   nombre: Ventas netas
   tabla: ventas
   formula: SUM(v.importe_neto)
   unidad: ARS
+  aditiva: true
   descripcion: Ventas brutas menos descuentos y devoluciones. Es lo que se entiende por «ventas».
   sinonimos:
   - ventas
@@ -19,6 +21,7 @@ medidas:
   tabla: ventas
   formula: SUM(CASE WHEN v.tipo_movimiento = 'venta' THEN v.importe_bruto ELSE 0 END)
   unidad: ARS
+  aditiva: true
   descripcion: Ventas a precio de lista antes de descuentos, sin devoluciones.
   sinonimos:
   - venta bruta
@@ -27,6 +30,7 @@ medidas:
   tabla: ventas
   formula: SUM(v.descuento)
   unidad: ARS
+  aditiva: true
   descripcion: Importe resignado por promociones.
   sinonimos:
   - descuentos por promociones
@@ -36,6 +40,7 @@ medidas:
   tabla: ventas
   formula: -SUM(CASE WHEN v.tipo_movimiento = 'devolucion' THEN v.importe_neto ELSE 0 END)
   unidad: ARS
+  aditiva: true
   descripcion: Importe devuelto, en positivo.
   sinonimos: []
 - id: unidades
@@ -43,6 +48,7 @@ medidas:
   tabla: ventas
   formula: SUM(v.unidades)
   unidad: unidades
+  aditiva: true
   descripcion: Unidades vendidas, netas de devoluciones.
   sinonimos:
   - cantidades
@@ -52,6 +58,7 @@ medidas:
   tabla: ventas
   formula: SUM(v.costo)
   unidad: ARS
+  aditiva: true
   descripcion: Costo de reposición de lo vendido, vigente el día de la venta.
   sinonimos:
   - costo de mercadería
@@ -60,6 +67,7 @@ medidas:
   tabla: ventas
   formula: SUM(v.importe_neto) - SUM(v.costo)
   unidad: ARS
+  aditiva: true
   descripcion: Ventas netas menos costo.
   sinonimos:
   - contribución
@@ -68,6 +76,7 @@ medidas:
   tabla: ventas
   formula: (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100
   unidad: '%'
+  aditiva: false
   descripcion: Margen bruto sobre ventas netas. Sus variaciones se informan en puntos porcentuales.
   sinonimos:
   - margen
@@ -78,6 +87,7 @@ medidas:
   tabla: ventas
   formula: SUM(v.importe_neto) / NULLIF(SUM(v.unidades), 0)
   unidad: ARS por unidad
+  aditiva: false
   descripcion: 'Ventas netas por unidad. Mezcla productos: puede variar por cambio de mix.'
   sinonimos:
   - precio medio
@@ -86,6 +96,7 @@ medidas:
   tabla: ventas
   formula: COUNT(DISTINCT v.sucursal_id)
   unidad: sucursales
+  aditiva: false
   descripcion: Sucursales con al menos un movimiento en el período. Para contar cuántas sucursales hay, usar sucursales_abiertas.
   sinonimos: []
 - id: sucursales_abiertas
@@ -93,6 +104,7 @@ medidas:
   tabla: sucursales
   formula: COUNT(*)
   unidad: sucursales
+  aditiva: true
   descripcion: Cuántas sucursales existen (ninguna cerró). Se filtra por región o formato; no lleva período.
   sinonimos:
   - sucursales
@@ -103,6 +115,7 @@ medidas:
   tabla: presupuesto
   formula: SUM(pz.importe_presupuesto)
   unidad: ARS
+  aditiva: true
   descripcion: Objetivo mensual de ventas netas.
   sinonimos:
   - objetivo
@@ -112,6 +125,7 @@ medidas:
   tabla: stock_semanal
   formula: AVG(st.stock_unidades)
   unidad: unidades
+  aditiva: false
   descripcion: Promedio de unidades en las fotos semanales.
   sinonimos:
   - stock
@@ -120,6 +134,7 @@ medidas:
   tabla: stock_semanal
   formula: AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100
   unidad: '%'
+  aditiva: false
   descripcion: Porcentaje de combinaciones producto-sucursal con stock cero en la foto del lunes.
   sinonimos:
   - quiebre
@@ -129,6 +144,13 @@ medidas_derivadas:
 - id: desvio_presupuesto_pct
   nombre: Desvío contra presupuesto %
   formula: (ventas_netas - presupuesto) / presupuesto * 100
+  unidad: '%'
+  descripcion: Cuánto se vendió por encima (+) o por debajo (-) del presupuesto. Lo calcula el código con ventas_netas y
+    presupuesto con los mismos filtros; no se abre por producto, marca, subcategoría ni proveedor, ni por día o semana.
+  sinonimos:
+  - desvío
+  - desvío contra presupuesto
+  - contra el objetivo
   nota: Se calcula con ventas_netas y presupuesto sobre el mismo período (meses completos) y las mismas sucursales y categorías.
 - id: variacion_interanual_pct
   nombre: Variación interanual %
