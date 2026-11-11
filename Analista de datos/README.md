@@ -73,6 +73,8 @@ Estudio las preguntas de a una para entender el patrón general. Casi todas se o
 
 **19. El evaluador compara las consultas del agente contra `esperados.yaml`.** `agente.py` ahora devuelve, además del texto, cada llamada a `calcular` con sus argumentos y su resultado (SQL incluido). Los valores esperados están en `Data/preguntas/esperados.yaml`, separados del código: uno o más chequeos por pregunta, de tipo valor, variación (total o comparables) o ranking (códigos en orden). La tolerancia es la mitad del último dígito con que se verificó cada valor. Un chequeo pasa si alguna consulta usó la métrica esperada y dio ese valor: así un número correcto con la métrica equivocada no cuenta. Descarté guardar los esperados dentro de `evaluador.py` porque mezclaba datos con código. Límite conocido: mira las consultas, no el texto, así que no detecta un número bien calculado y mal escrito, ni el orden de la respuesta (P03 pasa aunque ponga el % primero).
 
+**20. El glosario dice «margen %», no «margen bruto %».** El glosario del curso decía «El margen bruto % se expresa…», así que «margen bruto» nombraba las dos métricas y contradecía la regla de la decisión 17. Medí P03 cinco veces por corrida (¿pone el % antes que los pesos?): sin cambios, 7 de 10; cambiando esa frase del glosario, 0 de 5, y Haiku pasa a consultar `margen_bruto` primero. El evaluador sigue en 10 de 10. Es el primer cambio al glosario original. El nombre de `margen_pct` en `medidas.yaml` sigue siendo «Margen bruto %»: no hizo falta cambiarlo.
+
 ## Evaluación
 
 *Pendiente.*
