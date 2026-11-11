@@ -23,6 +23,8 @@ La base cubre el AF2025 y el AF2026 completos.
 
 ## Margen
 
+**«Margen bruto» es en pesos. «El margen», sin más, es el margen %**, y junto al % se muestran también los pesos.
+
 El margen % se expresa en por ciento y **sus variaciones se informan en puntos porcentuales**: de 25 % a 24 % es una caída de 1 pp. Para explicar una variación conviene separar el efecto precio (precio promedio) del efecto costo (costo por unidad). El costo es el de reposición vigente el día de la venta: si un proveedor cambia su costo, se ve desde ese día.
 
 ## Presupuesto

@@ -8,6 +8,7 @@ import anthropic
 from mcp import ClientSession, StdioServerParameters, stdio_client
 
 MODELO = "claude-haiku-5-5"
+MAX_VUELTAS = 10  # llamadas al modelo por pregunta; medido (2026-11-11): las preguntas usan 2 o 3
 
 with open("Data/capa_semantica/glosario.md") as f:
     SISTEMA = ("Sos un analista de datos de Almacenes del Sur. Respondé en español. "
@@ -30,7 +31,7 @@ async def responder(pregunta):
         # Paso 2: el loop. Haiku contesta; si pide una tool, la corremos y le devolvemos el resultado
         mensajes = [{"role": "user", "content": pregunta}]
         consultas = []  # cada llamada a calcular que salió bien: qué pidió y qué volvió (con el SQL)
-        while True:
+        for _ in range(MAX_VUELTAS):
             respuesta = await claude.messages.create(model=MODELO, max_tokens=16000, system=SISTEMA,
                                                      tools=tools, messages=mensajes)
             mensajes.append({"role": "assistant", "content": respuesta.content})
@@ -52,6 +53,10 @@ async def responder(pregunta):
                 resultados.append({"type": "tool_result", "tool_use_id": bloque.id,
                                    "content": resultado.content[0].text, "is_error": resultado.is_error})
             mensajes.append({"role": "user", "content": resultados})
+
+        # Si se trabó pidiendo tools sin terminar, corta en vez de seguir gastando (decisión 26)
+        texto = f"No pude responder: se alcanzó el límite de {MAX_VUELTAS} llamadas al modelo sin una respuesta final."
+        return {"pregunta": pregunta, "texto": texto, "consultas": consultas}
 
 
 if __name__ == "__main__":

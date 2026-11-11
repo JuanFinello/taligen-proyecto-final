@@ -23,3 +23,11 @@ P10:
   - {medida: ventas_netas, tipo: ranking, dimension: sucursal, esperado: [S02, S11, S21, S01, S22]}
 P11:
   - {medida: margen_bruto, tipo: ranking, dimension: proveedor, esperado: [PR11, PR15, PR07]}
+
+# Hallazgos de los diagnósticos (semana 3), todavía sin chequeo automático.
+# Estaban en las descripciones de esquema.yaml; se movieron acá para no darle la respuesta al agente (decisión 24).
+#   P13 y C2: desde ago-2025 el costo de PR01 (Molinos del Plata) sube de ~74 % a ~83 % del precio de lista,
+#             sin cambio de precio: baja el margen de Almacén (~25,9 % a ~24,4 %).
+#   P15:      desde jun-2025 (apertura de S39) las comparables del Oeste caen ~6 % interanual,
+#             mientras las otras regiones crecen 3–5 %.
+#   P16:      la única promoción del 25 % es PROMO001 «Verano Cola Andina» (dic-2025).

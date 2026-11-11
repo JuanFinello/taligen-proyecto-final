@@ -94,6 +94,8 @@ tablas:
     alias: pz
     grano: mes x sucursal x categoría
     join: presupuesto pz JOIN fechas f ON pz.mes = f.fecha JOIN sucursales s ON pz.sucursal_id = s.sucursal_id
+    dimensiones_propias:  # para esta tabla, estas dimensiones van a su propia columna y no a la del mapa general
+      categoria: pz.categoria
     descripcion: 'Objetivo mensual de ventas netas por sucursal y categoría. S39 y S40 tienen presupuesto desde su mes de apertura. Error de carga conocido: ene-2026, Perfumería, región Sur (10 filas), el importe viene 10 veces más alto.'
     filas: 5598
     columnas:
@@ -210,7 +212,7 @@ tablas:
         rango:
         - 10.0
         - 25.0
-        descripcion: '% de descuento sobre el precio: 10, 15 o 20. La única de 25 es PROMO001 ''Verano Cola Andina'' (dic-2025).'
+        descripcion: '% de descuento sobre el precio: 10, 15, 20 o 25.'
         une_con: ''
       fecha_desde:
         tipo: DATE
@@ -231,7 +233,7 @@ tablas:
     alias: pr
     grano: ''
     join: ''
-    descripcion: 'Proveedores: 16. Casi todos abastecen una sola categoría; PR16 es la marca propia Del Sur y está en las 6. Desde ago-2025 el costo de PR01 (Molinos del Plata) sube de ~74 % a ~83 % del precio de lista, sin cambio de precio: baja el margen de Almacén (~25,9 % a ~24,4 %).'
+    descripcion: 'Proveedores: 16. Casi todos abastecen una sola categoría; PR16 es la marca propia Del Sur y está en las 6.'
     filas: 16
     columnas:
       proveedor_id:
@@ -282,7 +284,7 @@ tablas:
     alias: s
     grano: ''
     join: ''
-    descripcion: 'Las 40 sucursales, 10 por región. Ninguna cerró. Desde jun-2025 (apertura de S39) las comparables del Oeste caen ~6 % interanual, mientras las otras regiones crecen 3–5 %.'
+    descripcion: 'Las 40 sucursales, 10 por región. Ninguna cerró.'
     filas: 40
     columnas:
       sucursal_id:
@@ -419,4 +421,4 @@ dimensiones:
   es_marca_propia: p.es_marca_propia
   proveedor: pr.proveedor_id
   nombre_proveedor: pr.nombre
-nota_dimensiones: presupuesto solo se puede abrir por fecha (mes o más), sucursal, región, formato y categoría (usar pz.categoria).
+nota_dimensiones: presupuesto solo se puede abrir por fecha (mes o más), sucursal, región, formato y categoría.

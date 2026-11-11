@@ -14,7 +14,7 @@ servidor = MCPServer("almacenes-del-sur")
 
 @servidor.tool()
 def ver_modelo() -> dict:
-    """Medidas disponibles (id, nombre, sinónimos, unidad), dimensiones con sus valores válidos y reglas de negocio.
+    """Medidas disponibles (id, nombre, sinónimos, unidad), dimensiones con sus valores válidos.
     Llamar primero, antes de calcular."""
     return procesador.ver_modelo()
 
@@ -24,7 +24,7 @@ def calcular(medida: str, filtros: dict | None = None, agrupar_por: list[str] | 
              orden: str = "desc", limite: int | None = None, comparar_con: dict | None = None,
              comparables: bool = False) -> dict:
     """Calcula una medida y devuelve el valor junto con el SQL que lo produjo.
-    medida: id de ver_modelo. filtros: {dimension: valor}, por ejemplo {"anio_fiscal": 2026}.
+    medida: id de ver_modelo. filtros: {dimension: valor o lista de valores}, por ejemplo {"anio_fiscal": 2026} o {"anio": 2026, "mes": [1, 2, 3]}.
     agrupar_por: lista de dimensiones; devuelve una fila por grupo, ordenada por valor (orden "desc" o "asc", limite opcional).
     comparar_con: solo los filtros que cambian en el período anterior, por ejemplo {"anio_fiscal": 2025}.
     comparables=True: compara solo sucursales abiertas al inicio del período anterior (requiere comparar_con)."""

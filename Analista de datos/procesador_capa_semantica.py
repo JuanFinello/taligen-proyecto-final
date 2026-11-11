@@ -16,7 +16,7 @@ with open(f"{CAPA}/esquema.yaml") as f:
 
 def ver_modelo():
     """Versión compacta para Haiku: lo que necesita para elegir medida y filtros. Sin fórmulas ni joins (decisión 3)."""
-    # Las derivadas (variaciones, desvío) se suman cuando calcular() las sepa hacer (pieza 2)
+    # Las derivadas (desvío, participación) se suman cuando calcular() las sepa hacer
     medidas = [
         {"id": m["id"], "nombre": m["nombre"], "descripcion": m["descripcion"], "sinonimos": m["sinonimos"], "unidad": m["unidad"]}
         for m in MEDIDAS_YAML["medidas"]
@@ -34,8 +34,45 @@ def ver_modelo():
         "medidas": medidas,
         "dimensiones": dimensiones,
         "nota_dimensiones": ESQUEMA["nota_dimensiones"],
-        "reglas": MEDIDAS_YAML["reglas"],
     }
+
+
+def condicion(columna, valor):
+    """Un filtro en SQL: «columna = ?» para un valor, «columna IN (?, ?, …)» para una lista (decisión 23)."""
+    if isinstance(valor, list):
+        if not valor:
+            raise ValueError(f"Lista de valores vacía para {columna}")
+        return f"{columna} IN ({', '.join('?' * len(valor))})", valor
+    return f"{columna} = ?", [valor]
+
+
+def validar_valores(dimension, columna, valor):
+    """Si algún valor del filtro no existe en la base, error con los válidos, para que Haiku corrija (decisión 25)."""
+    alias, nombre_columna = columna.split(".")
+    tabla = next(t for t, datos in ESQUEMA["tablas"].items() if datos["alias"] == alias)
+    info = ESQUEMA["tablas"][tabla]["columnas"][nombre_columna]
+    valores = valor if isinstance(valor, list) else [valor]
+
+    if "valores" in info:  # pocos valores, listados en el esquema
+        malos = [v for v in valores if v not in info["valores"]]
+        validos = f"válidos: {', '.join(map(str, info['valores']))}"
+    elif "rango" in info:  # números o fechas: tiene que caer dentro del rango
+        desde, hasta = info["rango"]
+        malos = [v for v in valores if not (str(desde) <= str(v) <= str(hasta) if isinstance(desde, str)
+                                            else isinstance(v, (int, float)) and desde <= v <= hasta)]
+        validos = f"rango válido: {desde} a {hasta}"
+    else:  # muchos valores (códigos, nombres): se buscan en la base
+        sql = f"SELECT DISTINCT {columna} FROM {tabla} {alias} WHERE {columna} IN ({', '.join('?' * len(valores))})"
+        with duckdb.connect(BASE, read_only=True) as con:
+            existentes = {fila[0] for fila in con.execute(sql, valores).fetchall()}
+        malos = [v for v in valores if v not in existentes]
+        validos = info["descripcion"]
+        if malos and info.get("distintos", 0) <= 50:  # si son pocos, se listan todos
+            with duckdb.connect(BASE, read_only=True) as con:
+                todos = [fila[0] for fila in con.execute(f"SELECT DISTINCT {columna} FROM {tabla} {alias} ORDER BY 1").fetchall()]
+            validos = f"válidos: {', '.join(map(str, todos))}"
+    if malos:
+        raise ValueError(f"Valor no válido para {dimension}: {', '.join(map(str, malos))}. {validos}")
 
 
 def inicio_del_periodo(filtros):
@@ -44,8 +81,9 @@ def inicio_del_periodo(filtros):
     for dimension, valor in filtros.items():
         columna = ESQUEMA["dimensiones"].get(dimension, "")
         if columna.startswith("f."):
-            condiciones.append(f"{columna} = ?")
-            parametros.append(valor)
+            sql, valores = condicion(columna, valor)
+            condiciones.append(sql)
+            parametros += valores
     sql = "SELECT MIN(f.fecha) FROM fechas f"
     if condiciones:
         sql += " WHERE " + " AND ".join(condiciones)
@@ -55,7 +93,7 @@ def inicio_del_periodo(filtros):
 
 def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, comparar_con=None,
              comparables=False, abiertas_hasta=None):
-    """Calcula una medida con filtros simples (columna = valor).
+    """Calcula una medida con filtros: un valor (columna = valor) o una lista (columna IN lista).
     Sin agrupar_por devuelve un valor; con agrupar_por (lista de dimensiones), una fila por grupo ordenada por el valor.
     Con comparar_con (solo los filtros que cambian), calcula también el período anterior y la variación.
     Con comparables=True, los dos períodos usan solo las sucursales abiertas al inicio del anterior.
@@ -92,21 +130,26 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
     tabla = ESQUEMA["tablas"][m["tabla"]]
     join = tabla["join"] or f"{m['tabla']} {tabla['alias']}"
 
+    # Columna de cada dimensión: la propia de la tabla si la declara (decisión 22), si no la del mapa general
+    columna_de = {**ESQUEMA["dimensiones"], **tabla.get("dimensiones_propias", {})}
+
     # Solo sirven las dimensiones cuya tabla está en el join (alias = la palabra después de cada nombre de tabla)
     alias_del_join = set(re.findall(r"(?:^|JOIN )\w+ (\w+)", join))
-    validas = [d for d, c in ESQUEMA["dimensiones"].items() if c.split(".")[0] in alias_del_join]
+    validas = [d for d, c in columna_de.items() if c.split(".")[0] in alias_del_join]
     for dimension in [*filtros, *agrupar_por]:
-        if dimension in ESQUEMA["dimensiones"] and dimension not in validas:
+        if dimension in columna_de and dimension not in validas:
             raise ValueError(f"La dimensión {dimension} no se puede usar con {medida}. "
                              f"Dimensiones válidas para {medida}: {', '.join(validas)}")
 
     # Paso 3: cada filtro va a su columna; el valor, como parámetro
     condiciones, parametros = [], []
     for dimension, valor in filtros.items():
-        if dimension not in ESQUEMA["dimensiones"]:
+        if dimension not in columna_de:
             raise ValueError(f"Dimensión desconocida: {dimension}")
-        condiciones.append(f"{ESQUEMA['dimensiones'][dimension]} = ?")
-        parametros.append(valor)
+        validar_valores(dimension, columna_de[dimension], valor)
+        sql, valores = condicion(columna_de[dimension], valor)
+        condiciones.append(sql)
+        parametros += valores
     if abiertas_hasta:
         condiciones.append("s.fecha_apertura <= ?")
         parametros.append(abiertas_hasta)
@@ -114,9 +157,9 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
     # Paso 4: cada dimensión de agrupar_por va a su columna (decisión 10)
     columnas = []
     for dimension in agrupar_por:
-        if dimension not in ESQUEMA["dimensiones"]:
+        if dimension not in columna_de:
             raise ValueError(f"Dimensión desconocida: {dimension}")
-        columnas.append(ESQUEMA["dimensiones"][dimension])
+        columnas.append(columna_de[dimension])
     if orden not in ("desc", "asc"):
         raise ValueError(f"Orden inválido: {orden}")
 

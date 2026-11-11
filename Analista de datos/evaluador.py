@@ -1,6 +1,7 @@
 """Evaluador: corre el agente con las preguntas de esperados.yaml y compara sus consultas contra lo esperado.
-Uso: .venv/bin/python evaluador.py            (todas)
-     .venv/bin/python evaluador.py P03 P05    (solo esas)"""
+Uso: .venv/bin/python evaluador.py                    (todas, una vez)
+     .venv/bin/python evaluador.py P03 P05            (solo esas)
+     .venv/bin/python evaluador.py --veces 5 P03      (cada una 5 veces: Haiku varía entre corridas)"""
 import asyncio
 import json
 import sys
@@ -21,7 +22,7 @@ def cumple(chequeo, consulta):
     if argumentos["medida"] != chequeo["medida"]:
         return False
     if chequeo["tipo"] == "valor":
-        return "valor" in resultado and abs(resultado["valor"] - chequeo["esperado"]) <= chequeo["tolerancia"] + 1e-9
+        return resultado.get("valor") is not None and abs(resultado["valor"] - chequeo["esperado"]) <= chequeo["tolerancia"] + 1e-9
     if chequeo["tipo"] == "variacion":
         return ("variacion" in resultado and resultado["comparables"] == chequeo["comparables"]
                 and abs(resultado["variacion"] - chequeo["esperado"]) <= chequeo["tolerancia"] + 1e-9)
@@ -39,20 +40,29 @@ def diagnostico(chequeo, consultas):
     return f"usó {chequeo['medida']}, pero no dio {chequeo['esperado']}"
 
 
-def main(ids):
+def main(ids, veces=1):
     aprobadas = 0
     for id_ in ids:
         print(f"\n===== {id_}: {PREGUNTAS[id_]}", flush=True)
-        respuesta = asyncio.run(responder(PREGUNTAS[id_]))
-        fallos = [diagnostico(ch, respuesta["consultas"]) for ch in ESPERADOS[id_]
-                  if not any(cumple(ch, c) for c in respuesta["consultas"])]
-        if fallos:
-            print("✗ " + " · ".join(fallos))
-        else:
-            aprobadas += 1
-            print("✓")
-    print(f"\nResultado: {aprobadas} de {len(ids)} pasan")
+        pasadas = 0
+        for vez in range(1, veces + 1):
+            respuesta = asyncio.run(responder(PREGUNTAS[id_]))
+            fallos = [diagnostico(ch, respuesta["consultas"]) for ch in ESPERADOS[id_]
+                      if not any(cumple(ch, c) for c in respuesta["consultas"])]
+            pasadas += not fallos
+            marca = "✓" if not fallos else "✗ " + " · ".join(fallos)
+            print(marca if veces == 1 else f"  corrida {vez}: {marca}", flush=True)
+        if veces > 1:
+            print(f"{'✓' if pasadas == veces else '✗'} {id_}: {pasadas} de {veces}")
+        aprobadas += pasadas == veces  # una pregunta aprueba solo si pasa todas las veces
+    print(f"\nResultado: {aprobadas} de {len(ids)} pasan" + (f" (las {veces} veces)" if veces > 1 else ""))
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or list(ESPERADOS))
+    argumentos = sys.argv[1:]
+    veces = 1
+    if "--veces" in argumentos:
+        i = argumentos.index("--veces")
+        veces = int(argumentos[i + 1])
+        del argumentos[i:i + 2]
+    main(argumentos or list(ESPERADOS), veces)
