@@ -1,0 +1,41 @@
+{
+	"nodes":[
+		{"id":"srv","type":"group","x":2000,"y":280,"width":780,"height":970,"color":"4","label":"3 · servidor_mcp.py · MCP propio, 4 tools"},
+		{"id":"lbl_evaluador","type":"group","x":-1120,"y":1493,"width":620,"height":525,"label":"7 · Evaluador"},
+		{"id":"lbl_procesador","type":"group","x":4060,"y":645,"width":500,"height":500,"label":"4 · Procesador"},
+		{"id":"lbl_agente","type":"group","x":460,"y":540,"width":440,"height":470,"label":"2 · Agente (Haiku)"},
+		{"id":"lbl_respuesta","type":"group","x":460,"y":1520,"width":420,"height":470,"label":"6 · Respuesta"},
+		{"id":"lbl_base","type":"group","x":5140,"y":710,"width":400,"height":470,"label":"5 · Base"},
+		{"id":"lbl_pregunta","type":"group","x":-1340,"y":400,"width":600,"height":260,"label":"1 · Pregunta"},
+		{"id":"lbl_glosario","type":"group","x":460,"y":-120,"width":440,"height":320,"label":"Glosario"},
+		{"id":"lbl_capa","type":"group","x":3840,"y":80,"width":620,"height":200,"label":"Capa semántica"},
+		{"id":"lbl_t_calc","type":"group","x":2030,"y":565,"width":690,"height":160,"label":"calcular()"},
+		{"id":"lbl_t_ver","type":"group","x":2030,"y":360,"width":690,"height":120,"label":"ver_modelo()"},
+		{"id":"lbl_t_sql","type":"group","x":2030,"y":990,"width":690,"height":120,"label":"consultar_sql()"},
+		{"id":"lbl_t_buscar","type":"group","x":2030,"y":800,"width":690,"height":110,"label":"buscar_producto()"},
+		{"id":"t_calc","type":"text","text":"### `calcular()` · el camino principal\nMedida + filtros → **número + SQL**. **Las cuentas las hace el código**: compara, agrupa, comparables, aporte, participación, desvío · *dec. 10–12, 28–30*","x":2030,"y":565,"width":690,"height":160,"color":"4"},
+		{"id":"t_ver","type":"text","text":"### `ver_modelo()`\nMedidas y dimensiones con sus valores válidos, versión compacta (~2.300 tokens). Sin fórmulas ni joins · *dec. 3*","x":2030,"y":360,"width":690,"height":120,"color":"4"},
+		{"id":"t_buscar","type":"text","text":"### `buscar_producto()`\nDel nombre al código: «cola Del Sur» → P0298 · *dec. 33*","x":2030,"y":800,"width":690,"height":110,"color":"4"},
+		{"id":"pregunta","type":"text","text":"## 1 · Entra una pregunta\n- **P01–P20** sueltas: puntuales, comparativas, rankings, diagnósticos, ambiguas y sin dato\n- **C1–C5** conversaciones de 3 turnos\n- **I1–I3** pedidos de informe\n\nEl tipo no viene escrito: reconocerlo es parte del trabajo.","x":-1340,"y":400,"width":600,"height":260},
+		{"id":"evaluador","type":"text","text":"## 7 · Evaluador\n`evaluador.py`\n\nRespuestas correctas calculadas **a mano** con SQL directo, sin el agente (`esperados.yaml`).\n\nMira **las consultas**, no el texto:\n- ¿Usó la medida correcta?\n- ¿Da el valor esperado?\nNúmero bien con medida mal = coincidencia, no acierto · *dec. 19*\n\nAdemás:\n- Conversaciones: controla **cada turno**\n- Ambigua (P17): consultó las dos lecturas\n- Sin dato (P20): ninguna consulta\n\n**17 casos** · última corrida: 16 de 17\n`--veces N`: Haiku varía entre corridas · *dec. 27*","x":-1120,"y":1493,"width":620,"height":525,"color":"4"},
+		{"id":"t_sql","type":"text","text":"### `consultar_sql()`\nSolo lo que la capa no cubre (promociones vigentes). Solo lectura, **sin acceso a archivos** · *dec. 34*","x":2030,"y":990,"width":690,"height":120,"color":"4"},
+		{"id":"procesador","type":"text","text":"## 4 · El código calcula\n`procesador_capa_semantica.py`\n\nConvierte el pedido en SQL:\n1. Busca la **fórmula** en `medidas.yaml`: margen bruto = ventas netas − costo\n2. Une las tablas que hacen falta: ventas + productos (categoría) + fechas (año fiscal)\n3. Revisa que los valores existan: «perfumeria» → error con las categorías válidas · *dec. 25*\n4. Corre el SQL en solo lectura y devuelve **número + SQL**\n\n**La fórmula no la escribe Haiku** · *dec. 2*\nLas cuentas (comparar, aporte, participación, desvío) también se hacen acá.\nLas 4 herramientas del servidor corren acá.","x":3940,"y":645,"width":640,"height":500,"color":"4"},
+		{"id":"capa","type":"text","text":"### Capa semántica · medidas y estructura\n\n`medidas.yaml`: **qué** se calcula (fórmula, unidad, sinónimos, si es aditiva)\n\n`esquema.yaml`: **sobre qué datos** (tablas, alias, joins, dimensiones) · *dec. 1*","x":3840,"y":80,"width":620,"height":200,"color":"4"},
+		{"id":"base","type":"text","text":"## 5 · La base\n`almacenes_del_sur.duckdb` · un archivo, 37 MB\n\n**Hechos** (lo que pasó, con números):\n- `ventas`: 2,8 M filas · producto × sucursal × día\n- `stock_semanal` · `presupuesto`\n\n**Dimensiones** (describen los códigos):\n- `fechas` · `sucursales` · `productos` · `proveedores` · `promociones`\n\n**Solo lectura.** No entra en las instrucciones de Haiku: se consulta por las herramientas.\n\nPara P03 une `ventas` + `productos` + `fechas`.","x":5140,"y":710,"width":400,"height":470},
+		{"id":"agente","type":"text","text":"## 2 · Agente: Haiku elige qué pedir\n`agente.py` · `claude-haiku-5-5`\n\nTraduce la pregunta a un pedido:\n- **Qué medir:** margen bruto\n- **De qué:** Perfumería\n- **Cuándo:** AF2026\n\nQué significa cada palabra lo saca del **glosario**. **No escribe la fórmula ni hace cuentas**: se lo pide a `calcular()`.\n\nConversaciones: recibe el historial · *dec. 31*\nAmbigua → da las dos lecturas · sin dato → lo dice · *dec. 35*\nMáximo 10 llamadas por turno · *dec. 26*","x":460,"y":540,"width":490,"height":470,"color":"4"},
+		{"id":"glosario","type":"text","text":"### Glosario · qué significa cada palabra\n`glosario.md` · va entero en las instrucciones de Haiku\n\n- **«Ventas»** = ventas netas (sin descuentos ni devoluciones)\n- **«AF2026»** = mayo 2025 a abril 2026\n- **«Margen bruto»** = en pesos · **«el margen»** = en %\n- **No hay** clientes ni tickets → se dice que no está\n\nEs la única fuente de criterio · *dec. 21*","x":460,"y":-120,"width":440,"height":320,"color":"4"},
+		{"id":"respuesta","type":"text","text":"## 6 · Respuesta trazable\nDos partes:\n1. **El texto**: «Perfumería tuvo un margen bruto de $460.758.207»\n2. **Cada consulta que usó**: herramienta, datos, resultado y **el SQL exacto**\n\nCualquiera puede volver a correr ese SQL y obtener el mismo número.\n\n`--traza` la guarda en `trazas/` · *dec. 36*\n- `P17.md`: ambigua (una consulta por lectura)\n- `P20.md`: sin dato (ninguna consulta)\n- `C1.md`: conversación de 3 turnos\n\n🟪 Semana 5: registro con formato fijo, validado","x":430,"y":1520,"width":540,"height":470,"color":"4"}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"pregunta","fromSide":"right","toNode":"agente","toSide":"left","label":"«¿Qué margen bruto tuvo Perfumería en el AF2026?»"},
+		{"id":"e2","fromNode":"glosario","fromSide":"bottom","toNode":"agente","toSide":"top","label":"«margen bruto» = pesos · AF2026 = may-2025 a abr-2026"},
+		{"id":"e3","fromNode":"agente","fromSide":"right","toNode":"t_ver","toSide":"left","label":"① ¿qué medidas y filtros hay?"},
+		{"id":"e4","fromNode":"agente","fromSide":"right","toNode":"t_calc","toSide":"left","label":"② calcular: margen bruto · Perfumería · AF2026"},
+		{"id":"e5","fromNode":"t_calc","fromSide":"right","toNode":"procesador","toSide":"left","label":"le pasa el pedido: margen_bruto · Perfumería · 2026"},
+		{"id":"e6","fromNode":"capa","fromSide":"bottom","toNode":"procesador","toSide":"top","label":"fórmula: ventas netas − costo"},
+		{"id":"e7","fromNode":"procesador","fromSide":"right","toNode":"base","toSide":"left","label":"SQL → 460.758.207 ARS"},
+		{"id":"e8","fromNode":"agente","fromSide":"bottom","toNode":"respuesta","toSide":"top","label":"«Perfumería tuvo un margen bruto de $460.758.207» + su SQL"},
+		{"id":"e9","fromNode":"respuesta","fromSide":"left","toNode":"evaluador","toSide":"right","label":"¿usó la consulta correcta y da 460.758.207?"},
+		{"id":"e10","fromNode":"t_ver","fromSide":"right","toNode":"capa","toSide":"left","label":"lee qué medidas y filtros existen"}
+	]
+}
