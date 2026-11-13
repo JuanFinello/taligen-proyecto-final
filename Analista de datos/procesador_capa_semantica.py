@@ -110,8 +110,10 @@ def consultar_sql(sql):
     return {"sql": sql, "columnas": columnas, "filas": filas[:MAX_FILAS_SQL], "truncado": len(filas) > MAX_FILAS_SQL}
 
 
-def inicio_del_periodo(filtros):
-    """Primer día del período que marcan los filtros de fecha (los que van a la tabla fechas, alias f)."""
+def periodo(filtros):
+    """Primer y último día que marcan los filtros de fecha (los que van a la tabla fechas, alias f), para que el
+    modelo copie las fechas en vez de deducirlas (decisión 39). Sin filtros de fecha, None; si los días no son
+    seguidos (por ejemplo, agosto de los dos años), no hay un rango que informar y "desde" va igual para comparables."""
     condiciones, parametros = [], []
     for dimension, valor in filtros.items():
         columna = ESQUEMA["dimensiones"].get(dimension, "")
@@ -119,11 +121,21 @@ def inicio_del_periodo(filtros):
             sql, valores = condicion(columna, valor)
             condiciones.append(sql)
             parametros += valores
-    sql = "SELECT MIN(f.fecha) FROM fechas f"
+    sql = "SELECT MIN(f.fecha), MAX(f.fecha), COUNT(*) FROM fechas f"
     if condiciones:
         sql += " WHERE " + " AND ".join(condiciones)
     with duckdb.connect(BASE, read_only=True) as con:
-        return con.execute(sql, parametros).fetchone()[0]
+        desde, hasta, dias = con.execute(sql, parametros).fetchone()
+    seguido = desde is not None and (hasta - desde).days + 1 == dias
+    return {"desde": desde, "hasta": hasta if seguido else None, "hay_filtro": bool(condiciones)}
+
+
+def rango_de_fechas(filtros):
+    """El período para la respuesta: solo si hay filtros de fecha y los días son seguidos."""
+    p = periodo(filtros)
+    if p["hay_filtro"] and p["hasta"]:
+        return {"periodo": {"desde": str(p["desde"]), "hasta": str(p["hasta"])}}
+    return {}
 
 
 def variacion(m, actual, anterior):
@@ -154,12 +166,22 @@ def comparar_por_grupo(m, medida, filtros, filtros_anterior, agrupar_por, orden,
             fila["aporte_pct"] = fila["diferencia"] / diferencia_total * 100 if diferencia_total else None
         filas.append(fila)
 
+    # Si subas y caídas se compensan, el total casi no se mueve y el aporte se dispara (decisión 38):
+    # con la diferencia neta por debajo del 10 % de lo que se movieron los grupos, el aporte no se informa
+    aviso = None
+    movimiento = sum(abs(f["diferencia"]) for f in filas) if m.get("aditiva") else 0
+    if movimiento and abs(diferencia_total) < 0.1 * movimiento:
+        for fila in filas:
+            fila["aporte_pct"] = None
+        aviso = ("Subas y caídas de los grupos se compensan y el total casi no cambia: el aporte no tiene sentido. "
+                 "Explicá con la diferencia de cada grupo (quién subió y quién cayó).")
+
     # Se ordena por diferencia si la medida es aditiva (lo que más explica), si no por variación; los vacíos, al final
     criterio = "diferencia" if m.get("aditiva") else "variacion"
     filas.sort(key=lambda f: (f[criterio] is None, -(f[criterio] or 0) if orden == "desc" else (f[criterio] or 0)))
     if limite:
         filas = filas[:int(limite)]
-    return {"filas": filas, "ordenado_por": criterio,
+    return {"filas": filas, "ordenado_por": criterio, **({"aviso": aviso} if aviso else {}),
             "sql": {"actual": actual["sql"], "anterior": anterior["sql"]},
             "parametros": {"actual": actual["parametros"], "anterior": anterior["parametros"]}}
 
@@ -172,7 +194,7 @@ def desvio_presupuesto(filtros, agrupar_por, orden, limite):
     presupuesto = calcular("presupuesto", filtros, agrupar_por)  # primero: rechaza lo que el presupuesto no tiene (producto…)
     ventas = calcular("ventas_netas", filtros, agrupar_por)
     desvio = lambda v, p: (v - p) / p * 100 if v is not None and p else None
-    base = {"medida": "desvio_presupuesto_pct", "filtros": filtros, "unidad": "%",
+    base = {"medida": "desvio_presupuesto_pct", "filtros": filtros, **rango_de_fechas(filtros), "unidad": "%",
             "sql": {"ventas_netas": ventas["sql"], "presupuesto": presupuesto["sql"]},
             "parametros": {"ventas_netas": ventas["parametros"], "presupuesto": presupuesto["parametros"]}}
     if not agrupar_por:
@@ -224,7 +246,7 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
     if comparar_con:
         filtros_anterior = {**filtros, **comparar_con}
         # Comparables (decisión 12): sucursales con fecha_apertura <= primer día del período anterior
-        hasta = inicio_del_periodo(filtros_anterior) if comparables else None
+        hasta = periodo(filtros_anterior)["desde"] if comparables else None
         actual = calcular(medida, filtros, abiertas_hasta=hasta)
         anterior = calcular(medida, filtros_anterior, abiertas_hasta=hasta)
         resultado = {"medida": medida, "unidad": m["unidad"], "actual": actual, "anterior": anterior,
@@ -286,9 +308,11 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
         resultado = con.execute(sql, parametros)
         if not columnas:
             valor = resultado.fetchone()[0]
-            return {"medida": medida, "filtros": filtros, "valor": valor, "unidad": m["unidad"], "sql": sql, "parametros": parametros}
+            return {"medida": medida, "filtros": filtros, **rango_de_fechas(filtros), "valor": valor, "unidad": m["unidad"],
+                    "sql": sql, "parametros": parametros}
         filas = [dict(zip(agrupar_por + ["valor"], fila)) for fila in resultado.fetchall()]
-    respuesta = {"medida": medida, "filtros": filtros, "filas": filas, "unidad": m["unidad"], "sql": sql, "parametros": parametros}
+    respuesta = {"medida": medida, "filtros": filtros, **rango_de_fechas(filtros), "filas": filas, "unidad": m["unidad"],
+                 "sql": sql, "parametros": parametros}
 
     # Participación (decisión 29): solo en medidas aditivas, sobre el total real (con los mismos filtros, sin limite)
     if m.get("aditiva"):

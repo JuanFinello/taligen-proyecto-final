@@ -51,7 +51,8 @@ Todo se corre desde esta carpeta con `.venv/bin/python` (los scripts usan rutas 
 
 ## Dónde estamos
 Semana 1 cerrada y revisada. Semana 2 casi cerrada (2026-11-11): cuentas en código (aporte, participación, desvío), conversaciones, ambigua y sin dato, `buscar_producto`, `consultar_sql` y trazas (`trazas/P17.md`, `P20.md`, `C1.md`). El evaluador controla 17 casos: 17 de 17 en corridas parciales y 16 de 17 en la última completa (C2 turno 3 falló una vez y pasó 3 de 3 al repetirlo).
-- Visto: el `aporte_pct` se dispara cuando la diferencia total es casi 0 (margen bruto de Almacén T2: PR01 «aporta» 83.871 %). Haiku no lo citó, pero hay que acotarlo.
+- Hecho: el `aporte_pct` ya no se informa si subas y caídas se compensan (decisión 38).
 - Falta de la semana 2: gráficos (se dejan para los informes de la semana 3).
 - Visto en las pruebas: Haiku a veces hace cuentas propias en el texto (suma porcentajes, resta montos). Lo frena el hook de la semana 4. Y en un diagnóstico no abrió el desvío por sucursal aunque se puede: criterio de la semana 3.
-- Pendientes: P07 escribió mal el año del período («ago a oct de 2026»); decidir si `Mapa del proyecto.canvas` se mueve a la bóveda.
+- Hecho: cada resultado trae las fechas de su período, para que Haiku no deduzca el año (decisión 39, por P07).
+- Pendiente: decidir si `Mapa del proyecto.canvas` se mueve a la bóveda.
