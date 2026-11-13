@@ -8,6 +8,8 @@ La base tiene los movimientos diarios de venta por sucursal y producto, la foto 
 
 Los importes están en pesos constantes de abril de 2026 y sin impuestos: las comparaciones entre períodos no necesitan ajuste por inflación.
 
+«Almacén», en singular, es una categoría de productos, no la empresa: a la empresa se la llama «la cadena» o «Almacenes del Sur».
+
 ## Calendario
 
 El año fiscal empieza el 1 de mayo y se nombra por el año en que termina: el AF2026 va de mayo de 2025 a abril de 2026. Los trimestres fiscales son T1 (mayo a julio), T2 (agosto a octubre), T3 (noviembre a enero) y T4 (febrero a abril).
@@ -42,4 +44,4 @@ La foto de stock se toma los lunes. Un producto está en quiebre cuando la foto 
 
 ## Promociones y marca propia
 
-Una promoción es un descuento sobre un producto en todas las sucursales entre dos fechas. Puede quitarle ventas a productos parecidos de la misma subcategoría (canibalización), así que se evalúa mirando la subcategoría completa. La marca propia es **Del Sur**, y tiene más margen que las marcas de proveedores.
+Una promoción es un descuento sobre un producto en todas las sucursales entre dos fechas. Puede quitarle ventas a productos parecidos de la misma subcategoría (canibalización), así que se evalúa mirando la subcategoría completa. Al revés también: si un producto vende menos, conviene revisar si en ese período hubo promociones en otros productos de su subcategoría. La marca propia es **Del Sur**, y tiene más margen que las marcas de proveedores.

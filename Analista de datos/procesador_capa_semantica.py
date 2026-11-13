@@ -186,8 +186,10 @@ def comparar_por_grupo(m, medida, filtros, filtros_anterior, agrupar_por, orden,
             "parametros": {"actual": actual["parametros"], "anterior": anterior["parametros"]}}
 
 
-def desvio_presupuesto(filtros, agrupar_por, orden, limite):
+def desvio_presupuesto(filtros, agrupar_por, orden, limite, comparar_con=None, comparables=False):
     """Desvío contra presupuesto (decisión 30): ventas_netas y presupuesto con los mismos filtros, y el % lo hace el código."""
+    if comparar_con or comparables:
+        raise ValueError("desvio_presupuesto_pct todavía no se puede comparar entre períodos")
     for dimension in [*filtros, *agrupar_por]:
         if dimension in ("fecha", "semana"):
             raise ValueError("El presupuesto es mensual: el desvío se pide por mes o por períodos más largos, no por fecha ni semana")
@@ -213,8 +215,67 @@ def desvio_presupuesto(filtros, agrupar_por, orden, limite):
     return {**base, "filas": filas[:int(limite)] if limite else filas, "total": total}
 
 
+def efectos(p0, c0, p1, c1):
+    """Margen % = 1 - c/p (c = costo por unidad, p = precio promedio). La variación se separa en dos pasos que
+    suman exacto: primero cambia el precio con el costo de antes, después cambia el costo con el precio nuevo."""
+    if None in (p0, c0, p1, c1) or not p0 or not p1:
+        return {"margen_pct_anterior": None, "margen_pct_actual": None, "variacion_pp": None,
+                "efecto_precio_pp": None, "efecto_costo_pp": None}
+    anterior, actual = (1 - c0 / p0) * 100, (1 - c1 / p1) * 100
+    return {"margen_pct_anterior": anterior, "margen_pct_actual": actual, "variacion_pp": actual - anterior,
+            "efecto_precio_pp": (c0 / p0 - c0 / p1) * 100, "efecto_costo_pp": (c0 - c1) / p1 * 100,
+            "precio_anterior": p0, "precio_actual": p1, "costo_unitario_anterior": c0, "costo_unitario_actual": c1,
+            # Cuánto subió cada uno en %: si no viene, Haiku lo calcula (decisión 50)
+            "variacion_precio_pct": (p1 / p0 - 1) * 100, "variacion_costo_unitario_pct": (c1 / c0 - 1) * 100 if c0 else None}
+
+
+def efectos_margen(filtros, agrupar_por, orden, limite, comparar_con=None, comparables=False):
+    """Efecto precio y efecto costo de la variación del margen % (decisión 43): compara precio_promedio y
+    costo_unitario entre los dos períodos con las mismas reglas que cualquier comparación, y la cuenta la hace el código."""
+    if not comparar_con:
+        raise ValueError("efectos_margen compara dos períodos: necesita comparar_con (por ejemplo {\"anio_fiscal\": 2025})")
+    precio = calcular("precio_promedio", filtros, agrupar_por, comparar_con=comparar_con, comparables=comparables)
+    costo = calcular("costo_unitario", filtros, agrupar_por, comparar_con=comparar_con, comparables=comparables)
+    # Un SQL por medida y período, con la misma forma que el resto (lo usan las trazas y el anexo)
+    sql, parametros = {}, {}
+    for nombre, r in (("precio_promedio", precio), ("costo_unitario", costo)):
+        for parte, texto, params in sqls(r):
+            sql[f"{nombre} {parte.rstrip(': ')}"] = texto
+            parametros[f"{nombre} {parte.rstrip(': ')}"] = params
+    base = {"medida": "efectos_margen", "unidad": "pp", "filtros": filtros, "comparar_con": comparar_con,
+            "comparables": comparables, "abiertas_hasta": precio["abiertas_hasta"],
+            "periodo": precio["actual"].get("periodo"), "periodo_anterior": precio["anterior"].get("periodo"),
+            "nota": "Los dos efectos suman la variación. Usan promedios: un cambio de mix (qué se vende) queda dentro de ellos.",
+            "sql": sql, "parametros": parametros}
+    total = efectos(precio["anterior"]["valor"], costo["anterior"]["valor"], precio["actual"]["valor"], costo["actual"]["valor"])
+    if not agrupar_por:
+        return {**base, **total}
+
+    clave = lambda fila: tuple(fila[d] for d in agrupar_por)
+    costos = {clave(f): f for f in costo["filas"]}
+    filas = []
+    for fila in precio["filas"]:
+        c = costos.get(clave(fila), {})
+        filas.append({**{d: fila[d] for d in agrupar_por},
+                      **efectos(fila["anterior"], c.get("anterior"), fila["actual"], c.get("actual"))})
+    filas.sort(key=lambda f: (f["variacion_pp"] is None,
+                              -(f["variacion_pp"] or 0) if orden == "desc" else (f["variacion_pp"] or 0)))
+    return {**base, "filas": filas[:int(limite)] if limite else filas, "total": total}
+
+
 # Medidas derivadas que se piden por id; cada una la calcula su función (las demás salen de parámetros de calcular)
-CALCULADAS = {"desvio_presupuesto_pct": desvio_presupuesto}
+CALCULADAS = {"desvio_presupuesto_pct": desvio_presupuesto, "efectos_margen": efectos_margen}
+
+
+def sqls(resultado):
+    """Los SQL de un resultado con sus parámetros: uno, o uno por parte (actual/anterior, ventas/presupuesto).
+    La usan las trazas del agente y el anexo de los informes."""
+    sql, parametros = resultado.get("sql"), resultado.get("parametros")
+    if sql is None and isinstance(resultado.get("actual"), dict):  # comparación sin agrupar: un SQL por período
+        return [(f"{parte}: ", resultado[parte]["sql"], resultado[parte]["parametros"]) for parte in ("actual", "anterior")]
+    if isinstance(sql, dict):
+        return [(f"{parte}: ", texto, (parametros or {}).get(parte)) for parte, texto in sql.items()]
+    return [("", sql, parametros)] if sql else []
 
 
 def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, comparar_con=None,
@@ -227,11 +288,9 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
     filtros = filtros or {}
     agrupar_por = agrupar_por or []
     if medida in CALCULADAS:
-        if comparar_con or comparables:
-            raise ValueError(f"{medida} todavía no se puede comparar entre períodos")
         if orden not in ("desc", "asc"):
             raise ValueError(f"Orden inválido: {orden}")
-        return CALCULADAS[medida](filtros, agrupar_por, orden, limite)
+        return CALCULADAS[medida](filtros, agrupar_por, orden, limite, comparar_con, comparables)
     if medida not in MEDIDAS:
         raise ValueError(f"Medida desconocida: {medida}")
     m = MEDIDAS[medida]
@@ -253,6 +312,9 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
                      "variacion": variacion(m, actual["valor"], anterior["valor"]),
                      "unidad_variacion": "pp" if m["unidad"] == "%" else "%",
                      "comparables": comparables, "abiertas_hasta": hasta}
+        if m.get("aditiva") and None not in (actual["valor"], anterior["valor"]):
+            # La diferencia en la unidad de la medida (pesos, unidades): si no viene, Haiku la resta (decisión 50)
+            resultado["diferencia"] = actual["valor"] - anterior["valor"]
         if agrupar_por:
             resultado.update(comparar_por_grupo(m, medida, filtros, filtros_anterior, agrupar_por, orden, limite, hasta,
                                                 actual["valor"], anterior["valor"]))

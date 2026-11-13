@@ -9,6 +9,7 @@ Todo se corre desde esta carpeta con `.venv/bin/python` (los scripts usan rutas 
 - Hacer una pregunta al agente: `.venv/bin/python agente.py "¿Cuál fue el margen bruto de Perfumería en el AF2026?"` (levanta solo `servidor_mcp.py` por stdio; no hace falta correrlo aparte).
 - Conversación: un argumento por turno. Guardar la traza (respuesta + consultas con SQL): `--traza trazas/X.md` antes de las preguntas.
 - Evaluar: `.venv/bin/python evaluador.py [--veces N] [P03 C1 …]`. Sin ids corre todas (preguntas y conversaciones C1–C5, cada turno con su chequeo); con `--veces N` aprueba solo si pasa las N veces (Haiku varía entre corridas).
+- Costo y tiempo: cada llamada al modelo queda en `registros/llamadas.jsonl` (no se commitea). `.venv/bin/python registro.py` resume la última corrida (`--todas`: una línea por corrida). Cada línea lleva la versión del diseño (huella de los archivos que leen o deciden por Haiku); para medir un cambio: `CAMBIO="decisión N" .venv/bin/python evaluador.py` 2 o 3 veces por versión y `registro.py --comparar A B`.
 - Instalar paquetes: `.venv/bin/python -m pip install …`. El `pip` del venv está roto desde que se renombró la carpeta.
 
 ## Cómo trabajar con el usuario
@@ -50,9 +51,8 @@ Todo se corre desde esta carpeta con `.venv/bin/python` (los scripts usan rutas 
 - Obsidian es un AppImage sin el enlace `obsidian://` registrado: se abre con `~/Documentos/programas/Obsidian-1.11.5.AppImage "obsidian://open?vault=taligent_vault&file=…"`.
 
 ## Dónde estamos
-Semana 1 cerrada y revisada. Semana 2 casi cerrada (2026-11-11): cuentas en código (aporte, participación, desvío), conversaciones, ambigua y sin dato, `buscar_producto`, `consultar_sql` y trazas (`trazas/P17.md`, `P20.md`, `C1.md`). El evaluador controla 17 casos: 17 de 17 en corridas parciales y 16 de 17 en la última completa (C2 turno 3 falló una vez y pasó 3 de 3 al repetirlo).
-- Hecho: el `aporte_pct` ya no se informa si subas y caídas se compensan (decisión 38).
-- Falta de la semana 2: gráficos (se dejan para los informes de la semana 3).
-- Visto en las pruebas: Haiku a veces hace cuentas propias en el texto (suma porcentajes, resta montos). Lo frena el hook de la semana 4. Y en un diagnóstico no abrió el desvío por sucursal aunque se puede: criterio de la semana 3.
-- Hecho: cada resultado trae las fechas de su período, para que Haiku no deduzca el año (decisión 39, por P07).
-- Pendiente: decidir si `Mapa del proyecto.canvas` se mueve a la bóveda.
+Semanas 1 y 2 cerradas. **Semana 3 completa (2026-11-13), decisiones 38–57.** El evaluador controla 17 casos: 17 de 17 en las últimas corridas completas.
+- Informes y diagnósticos: `informes.py "pedido" [carpeta]` (coordinador planifica → analistas, uno por pregunta → coordinador redacta → el código controla y arma). Informe: PDF de una página + anexo (decisiones 53–54); diagnóstico: `diagnostico.md` (55). Cada salida deja `informe.json`, `consultas.sql` y `traza.md` en `salidas/` (no se commitea); `--rearmar` y `--traza` rehacen sin llamar al modelo. Entregas: `trazas/I1.md` y `trazas/P16.md`.
+- `controles.py`: ningún número sin respaldo en una consulta (49), en el agente y en la redacción; de los textos solo toma tamaños («300 g»), por P0040 (57). Adelanta el hook de la semana 4.
+- `registro.py`: costo, tiempo y versión del diseño de cada llamada (45–46); `--comparar A B` mide cada cambio.
+- Pendiente: cambiar el diseño visual del PDF (lo pidió el usuario); tolerancia del control ante números truncados (P07 «25,66»); decidir si `Mapa del proyecto.canvas` se mueve a la bóveda. Siguiente: semana 4 (hooks, glosario como prompt del MCP, tools permitidas por agente).

@@ -8,6 +8,7 @@ import sys
 
 import yaml
 
+import registro
 from agente import conversar, responder
 
 with open("Data/preguntas/esperados.yaml") as f:
@@ -95,7 +96,9 @@ def main(ids, veces=1):
         print(f"\n===== {id_}: {PREGUNTAS.get(id_) or ' → '.join(CONVERSACIONES[id_])}", flush=True)
         pasadas = 0
         for vez in range(1, veces + 1):
+            registro.caso = id_
             paso, lineas = correr(id_)
+            registro.anotar_evaluacion(id_, paso)
             pasadas += paso
             for linea in lineas:
                 print(linea if veces == 1 else f"  corrida {vez}: {linea}", flush=True)

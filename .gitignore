@@ -3,3 +3,5 @@ __pycache__/
 .claude/
 .env
 taligent_vault/.obsidian/workspace.json
+registros/
+salidas/

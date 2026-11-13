@@ -91,6 +91,16 @@ medidas:
   descripcion: 'Ventas netas por unidad. Mezcla productos: puede variar por cambio de mix.'
   sinonimos:
   - precio medio
+- id: costo_unitario
+  nombre: Costo por unidad
+  tabla: ventas
+  formula: SUM(v.costo) / NULLIF(SUM(v.unidades), 0)
+  unidad: ARS por unidad
+  aditiva: false
+  descripcion: 'Costo de reposición por unidad vendida. Mezcla productos: puede variar por cambio de mix.'
+  sinonimos:
+  - costo medio
+  - costo promedio
 - id: cantidad_sucursales
   nombre: Cantidad de sucursales con venta
   tabla: ventas
@@ -152,6 +162,17 @@ medidas_derivadas:
   - desvío contra presupuesto
   - contra el objetivo
   nota: Se calcula con ventas_netas y presupuesto sobre el mismo período (meses completos) y las mismas sucursales y categorías.
+- id: efectos_margen
+  nombre: Efecto precio y efecto costo del margen %
+  formula: 'efecto precio = (c0/p0 - c0/p1) * 100; efecto costo = (c0 - c1) / p1 * 100; p = precio_promedio, c =
+    costo_unitario, 0 = período anterior, 1 = actual'
+  unidad: pp
+  descripcion: Separa la variación del margen % entre dos períodos en efecto precio y efecto costo, en pp (suman la
+    variación). Requiere comparar_con. Usa promedios, así que un cambio de mix queda dentro de los dos efectos.
+  sinonimos:
+  - efecto precio
+  - efecto costo
+  - por qué cambió el margen
 - id: variacion_interanual_pct
   nombre: Variación interanual %
   formula: (medida período - medida mismo período del año anterior) / medida mismo período del año anterior * 100

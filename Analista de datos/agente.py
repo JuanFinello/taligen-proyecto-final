@@ -5,14 +5,20 @@ Uso: .venv/bin/python agente.py "¿Cuál fue el margen bruto de Perfumería en e
 import asyncio
 import json
 import sys
+import time
 from datetime import date
 from pathlib import Path
 
 import anthropic
 from mcp import ClientSession, StdioServerParameters, stdio_client
 
+import registro
+from controles import AVISO, numeros_sin_respaldo
+from procesador_capa_semantica import sqls
+
 MODELO = "claude-haiku-5-5"
 MAX_VUELTAS = 10  # llamadas al modelo por pregunta; medido (2026-11-11): las preguntas usan 2 o 3
+MAX_CORRECCIONES = 2  # veces que se le devuelve una respuesta con números sin respaldo (decisión 49)
 
 with open("Data/capa_semantica/glosario.md") as f:
     SISTEMA = ("Sos un analista de datos de Almacenes del Sur. Respondé en español. "
@@ -37,28 +43,50 @@ async def responder(pregunta, historial=None):
         # Paso 2: el loop. Haiku contesta; si pide una tool, la corremos y le devolvemos el resultado
         mensajes = [*(historial or []), {"role": "user", "content": pregunta}]
         consultas = []  # cada llamada a calcular que salió bien: qué pidió y qué volvió (con el SQL)
-        for _ in range(MAX_VUELTAS):
+        correcciones, sueltos = 0, []
+        for vuelta in range(1, MAX_VUELTAS + 1):
+            inicio = time.monotonic()
             respuesta = await claude.messages.create(model=MODELO, max_tokens=16000, system=SISTEMA,
                                                      tools=tools, messages=mensajes)
+            segundos_modelo = time.monotonic() - inicio
             mensajes.append({"role": "assistant", "content": respuesta.content})
 
             # Si no pidió ninguna tool, terminó: lo que escribió es la respuesta final
             if respuesta.stop_reason != "tool_use":
                 texto = "".join(b.text for b in respuesta.content if b.type == "text")
-                return {"pregunta": pregunta, "texto": texto, "consultas": consultas, "mensajes": mensajes}
+                # Control al terminar: cada número tiene que salir de una consulta (o de la pregunta). Si no, se le
+                # devuelve el motivo para que corrija, como el error de una tool
+                sueltos = numeros_sin_respaldo(texto, mensajes)
+                registro.anotar("analista", pregunta, vuelta, respuesta, segundos_modelo,
+                                errores=["numeros_sin_respaldo"] if sueltos else [], sin_respaldo=sueltos)
+                if sueltos and correcciones < MAX_CORRECCIONES:
+                    correcciones += 1
+                    mensajes.append({"role": "user", "content": (
+                        f"{AVISO}: {', '.join(sueltos)}. "
+                        "No hagas cuentas propias (restas, sumas, promedios). Reescribí la respuesta completa: "
+                        "sacá esos números o reemplazalos por uno que salga de una consulta; si necesitás un dato "
+                        "que no consultaste, consultalo con calcular.")})
+                    continue
+                return {"pregunta": pregunta, "texto": texto, "consultas": consultas, "mensajes": mensajes,
+                        "numeros_sin_respaldo": sueltos}
 
             # Paso 3: correr cada tool que pidió, vía MCP, y juntar los resultados en un solo mensaje
-            resultados = []
+            resultados, pedidas, errores, inicio = [], [], [], time.monotonic()
             for bloque in respuesta.content:
                 if bloque.type != "tool_use":
                     continue
                 print(f"→ {bloque.name}({json.dumps(bloque.input, ensure_ascii=False)})")
                 resultado = await mcp.call_tool(bloque.name, bloque.input)
+                pedidas.append(bloque.name)
+                if resultado.is_error:
+                    errores.append(f"{bloque.name}: {resultado.content[0].text[:200]}")  # con el motivo, para la traza
                 if bloque.name != "ver_modelo" and not resultado.is_error:  # queda registrada (con su SQL)
                     consultas.append({"tool": bloque.name, "argumentos": bloque.input, "resultado": json.loads(resultado.content[0].text)})
                 resultados.append({"type": "tool_result", "tool_use_id": bloque.id,
                                    "content": resultado.content[0].text, "is_error": resultado.is_error})
             mensajes.append({"role": "user", "content": resultados})
+            registro.anotar("analista", pregunta, vuelta, respuesta, segundos_modelo,
+                            time.monotonic() - inicio, pedidas, errores)
 
         # Si se trabó pidiendo tools sin terminar, corta en vez de seguir gastando (decisión 26)
         texto = f"No pude responder: se alcanzó el límite de {MAX_VUELTAS} llamadas al modelo sin una respuesta final."
@@ -74,16 +102,6 @@ async def conversar(turnos):
         historial = respuesta["mensajes"]
         respuestas.append(respuesta)
     return respuestas
-
-
-def sqls(resultado):
-    """Los SQL de un resultado con sus parámetros: uno, o uno por parte (actual/anterior, ventas/presupuesto)."""
-    sql, parametros = resultado.get("sql"), resultado.get("parametros")
-    if sql is None and isinstance(resultado.get("actual"), dict):  # comparación sin agrupar: un SQL por período
-        return [(f"{parte}: ", resultado[parte]["sql"], resultado[parte]["parametros"]) for parte in ("actual", "anterior")]
-    if isinstance(sql, dict):
-        return [(f"{parte}: ", texto, (parametros or {}).get(parte)) for parte, texto in sql.items()]
-    return [("", sql, parametros)] if sql else []
 
 
 def resumen(resultado):
