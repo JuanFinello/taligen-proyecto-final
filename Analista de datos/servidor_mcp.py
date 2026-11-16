@@ -32,7 +32,7 @@ def calcular(medida: str, filtros: dict | None = None, agrupar_por: list[str] | 
              orden: str = "desc", limite: int | None = None, comparar_con: dict | None = None,
              comparables: bool = False) -> dict:
     """Calcula una medida y devuelve el valor junto con el SQL que lo produjo.
-    medida: id de ver_modelo. filtros: {dimension: valor o lista de valores}, por ejemplo {"anio_fiscal": 2026} o {"anio": 2026, "mes": [1, 2, 3]}.
+    medida: id de ver_modelo. filtros: {dimension: valor, lista de valores o rango}, por ejemplo {"anio_fiscal": 2026}, {"anio": 2026, "mes": [1, 2, 3]} o, para un período de días, {"fecha": {"desde": "2026-04-20", "hasta": "2026-04-26"}} (una lista de fechas cuenta solo esos días).
     agrupar_por: lista de dimensiones; devuelve una fila por grupo, ordenada por valor (orden "desc" o "asc", limite opcional).
     En medidas aditivas trae también el total (con los mismos filtros) y participacion_pct de cada grupo sobre ese total.
     comparar_con: solo los filtros que cambian en el período anterior, por ejemplo {"anio_fiscal": 2025}.

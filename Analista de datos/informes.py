@@ -121,8 +121,9 @@ async def investigar(plan):
 class Indicador(BaseModel):
     nombre: str = Field(description="Nombre corto, por ejemplo «Margen %» o «Ventas netas»")
     consulta: str = Field(description="El id de la consulta de donde sale (C1, C2…)")
-    dato: str = Field(description="El campo del total de esa consulta que se muestra grande: valor, actual, "
-                                  "diferencia, o uno de efectos_margen (margen_pct_actual, variacion_pp…)")
+    dato: str = Field(description="El campo del total de esa consulta que se muestra grande, el nivel: valor, "
+                                  "actual, o uno de efectos_margen (margen_pct_actual…). En una comparación, actual: "
+                                  "el cambio va en variacion")
     variacion: Optional[str] = Field(description="El campo de la misma consulta con su cambio (variacion, diferencia, "
                                                  "variacion_pp), o null si no hay comparación")
     contra: Optional[str] = Field(description="Contra qué es el cambio, corto y sin cifras calculadas: «vs T2 AF2025», "
@@ -142,9 +143,11 @@ class Prueba(BaseModel):
 class Redaccion(BaseModel):
     titulo: str = Field(description="El mensaje del informe en una oración de hasta 15 palabras: la conclusión, "
                                     "no el tema. Ejemplo: «El margen cayó por la suba de costo de un proveedor»")
-    bajada: str = Field(description="Una o dos oraciones: qué pasó y por qué. Como máximo 3 cifras, cada una con su "
-                                    "consulta [Cn]")
-    acciones: List[str] = Field(description="1 o 2 acciones concretas que se desprenden del mensaje, sin cifras")
+    puntos: List[str] = Field(description="2 o 3 puntos con lo principal, en orden de importancia: qué pasó y por "
+                                          "qué. Cada uno, una oración corta con como máximo 2 cifras, cada una con su "
+                                          "consulta [Cn]. Se leen sueltos: no repitas el título")
+    acciones: List[str] = Field(description="1 o 2 decisiones o encargos para la gerencia que se desprenden del "
+                                            "mensaje y de lo que muestra la página, sin cifras")
     indicadores: List[Indicador] = Field(description="Exactamente 3: los números que sostienen el mensaje")
     pruebas: List[Prueba] = Field(description="1 o 2 gráficos que prueban el mensaje, en orden: cada uno responde "
                                               "la pregunta que deja el anterior (¿qué categoría? → ¿qué proveedor?)")
@@ -152,7 +155,8 @@ class Redaccion(BaseModel):
 
 INSTRUCCIONES_REDACCION = (
     "Ahora redactá el informe con los hallazgos de los analistas y sus consultas (abajo). Es una sola página que se "
-    "lee de arriba abajo: el mensaje como título, el porqué, qué hacer, tres indicadores y una o dos pruebas.\n"
+    "lee de arriba abajo: el mensaje como título, 2 o 3 puntos con lo principal, qué hacer, tres indicadores y una o "
+    "dos pruebas.\n"
     "- Primero decidí el mensaje: la única conclusión que el lector tiene que llevarse. Todo lo demás está para "
     "sostenerlo; lo que no lo sostiene, va afuera aunque sea cierto.\n"
     "- Los títulos son afirmaciones, no temas: «Almacén explica la caída», no «Margen por categoría».\n"
@@ -161,7 +165,12 @@ INSTRUCCIONES_REDACCION = (
     "está en ninguna consulta, no la uses.\n"
     "- Los indicadores y los gráficos no llevan números tuyos: elegís la consulta y el campo, y el código pone los "
     "valores y dibuja.\n"
-    "- Escribí para alguien de negocio: corto, sin nombres de campos ni de medidas del modelo.\n\n")
+    "- Escribí para la gerencia, que decide con esta página en un minuto: corto, sin nombres de campos ni de medidas "
+    "del modelo.\n"
+    "- Dale escala a cada cambio, para que se entienda si es grave o menor: contra lo normal (el glosario dice cuánto, "
+    "si lo dice), contra el total o en pesos. Si el cambio es chico, decilo así: no lo presentes como alarma.\n"
+    "- Cada acción se apoya en algo que está en la página (un punto, un indicador o una prueba). Si no hay en la "
+    "página nada que la respalde, no la pongas.\n\n")
 
 
 class Diagnostico(BaseModel):
@@ -261,7 +270,7 @@ def cifras(texto):
 
 
 def textos_de(redaccion):
-    return [redaccion.titulo, redaccion.bajada, *redaccion.acciones, *(f"{p.titulo} {p.texto}" for p in redaccion.pruebas)]
+    return [redaccion.titulo, *redaccion.puntos, *redaccion.acciones, *(f"{p.titulo} {p.texto}" for p in redaccion.pruebas)]
 
 
 def revisar_redaccion(redaccion, consultas):
@@ -282,6 +291,11 @@ def revisar_redaccion(redaccion, consultas):
             problemas.append(Grave(f"el indicador «{ind.nombre}» cita {ind.consulta}, que no existe"))
             continue
         resultado = por_id[ind.consulta]["resultado"]
+        if ind.dato == "diferencia" and dato_de(resultado, "actual"):
+            # El número grande es el nivel y debajo va el cambio (IBCS, decisión 71): «$ 186,7 M, −0,2 %», no
+            # «−$ 438.508». En el desvío contra presupuesto no hay «actual»: ahí el desvío es el nivel
+            problemas.append(f"el indicador «{ind.nombre}» muestra el cambio como número principal: poné actual en "
+                             f"dato, el cambio en variacion, y un nombre que diga qué se mide (no «crecimiento»)")
         for campo in filter(None, [ind.dato, ind.variacion]):
             if dato_de(resultado, campo) is None:
                 problemas.append(Grave(f"el indicador «{ind.nombre}» pide «{campo}» de {ind.consulta}, y ese total no lo tiene"))
@@ -294,8 +308,11 @@ def revisar_redaccion(redaccion, consultas):
         for grupo in prueba.destacar:
             if not any(es_destacado(f, dimensiones, [grupo]) for f in filas):
                 problemas.append(f"la prueba «{prueba.titulo}» resalta «{grupo}», que no está en {prueba.consulta}")
-    if cifras(redaccion.bajada) > 3:
-        problemas.append(f"la bajada tiene {cifras(redaccion.bajada)} cifras: van como máximo 3")
+    if not 2 <= len(redaccion.puntos) <= 3:
+        problemas.append(f"tiene {len(redaccion.puntos)} puntos: van 2 o 3")
+    for numero, punto in enumerate(redaccion.puntos, 1):
+        if cifras(punto) > 2:
+            problemas.append(f"el punto {numero} tiene {cifras(punto)} cifras: van como máximo 2")
     for prueba in redaccion.pruebas:
         if cifras(prueba.texto) > 2:
             problemas.append(f"el texto de «{prueba.titulo}» tiene {cifras(prueba.texto)} cifras: van como máximo 2")
@@ -350,21 +367,25 @@ def citadas(redaccion):
             | set(re.findall(r"\[(C\d+)\]", " ".join(textos_de(redaccion)))))
 
 
-def periodo_del_informe(consultas):
-    """El período que más se repite entre las consultas (el actual, en una comparación)."""
-    vistos = Counter()
-    for c in consultas:
+def periodo_del_informe(consultas, principal=None):
+    """El período del informe: el de la consulta del primer indicador (el actual, en una comparación). Si no lo trae,
+    el que más se repite. No alcanza con el que más se repite: en el mensual ganaba el acumulado del año (decisión 67)."""
+    def periodo(c):
         r = c["resultado"]
         p = r.get("periodo") or (r.get("actual") or {}).get("periodo") if isinstance(r, dict) else None
-        if p and p.get("desde") and p.get("hasta"):
-            vistos[(p["desde"], p["hasta"])] += 1
+        return (p["desde"], p["hasta"]) if p and p.get("desde") and p.get("hasta") else None
+    for c in consultas:
+        if c["id"] == principal and periodo(c):
+            desde, hasta = periodo(c)
+            return {"desde": desde, "hasta": hasta}
+    vistos = Counter(periodo(c) for c in consultas if periodo(c))
     if not vistos:
         raise ValueError("Ninguna consulta trae su período: no se puede fechar el informe")
     desde, hasta = vistos.most_common(1)[0][0]
     return {"desde": desde, "hasta": hasta}
 
 
-def armar(pedido, plan, redaccion, consultas, carpeta):
+def armar(pedido, plan, redaccion, consultas, carpeta, nombre="Informe"):
     """Paso 4, todo código: valores y colores de los indicadores, gráficos con el grupo resaltado y PDF."""
     carpeta = Path(carpeta)
     carpeta.mkdir(parents=True, exist_ok=True)
@@ -389,9 +410,11 @@ def armar(pedido, plan, redaccion, consultas, carpeta):
         nota = f"se muestran {dibujo['mostrados']} de {dibujo['mostrados'] + dibujo['omitidos']}" if dibujo["omitidos"] else ""
         pruebas.append({"titulo": prueba.titulo, "grafico": dibujo["ruta"], "texto": prueba.texto,
                         "consulta": prueba.consulta, "nota": nota})
-    periodo = periodo_del_informe(consultas)
-    informe = {"titulo": redaccion.titulo, "bajada": redaccion.bajada, "acciones": redaccion.acciones,
-               "alcance": f"Período: {fecha(periodo['desde'])} a {fecha(periodo['hasta'])} · Pedido: «{pedido}»",
+    periodo = periodo_del_informe(consultas, redaccion.indicadores[0].consulta if redaccion.indicadores else None)
+    # El pedido va al anexo, con los supuestos: en la página del mensaje ocupaba cuatro líneas (decisión 67)
+    # Arriba, chico, qué informe es y de cuándo (IBCS separa la identificación del mensaje, decisión 70)
+    informe = {"titulo": redaccion.titulo, "puntos": redaccion.puntos, "acciones": redaccion.acciones,
+               "identificacion": f"{nombre} · del {fecha(periodo['desde'])} al {fecha(periodo['hasta'])}", "pedido": pedido,
                "indicadores": indicadores, "pruebas": pruebas, "supuestos": plan.supuestos,
                "consultas": [{"id": c["id"], "descripcion": descripcion(c["argumentos"]), "resultado": c["resultado"]}
                              for c in consultas if c["tool"] == "calcular" and c["id"] in citadas(redaccion)]}
@@ -416,7 +439,7 @@ def armar_diagnostico(pedido, plan, diagnostico, consultas, carpeta):
     return ruta
 
 
-async def main(pedido, carpeta):
+async def main(pedido, carpeta, nombre="Informe"):
     async with anthropic.AsyncAnthropic() as claude:
         sistema = INSTRUCCIONES_COORDINADOR + await glosario_del_servidor()
         plan, _ = await planificar(pedido, claude, sistema)
@@ -441,7 +464,7 @@ async def main(pedido, carpeta):
     # Todo lo que produjo el modelo, para rearmar el PDF sin volver a llamarlo (y para la traza)
     Path(carpeta).mkdir(parents=True, exist_ok=True)
     Path(carpeta, "informe.json").write_text(json.dumps(
-        {"pedido": pedido, "corrida": registro.CORRIDA, "version": registro.VERSION, "plan": plan.model_dump(),
+        {"pedido": pedido, "nombre": nombre, "corrida": registro.CORRIDA, "version": registro.VERSION, "plan": plan.model_dump(),
          "hallazgos": [{**h, "consultas": [c["id"] for c in h["consultas"]]} for h in hallazgos],
          "redaccion": redaccion.model_dump(), "revisiones": revisiones, "consultas": consultas},
         ensure_ascii=False, indent=1, default=str))
@@ -449,7 +472,7 @@ async def main(pedido, carpeta):
         ruta = armar_diagnostico(pedido, plan, redaccion, consultas, carpeta)
         print("\n" + ruta.read_text().split("## Supuestos")[0] + f"Diagnóstico: {ruta}\n")
     else:
-        print(f"\nPDF: {armar(pedido, plan, redaccion, consultas, carpeta)}\n")
+        print(f"\nPDF: {armar(pedido, plan, redaccion, consultas, carpeta, nombre)}\n")
     print(f"Traza: {escribir_traza(carpeta)}\n")
     registro.resumen_corrida(registro.leer(registro.LLAMADAS), registro.CORRIDA)
 
@@ -521,7 +544,11 @@ def rearmar(carpeta):
     plan = Plan(**guardado["plan"])
     if plan.tipo == "diagnostico":
         return armar_diagnostico(guardado["pedido"], plan, Diagnostico(**guardado["redaccion"]), guardado["consultas"], carpeta)
-    return armar(guardado["pedido"], plan, Redaccion(**guardado["redaccion"]), guardado["consultas"], carpeta)
+    redaccion = guardado["redaccion"]
+    if "bajada" in redaccion:  # los informes de antes de la decisión 70 tenían un párrafo en lugar de puntos
+        redaccion["puntos"] = [redaccion.pop("bajada")]
+    return armar(guardado["pedido"], plan, Redaccion(**redaccion), guardado["consultas"], carpeta,
+                 guardado.get("nombre", "Informe"))
 
 
 if __name__ == "__main__":
@@ -531,4 +558,10 @@ if __name__ == "__main__":
         sys.exit(print(rearmar(sys.argv[2])))
     if len(sys.argv) < 2:
         sys.exit('Uso: .venv/bin/python informes.py "pedido" [carpeta de salida]  ·  --rearmar carpeta')
-    asyncio.run(main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else f"salidas/{registro.CORRIDA}"))
+    argumentos = sys.argv[1:]
+    nombre = "Informe"
+    if "--nombre" in argumentos:  # «Informe semanal»…: lo pasa informe_programado.py
+        i = argumentos.index("--nombre")
+        nombre = argumentos[i + 1]
+        del argumentos[i:i + 2]
+    asyncio.run(main(argumentos[0], argumentos[1] if len(argumentos) > 1 else f"salidas/{registro.CORRIDA}", nombre))

@@ -1,4 +1,5 @@
 """Procesador de la capa semántica: arma el SQL desde medidas.yaml y esquema.yaml, lo corre y devuelve número + SQL."""
+from datetime import date
 import os
 import re
 
@@ -67,7 +68,10 @@ def ver_modelo():
 
 
 def condicion(columna, valor):
-    """Un filtro en SQL: «columna = ?» para un valor, «columna IN (?, ?, …)» para una lista (decisión 23)."""
+    """Un filtro en SQL: «columna = ?» para un valor, «columna IN (?, ?, …)» para una lista (decisión 23) y
+    «columna BETWEEN ? AND ?» para un rango {"desde", "hasta"} (decisión 69)."""
+    if isinstance(valor, dict):
+        return f"{columna} BETWEEN ? AND ?", [valor["desde"], valor["hasta"]]
     if isinstance(valor, list):
         if not valor:
             raise ValueError(f"Lista de valores vacía para {columna}")
@@ -80,7 +84,24 @@ def validar_valores(dimension, columna, valor):
     alias, nombre_columna = columna.split(".")
     tabla = next(t for t, datos in ESQUEMA["tablas"].items() if datos["alias"] == alias)
     info = ESQUEMA["tablas"][tabla]["columnas"][nombre_columna]
-    valores = valor if isinstance(valor, list) else [valor]
+    if isinstance(valor, dict):  # un rango (decisión 69)
+        if set(valor) != {"desde", "hasta"}:
+            raise ValueError(f'Un rango de {dimension} lleva exactamente desde y hasta: {{"desde": …, "hasta": …}}')
+        if str(valor["desde"]) > str(valor["hasta"]) if isinstance(valor["desde"], str) else valor["desde"] > valor["hasta"]:
+            raise ValueError(f"Rango de {dimension} al revés: desde {valor['desde']} es posterior a hasta {valor['hasta']}")
+    # Una lista de dos fechas salteadas casi siempre quiso ser un rango, pero cuenta solo esos dos días: los
+    # informes semanales y mensuales sumaban 2 días en vez de la semana o el mes (decisión 69)
+    if dimension == "fecha" and isinstance(valor, list) and len(valor) == 2:
+        try:
+            salto = abs((date.fromisoformat(str(valor[1])) - date.fromisoformat(str(valor[0]))).days)
+        except ValueError:
+            salto = 0
+        if salto > 1:
+            raise ValueError(
+                f'La lista {valor} cuenta solo esos 2 días, no del {valor[0]} al {valor[1]}. Para un rango: '
+                f'{{"fecha": {{"desde": "{min(map(str, valor))}", "hasta": "{max(map(str, valor))}"}}}}. Si de verdad '
+                f'son solo esos dos días, pedí cada uno por separado.')
+    valores = [valor["desde"], valor["hasta"]] if isinstance(valor, dict) else valor if isinstance(valor, list) else [valor]
 
     if "valores" in info:  # pocos valores, listados en el esquema
         malos = [v for v in valores if v not in info["valores"]]

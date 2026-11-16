@@ -1,9 +1,14 @@
 """Gráficos de los informes: los arma el código a partir del resultado de calcular(), nunca el modelo (semana 2).
 Cada gráfico devuelve también los números que dibujó, para que se puedan rastrear hasta su consulta."""
+import os
+
+import duckdb
 import matplotlib
 
 matplotlib.use("Agg")  # sin ventana: solo archivos
 import matplotlib.pyplot as plt
+
+from procesador_capa_semantica import BASE
 
 # Colores de la paleta de referencia (skill dataviz): una serie en azul; arriba/abajo de cero, azul y rojo
 AZUL, ROJO = "#2a78d6", "#e34948"
@@ -39,11 +44,35 @@ def formato(valor, unidad, con_signo=False, millones=False):
     return signo + texto.replace(",", "_").replace(".", ",").replace("_", ".")
 
 
+def _nombres():
+    """Código → nombre corto de proveedores y sucursales. A las sucursales se les saca el prefijo que comparten todas
+    («Almacenes del Sur »): en la página alcanza con «Sierra Chica»."""
+    with duckdb.connect(BASE, read_only=True) as con:
+        proveedores = dict(con.execute("SELECT proveedor_id, nombre FROM proveedores").fetchall())
+        sucursales = dict(con.execute("SELECT sucursal_id, nombre FROM sucursales").fetchall())
+    prefijo = os.path.commonprefix(list(sucursales.values()))
+    prefijo = prefijo[:prefijo.rfind(" ") + 1]  # hasta una palabra entera
+    return {**proveedores, **{k: v[len(prefijo):] for k, v in sucursales.items()}}
+
+
+NOMBRES = _nombres()
+
+
+NOMBRE_DE = {"proveedor": "nombre_proveedor", "sucursal": "nombre_sucursal"}
+
+
 def etiqueta(fila, dimensiones):
-    """Nombre del grupo: los valores de sus dimensiones (el nombre del proveedor, si vino, va con su código)."""
+    """Nombre del grupo: los valores de sus dimensiones. Si vino el nombre del proveedor o de la sucursal, va solo el
+    nombre: el código es ruido para la gerencia (decisión 68). Los productos sí llevan su sku: hay nombres repetidos."""
     partes = []
     for d in dimensiones:
+        if NOMBRE_DE.get(d) in dimensiones:
+            continue
         valor = fila[d]
+        if d in NOMBRE_DE and NOMBRE_DE[d] not in dimensiones:  # vino el código solo: su nombre
+            valor = NOMBRES.get(valor, valor)
+        elif d == "nombre_sucursal":
+            valor = NOMBRES.get(fila.get("sucursal"), valor)
         if d == "mes":
             valor = MESES[valor - 1]
         elif d == "mes_fiscal":
@@ -82,13 +111,17 @@ def color_de(medida, valor):
 
 def es_destacado(fila, dimensiones, destacar):
     """¿La fila es uno de los grupos a resaltar? Vale el código o el nombre («PR01» o «Molinos del Plata»)."""
-    textos = [str(fila[d]).lower() for d in dimensiones] + [etiqueta(fila, dimensiones).lower()]
-    return any(d.lower() in t for d in destacar for t in textos)
+    valores = [str(fila[d]).lower() for d in dimensiones]
+    nombre = etiqueta(fila, dimensiones).lower()
+    # Un código o un número tiene que ser exacto: «1» (enero) no puede resaltar «12» (diciembre). Un nombre puede ir
+    # en parte: «Molinos del Plata» resalta «Molinos del Plata S.A.» (decisión 71)
+    return any(d.lower() in valores or d.lower() == nombre or (len(d) >= 4 and not d.isdigit() and d.lower() in nombre)
+               for d in map(str, destacar))
 
 
 def graficar(resultado, ruta, titulo, maximo=MAXIMO_GRUPOS, destacar=()):
     """Un PNG a partir de un resultado agrupado de calcular(). Devuelve qué dibujó, con sus números.
-    Fuera de las líneas de tiempo, muestra como máximo `maximo` grupos: los resaltados y los que más se movieron.
+    Fuera de los gráficos por tiempo, muestra como máximo `maximo` grupos: los resaltados y los que más se movieron.
     Con `destacar`, solo esos grupos van en color y el resto en gris (Storytelling with Data)."""
     if not resultado.get("filas"):
         raise ValueError("Solo se grafica un resultado agrupado (con agrupar_por)")
@@ -97,15 +130,19 @@ def graficar(resultado, ruta, titulo, maximo=MAXIMO_GRUPOS, destacar=()):
     dimensiones = [d for d in filas[0] if d not in CALCULADOS]
     tipo, campo, unidad = que_dibujar(resultado)
     filas = [f for f in filas if f[campo] is not None]
-    temporal = len(dimensiones) == 1 and dimensiones[0] in TEMPORALES and tipo == "barras"
+    # Por tiempo, todos los períodos en orden y en el eje horizontal (IBCS, decisión 71): una línea si es un valor,
+    # columnas si es un cambio (un desvío, una variación por mes). Antes, el cambio iba en barras horizontales
+    # ordenadas por valor y con 6 de 12 meses: no se veía si el desvío era sostenido o puntual
+    por_tiempo = len(dimensiones) == 1 and dimensiones[0] in TEMPORALES
+    temporal = por_tiempo and tipo == "barras"
     omitidos = 0
-    if not temporal and len(filas) > maximo:
+    if not por_tiempo and len(filas) > maximo:
         omitidos = len(filas) - maximo
         # los resaltados entran siempre; el resto del lugar, para los que más se movieron
         filas = sorted(filas, key=lambda f: (not es_destacado(f, dimensiones, destacar), -abs(f[campo])))[:maximo]
 
-    if temporal:
-        tipo = "linea"
+    if por_tiempo:
+        tipo = "linea" if temporal else "columnas"
         orden_temporal = lambda f: f[dimensiones[0]]
         desde = (resultado.get("periodo") or {}).get("desde")
         if dimensiones[0] == "mes" and desde:  # de nov-2025 a mar-2026: dic va antes que ene (empieza en el mes de desde)
@@ -119,7 +156,7 @@ def graficar(resultado, ruta, titulo, maximo=MAXIMO_GRUPOS, destacar=()):
     valores = [f[campo] for f in filas]
     millones = max(abs(v) for v in valores) >= 1e6  # una sola escala por gráfico
 
-    alto = 2.2 if tipo == "linea" else max(1.5, 0.24 * len(filas) + 0.55)
+    alto = 2.2 if tipo in ("linea", "columnas") else max(1.5, 0.24 * len(filas) + 0.55)
     fig, ax = plt.subplots(figsize=(7, alto), dpi=200)
     if tipo == "linea":
         ax.plot(nombres, valores, color=AZUL, linewidth=2, marker="o", markersize=4)
@@ -130,17 +167,38 @@ def graficar(resultado, ruta, titulo, maximo=MAXIMO_GRUPOS, destacar=()):
     else:
         medida = resultado["medida"]
         resaltados = [es_destacado(f, dimensiones, destacar) if destacar else True for f in filas]
-        colores = [(color_de(medida, v) if tipo == "divergente" else AZUL) if r else GRIS
-                   for v, r in zip(valores, resaltados)]
-        barras = ax.barh(nombres, valores, color=colores, height=0.6)
-        etiquetas = ax.bar_label(barras, labels=[formato(v, unidad, tipo == "divergente", millones) for v in valores],
-                                 padding=3, fontsize=8)
+        # Un criterio visible: también va en color todo grupo que se movió al menos tanto como el resaltado más chico
+        # del mismo lado. Si no, dos barras iguales salen una en rojo y otra en gris (decisión 68)
+        for lado in (1, -1):
+            # sobre lo que se lee en la etiqueta (redondeado), no sobre el valor exacto
+            visto = [round(lado * v, 1) for v in valores]
+            umbral = [x for x, r in zip(visto, resaltados) if r and x > 0]
+            if destacar and umbral:
+                resaltados = [r or x >= min(umbral) for x, r in zip(visto, resaltados)]
+        cambio = tipo in ("divergente", "columnas")
+        colores = [(color_de(medida, v) if cambio else AZUL) if r else GRIS for v, r in zip(valores, resaltados)]
+        if tipo == "columnas":
+            barras = ax.bar(nombres, valores, color=colores, width=0.6)
+        else:
+            barras = ax.barh(nombres, valores, color=colores, height=0.6)
+        textos = [formato(v, unidad, cambio, millones) for v in valores]
+        if campo == "variacion" and unidad == "pp" and all("actual" in f for f in filas):
+            # La variación sola no dice si es grave: con el nivel al lado, «1,4 % (+0,5 pp)» (decisión 68)
+            textos = [f"{formato(f['actual'], '%')} ({t})" for f, t in zip(filas, textos)]
+        etiquetas = ax.bar_label(barras, labels=textos, padding=3, fontsize=8)
         for texto, r in zip(etiquetas, resaltados):
             texto.set_color(TINTA if r else TINTA_SUAVE)
-        ax.xaxis.set_visible(False)
-        if tipo == "divergente":
-            ax.axvline(0, color=TINTA_SUAVE, linewidth=0.8)
-        ax.margins(x=0.25)  # lugar para las etiquetas de los dos lados
+        if tipo == "columnas":
+            ax.yaxis.set_visible(False)
+            ax.axhline(0, color=TINTA_SUAVE, linewidth=0.8)
+            if max(valores) <= 0:  # todo para abajo: los nombres arriba, junto al cero, y no lejos al pie
+                ax.xaxis.tick_top()
+            ax.margins(y=0.3)  # lugar para las etiquetas arriba y abajo
+        else:
+            ax.xaxis.set_visible(False)
+            if tipo == "divergente":
+                ax.axvline(0, color=TINTA_SUAVE, linewidth=0.8)
+            ax.margins(x=0.45 if " (" in textos[0] else 0.25)  # lugar para las etiquetas de los dos lados
 
     if titulo:  # en el informe de una página el título va en el texto, como conclusión (decisión 54)
         fig.suptitle(titulo, x=0.02, ha="left", fontsize=11, color=TINTA)  # desde el borde: no lo corta una etiqueta

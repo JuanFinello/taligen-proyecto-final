@@ -88,6 +88,9 @@ def sin_respaldo(texto, valores):
     for valor, tolerancia, escrito in numeros_del_texto(texto):
         if valor.is_integer() and valor <= MAX_SIN_CONTROL and "," not in escrito:
             continue
-        if not any(abs(valor - v) <= tolerancia for v in valores):
+        # Redondeado (25,6664 → 25,67) o truncado (→ 25,66): los dos salen de la consulta. Truncar no es inventar,
+        # y marcarlo costaba una vuelta de corrección (P07, decisión 71). La tolerancia es medio dígito del último decimal
+        digito = tolerancia / 0.5001
+        if not any(abs(valor - v) <= tolerancia or 0 <= v - valor < digito for v in valores):
             sueltos.append(escrito)
     return sueltos
