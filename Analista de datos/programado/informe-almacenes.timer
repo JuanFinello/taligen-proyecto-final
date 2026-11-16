@@ -1,0 +1,10 @@
+# Los lunes a las 8. Persistent: si la PC estaba apagada a esa hora, corre apenas se prende.
+[Unit]
+Description=Informe de Almacenes del Sur, los lunes a las 8
+
+[Timer]
+OnCalendar=Mon *-*-* 08:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

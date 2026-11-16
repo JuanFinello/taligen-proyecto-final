@@ -1,0 +1,9 @@
+# Corre el informe del último mes con datos (informe_programado.py). Lo lanza informe-almacenes.timer.
+# La API key se carga de ~/.bashrc (su export está antes del corte para sesiones no interactivas): no se copia acá.
+[Unit]
+Description=Informe ejecutivo de Almacenes del Sur (último mes con datos)
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'source %h/.bashrc; cd "/home/juan/Documentos/TALIGEN_SPRING_CAMP/Proyecto FInal/Analista de datos" && exec .venv/bin/python informe_programado.py'
+TimeoutStartSec=40min

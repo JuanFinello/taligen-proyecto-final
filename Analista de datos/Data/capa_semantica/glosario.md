@@ -6,7 +6,7 @@ Cómo se calcula cada indicador. Las fórmulas están en `medidas.yaml`; acá es
 
 La base tiene los movimientos diarios de venta por sucursal y producto, la foto semanal de stock, el presupuesto mensual y las promociones. **No tiene datos de clientes, ni de tickets o transacciones individuales, ni de ventas online.** Indicadores como el ticket promedio, los clientes nuevos o la frecuencia de visita no se pueden calcular con esta base.
 
-Los importes están en pesos constantes de abril de 2026 y sin impuestos: las comparaciones entre períodos no necesitan ajuste por inflación.
+Los importes están en pesos constantes y sin impuestos: las comparaciones entre períodos no necesitan ajuste por inflación.
 
 «Almacén», en singular, es una categoría de productos, no la empresa: a la empresa se la llama «la cadena» o «Almacenes del Sur».
 
@@ -16,7 +16,7 @@ El año fiscal empieza el 1 de mayo y se nombra por el año en que termina: el A
 
 Finanzas habla en trimestres y años fiscales; las áreas comerciales, en calendario («el primer trimestre» es enero a marzo). Cuando un pedido dice «el último trimestre» o «el año pasado» sin aclarar cuál, la respuesta cambia: hay que preguntar o, como mínimo, declarar qué calendario se usó.
 
-La base cubre el AF2025 y el AF2026 completos.
+Qué período cubre la base lo dice ver_modelo (cobertura). «El último mes», «el último trimestre» o «este año» se cuentan desde el último dato de la base, no desde la fecha de hoy.
 
 ## Ventas
 

@@ -4,6 +4,7 @@ Uso: .venv/bin/python agente.py "¿Cuál fue el margen bruto de Perfumería en e
      .venv/bin/python agente.py --traza trazas/P17.md "¿pregunta?" …         (además guarda la traza en ese archivo)"""
 import asyncio
 import json
+import os
 import sys
 import time
 from datetime import date
@@ -11,6 +12,7 @@ from pathlib import Path
 
 import anthropic
 from mcp import ClientSession, StdioServerParameters, stdio_client
+from mcp.client.stdio import get_default_environment
 
 import registro
 from hooks import al_terminar, antes_de_tool, despues_de_tool, pedido_de_correccion, tools_de
@@ -27,7 +29,10 @@ INSTRUCCIONES = ("Sos un analista de datos de Almacenes del Sur. Respondé en es
                  "Empezá llamando a ver_modelo para conocer las medidas y dimensiones.\n"
                  "- Al nombrar sucursales o proveedores, mostrá código y nombre (agrupá por las dos dimensiones).\n"
                  "- Si comparás ventas de dos períodos, informá la variación total y la comparable (comparables=True).\n\n")
-SERVIDOR = StdioServerParameters(command=".venv/bin/python", args=["servidor_mcp.py"])
+# El servidor no hereda el entorno: si se eligió otra base (BASE_ALMACENES), se la pasa
+SERVIDOR = StdioServerParameters(command=".venv/bin/python", args=["servidor_mcp.py"],
+                                 env={**get_default_environment(), **{k: v for k, v in os.environ.items()
+                                                                      if k == "BASE_ALMACENES"}})
 
 
 async def pedir_glosario(mcp):

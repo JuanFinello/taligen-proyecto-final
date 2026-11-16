@@ -1,10 +1,12 @@
 """Procesador de la capa semántica: arma el SQL desde medidas.yaml y esquema.yaml, lo corre y devuelve número + SQL."""
+import os
 import re
 
 import duckdb
 import yaml
 
-BASE = "Data/base/almacenes_del_sur.duckdb"
+# Otra base (por ejemplo, una copia con una ingesta de prueba) se elige con BASE_ALMACENES; si no, la de siempre
+BASE = os.environ.get("BASE_ALMACENES", "Data/base/almacenes_del_sur.duckdb")
 CAPA = "Data/capa_semantica"
 
 with open(f"{CAPA}/medidas.yaml") as f:
@@ -13,6 +15,29 @@ MEDIDAS = {m["id"]: m for m in MEDIDAS_YAML["medidas"]}
 DERIVADAS = {m["id"]: m for m in MEDIDAS_YAML["medidas_derivadas"]}
 with open(f"{CAPA}/esquema.yaml") as f:
     ESQUEMA = yaml.safe_load(f)
+
+
+def completar_con_la_base(esquema):
+    """Los valores válidos y los rangos de cada columna salen de la base al arrancar, no del YAML: así una ingesta de
+    datos nuevos (meses, sucursales, productos) entra sola. En esquema.yaml queda solo si una columna se lista
+    (valores) o se acota (rango); eso es una decisión, el contenido es un dato (decisión 62)."""
+    with duckdb.connect(BASE, read_only=True) as con:
+        for tabla, datos in esquema["tablas"].items():
+            for columna, info in datos["columnas"].items():
+                if "valores" in info:
+                    info["valores"] = [fila[0] for fila in con.execute(
+                        f'SELECT DISTINCT "{columna}" FROM {tabla} WHERE "{columna}" IS NOT NULL ORDER BY 1').fetchall()]
+                if "rango" in info:
+                    desde, hasta = con.execute(f'SELECT MIN("{columna}"), MAX("{columna}") FROM {tabla}').fetchone()
+                    # Las fechas, como texto ISO: así se comparan con lo que manda Haiku («2026-04-30»)
+                    info["rango"] = [v.isoformat() if hasattr(v, "isoformat") else v for v in (desde, hasta)]
+
+
+completar_con_la_base(ESQUEMA)
+with duckdb.connect(BASE, read_only=True) as _con:
+    # Qué período cubre la base: de ahí se cuentan «el último mes» o «el último trimestre» (glosario)
+    COBERTURA = dict(zip(("ventas_desde", "ventas_hasta"),
+                         (v.isoformat() for v in _con.execute("SELECT MIN(fecha), MAX(fecha) FROM ventas").fetchone())))
 
 
 def ver_modelo():
@@ -32,6 +57,7 @@ def ver_modelo():
         dimensiones[dimension] = {k: info[k] for k in ("valores", "rango") if k in info}
 
     return {
+        "cobertura": COBERTURA,
         "medidas": medidas,
         "dimensiones": dimensiones,
         "nota_dimensiones": ESQUEMA["nota_dimensiones"],
