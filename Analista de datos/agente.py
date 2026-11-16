@@ -15,6 +15,7 @@ from mcp import ClientSession, StdioServerParameters, stdio_client
 from mcp.client.stdio import get_default_environment
 
 import registro
+import salida
 from hooks import al_terminar, antes_de_tool, despues_de_tool, pedido_de_correccion, tools_de
 from procesador_capa_semantica import sqls
 
@@ -47,15 +48,27 @@ async def glosario_del_servidor():
         return await pedir_glosario(mcp)
 
 
+# Caché (semana 5, decisión 72). Tools + sistema son iguales en todas las llamadas: una marca fija al final del sistema
+# los guarda. La conversación crece en cada vuelta del loop: el caché automático (cache_control en la llamada) pone la
+# marca en el último bloque, así cada vuelta lee lo de la anterior y paga entero solo lo nuevo
+CACHE = {"type": "ephemeral"}
+
+
+def con_cache(texto):
+    """El prompt de sistema como bloque con su marca de caché."""
+    return [{"type": "text", "text": texto, "cache_control": CACHE}]
+
+
 async def responder(pregunta, historial=None):
     """Responde una pregunta. Con historial (los mensajes de los turnos anteriores), sigue esa conversación (decisión 31)."""
     # Paso 1: lanzar el servidor MCP y pedirle la lista de tools
     async with (stdio_client(SERVIDOR) as (lectura, escritura), ClientSession(lectura, escritura) as mcp,
                 anthropic.AsyncAnthropic() as claude):
         await mcp.initialize()
-        sistema = INSTRUCCIONES + await pedir_glosario(mcp)
-        tools = tools_de("analista", [{"name": t.name, "description": t.description, "input_schema": t.input_schema}
-                                      for t in (await mcp.list_tools()).tools])
+        sistema = con_cache(INSTRUCCIONES + await pedir_glosario(mcp))
+        # Ordenadas por nombre: las tools van primero en el prefijo y cualquier cambio de orden rompe el caché
+        tools = tools_de("analista", sorted(({"name": t.name, "description": t.description, "input_schema": t.input_schema}
+                                             for t in (await mcp.list_tools()).tools), key=lambda t: t["name"]))
 
         # Paso 2: el loop. Haiku contesta; si pide una tool, la corremos y le devolvemos el resultado
         mensajes = [*(historial or []), {"role": "user", "content": pregunta}]
@@ -63,25 +76,35 @@ async def responder(pregunta, historial=None):
         correcciones, sueltos = 0, []
         for vuelta in range(1, MAX_VUELTAS + 1):
             inicio = time.monotonic()
-            respuesta = await claude.messages.create(model=MODELO, max_tokens=16000, system=sistema,
-                                                     tools=tools, messages=mensajes)
+            # La respuesta final sale con el esquema de salida.py (decisión 73); mientras pide tools, el loop sigue igual
+            respuesta = await claude.messages.create(model=MODELO, max_tokens=16000, system=sistema, tools=tools,
+                                                     messages=mensajes, cache_control=CACHE,
+                                                     output_config=salida.FORMATO)
             segundos_modelo = time.monotonic() - inicio
             mensajes.append({"role": "assistant", "content": respuesta.content})
 
             # Si no pidió ninguna tool, terminó: lo que escribió es la respuesta final
             if respuesta.stop_reason != "tool_use":
-                texto = "".join(b.text for b in respuesta.content if b.type == "text")
+                final, motivo = salida.leer("".join(b.text for b in respuesta.content if b.type == "text"))
+                if final is None:  # cortada (max_tokens) o rechazada: el esquema no se cumple
+                    registro.anotar("analista", pregunta, vuelta, respuesta, segundos_modelo, errores=["salida"])
+                    return {"pregunta": pregunta, "texto": f"No pude responder: {motivo}.", "consultas": consultas,
+                            "mensajes": mensajes, "registro": None, "problemas_registro": [motivo]}
                 # Hook al terminar: cada número tiene que salir de una consulta (o de la pregunta). Si no, se le
-                # devuelve el motivo para que corrija, como el error de una tool
-                sueltos = al_terminar(texto, mensajes)
+                # devuelve el motivo para que corrija, como el error de una tool. Se controla todo lo que escribió
+                sueltos = al_terminar("\n".join([final.texto, *final.supuestos, *final.cuentas]), mensajes)
                 registro.anotar("analista", pregunta, vuelta, respuesta, segundos_modelo,
                                 errores=["numeros_sin_respaldo"] if sueltos else [], sin_respaldo=sueltos)
                 if sueltos and correcciones < MAX_CORRECCIONES:
                     correcciones += 1
                     mensajes.append({"role": "user", "content": pedido_de_correccion(sueltos)})
                     continue
-                return {"pregunta": pregunta, "texto": texto, "consultas": consultas, "mensajes": mensajes,
-                        "numeros_sin_respaldo": sueltos}
+                # El registro se valida antes de guardarse; si no pasa, no se guarda y queda el motivo
+                datos, problemas = salida.validar(final, pregunta, consultas)
+                if datos:
+                    salida.guardar(datos)
+                return {"pregunta": pregunta, "texto": final.texto, "consultas": consultas, "mensajes": mensajes,
+                        "numeros_sin_respaldo": sueltos, "registro": datos, "problemas_registro": problemas}
 
             # Paso 3: correr cada tool que pidió, vía MCP, y juntar los resultados en un solo mensaje
             resultados, pedidas, errores, inicio = [], [], [], time.monotonic()
@@ -111,7 +134,8 @@ async def responder(pregunta, historial=None):
         # Si se trabó pidiendo tools sin terminar, corta en vez de seguir gastando (decisión 26)
         texto = f"No pude responder: se alcanzó el límite de {MAX_VUELTAS} llamadas al modelo sin una respuesta final."
         mensajes.append({"role": "assistant", "content": texto})  # el historial queda completo para el turno siguiente
-        return {"pregunta": pregunta, "texto": texto, "consultas": consultas, "mensajes": mensajes}
+        return {"pregunta": pregunta, "texto": texto, "consultas": consultas, "mensajes": mensajes, "registro": None,
+                "problemas_registro": ["sin respuesta final"]}
 
 
 async def conversar(turnos):
@@ -170,6 +194,8 @@ if __name__ == "__main__":
         if len(respuestas) > 1:
             print(f"\n===== Turno {numero}: {respuesta['pregunta']}")
         print(respuesta["texto"])
+        if respuesta.get("problemas_registro"):
+            print("⚠ registro no guardado: " + "; ".join(respuesta["problemas_registro"]))
     if ruta_traza:
         guardar_traza(respuestas, ruta_traza)
         print(f"\nTraza guardada en {ruta_traza}")

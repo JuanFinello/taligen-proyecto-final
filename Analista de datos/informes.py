@@ -13,7 +13,7 @@ import anthropic
 from pydantic import BaseModel, Field
 
 import registro
-from agente import glosario_del_servidor, resumen, responder
+from agente import CACHE, con_cache, glosario_del_servidor, resumen, responder
 from controles import AVISO, MAX_SIN_CONTROL, numeros_del_texto, sin_respaldo, valores_de
 from graficos import CALCULADOS, color_de, es_destacado, graficar
 from informe_pdf import armar_pdf, escribir_sql, fecha
@@ -331,7 +331,10 @@ async def redactar(pedido, plan, hallazgos, claude, sistema):
         instrucciones, formato_salida, revisar_salida = INSTRUCCIONES_DIAGNOSTICO, Diagnostico, revisar_diagnostico
     else:
         instrucciones, formato_salida, revisar_salida = INSTRUCCIONES_REDACCION, Redaccion, revisar_redaccion
-    mensajes = [{"role": "user", "content": instrucciones + json.dumps(material, ensure_ascii=False)}]
+    # Marca de caché explícita en el material: si hay que corregir, la segunda redacción lo lee del caché (parse no
+    # acepta la marca automática de la llamada)
+    mensajes = [{"role": "user", "content": [{"type": "text", "text": instrucciones + json.dumps(material, ensure_ascii=False),
+                                              "cache_control": CACHE}]}]
     revisiones = []  # lo que encontró el control en cada intento, para la traza
     for intento in (1, 2):
         inicio = time.monotonic()
@@ -441,7 +444,7 @@ def armar_diagnostico(pedido, plan, diagnostico, consultas, carpeta):
 
 async def main(pedido, carpeta, nombre="Informe"):
     async with anthropic.AsyncAnthropic() as claude:
-        sistema = INSTRUCCIONES_COORDINADOR + await glosario_del_servidor()
+        sistema = con_cache(INSTRUCCIONES_COORDINADOR + await glosario_del_servidor())  # planificar y redactar lo comparten
         plan, _ = await planificar(pedido, claude, sistema)
         print(json.dumps(plan.model_dump(), ensure_ascii=False, indent=2))
         problemas = revisar(plan)
