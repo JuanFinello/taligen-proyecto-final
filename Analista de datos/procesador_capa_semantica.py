@@ -332,15 +332,19 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
     alias_del_join = set(re.findall(r"(?:^|JOIN )\w+ (\w+)", join))
     validas = [d for d, c in columna_de.items() if c.split(".")[0] in alias_del_join]
     for dimension in [*filtros, *agrupar_por]:
-        if dimension in columna_de and dimension not in validas:
+        if dimension not in columna_de:
+            # Que el error diga qué usar: si pidió el nombre de una columna (sku), la dimensión que la usa (producto)
+            parecidas = [d for d in validas if columna_de[d].split(".")[1] == dimension]
+            sugerencia = f" Para filtrar por {dimension}, usá {' o '.join(parecidas)}." if parecidas else ""
+            raise ValueError(f"Dimensión desconocida: {dimension}.{sugerencia} "
+                             f"Dimensiones válidas para {medida}: {', '.join(validas)}")
+        if dimension not in validas:
             raise ValueError(f"La dimensión {dimension} no se puede usar con {medida}. "
                              f"Dimensiones válidas para {medida}: {', '.join(validas)}")
 
     # Paso 3: cada filtro va a su columna; el valor, como parámetro
     condiciones, parametros = [], []
     for dimension, valor in filtros.items():
-        if dimension not in columna_de:
-            raise ValueError(f"Dimensión desconocida: {dimension}")
         validar_valores(dimension, columna_de[dimension], valor)
         sql, valores = condicion(columna_de[dimension], valor)
         condiciones.append(sql)
@@ -352,8 +356,6 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
     # Paso 4: cada dimensión de agrupar_por va a su columna (decisión 10)
     columnas = []
     for dimension in agrupar_por:
-        if dimension not in columna_de:
-            raise ValueError(f"Dimensión desconocida: {dimension}")
         columnas.append(columna_de[dimension])
 
     seleccion = [f"{c} AS {d}" for c, d in zip(columnas, agrupar_por)] + [f"{m['formula']} AS valor"]

@@ -13,7 +13,7 @@ import anthropic
 from pydantic import BaseModel, Field
 
 import registro
-from agente import resumen, responder
+from agente import glosario_del_servidor, resumen, responder
 from controles import AVISO, MAX_SIN_CONTROL, numeros_del_texto, sin_respaldo, valores_de
 from graficos import CALCULADOS, color_de, es_destacado, graficar
 from informe_pdf import armar_pdf, escribir_sql, fecha
@@ -21,11 +21,9 @@ from procesador_capa_semantica import sqls, ver_modelo
 
 MODELO = "claude-haiku-5-5"
 
-with open("Data/capa_semantica/glosario.md") as f:
-    GLOSARIO = f.read()
-
-# El coordinador no consulta: el menú de medidas va en su prompt en vez de pedirlo con ver_modelo (una vuelta menos)
-SISTEMA_COORDINADOR = (
+# El coordinador no consulta: el menú de medidas va en su prompt en vez de pedirlo con ver_modelo (una vuelta menos).
+# El glosario se suma al correr: lo sirve el servidor MCP como prompt (glosario_del_servidor)
+INSTRUCCIONES_COORDINADOR = (
     "Sos el coordinador de los informes y diagnósticos de Almacenes del Sur. No consultás datos: repartís el trabajo "
     "entre analistas que sí consultan, y después redactás con lo que encuentran. Respondé en español.\n\n"
     "## Qué puede hacer un analista\n"
@@ -51,7 +49,7 @@ SISTEMA_COORDINADOR = (
     "anotalo en supuestos.\n"
     "- Si el pedido se puede leer de dos maneras (período, calendario fiscal o comercial), elegí una y anotala en supuestos.\n\n"
     "## Modelo de datos (medidas y dimensiones que pueden consultar los analistas)\n"
-    + json.dumps(ver_modelo(), ensure_ascii=False) + "\n\n" + GLOSARIO)
+    + json.dumps(ver_modelo(), ensure_ascii=False) + "\n\n")
 LIMITES = {"diagnostico": (1, 2), "informe": (2, 4)}  # cuántas preguntas; cada una, de 1 a 3 consultas
 MAX_CONSULTAS = 3
 
@@ -85,10 +83,11 @@ def revisar(plan):
     return problemas
 
 
-async def planificar(pedido, claude):
+async def planificar(pedido, claude, sistema):
     """Paso 1 del coordinador: el plan con su estructura garantizada (salida estructurada)."""
     inicio = time.monotonic()
-    respuesta = await claude.messages.parse(model=MODELO, max_tokens=16000, system=SISTEMA_COORDINADOR,
+    # Sin tools: el coordinador no consulta la base (PERMITIDAS["coordinador"] en hooks.py está vacía)
+    respuesta = await claude.messages.parse(model=MODELO, max_tokens=16000, system=sistema,
                                             messages=[{"role": "user", "content": pedido}], output_format=Plan)
     registro.anotar("coordinador", pedido, 1, respuesta, time.monotonic() - inicio)
     return respuesta.parsed_output, respuesta.usage
@@ -303,7 +302,7 @@ def revisar_redaccion(redaccion, consultas):
     return problemas + revisar_citas(textos_de(redaccion), consultas)
 
 
-async def redactar(pedido, plan, hallazgos, claude):
+async def redactar(pedido, plan, hallazgos, claude, sistema):
     """Paso 3 del coordinador: el informe (o la respuesta del diagnóstico), con la estructura garantizada. Si el
     código encuentra problemas, se los devuelve una vez para que corrija."""
     consultas = [c for h in hallazgos for c in h["consultas"]]
@@ -319,7 +318,7 @@ async def redactar(pedido, plan, hallazgos, claude):
     revisiones = []  # lo que encontró el control en cada intento, para la traza
     for intento in (1, 2):
         inicio = time.monotonic()
-        respuesta = await claude.messages.parse(model=MODELO, max_tokens=16000, system=SISTEMA_COORDINADOR,
+        respuesta = await claude.messages.parse(model=MODELO, max_tokens=16000, system=sistema,
                                                 messages=mensajes, output_format=formato_salida)
         redaccion = respuesta.parsed_output
         problemas = revisar_salida(redaccion, consultas)
@@ -419,7 +418,8 @@ def armar_diagnostico(pedido, plan, diagnostico, consultas, carpeta):
 
 async def main(pedido, carpeta):
     async with anthropic.AsyncAnthropic() as claude:
-        plan, _ = await planificar(pedido, claude)
+        sistema = INSTRUCCIONES_COORDINADOR + await glosario_del_servidor()
+        plan, _ = await planificar(pedido, claude, sistema)
         print(json.dumps(plan.model_dump(), ensure_ascii=False, indent=2))
         problemas = revisar(plan)
         for problema in problemas:
@@ -430,7 +430,7 @@ async def main(pedido, carpeta):
         for h in hallazgos:
             print(f"\n## {h['objetivo']}\n{h['hallazgo']}\nConsultas: "
                   + (", ".join(c["id"] + " " + c["argumentos"].get("medida", "sql") for c in h["consultas"]) or "ninguna"))
-        redaccion, problemas, consultas, revisiones = await redactar(pedido, plan, hallazgos, claude)
+        redaccion, problemas, consultas, revisiones = await redactar(pedido, plan, hallazgos, claude, sistema)
     print("\n" + json.dumps(redaccion.model_dump(), ensure_ascii=False, indent=2))
     for problema in problemas:
         print(("✗ " if isinstance(problema, Grave) else "⚠ ") + problema)

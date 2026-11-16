@@ -64,7 +64,7 @@ C3:
 C4:
   turnos:
     - - {medida: unidades, tipo: valor, esperado: 1806, tolerancia: 0}   # P0298, cola Del Sur 2,25 L
-    - - {medida: unidades, tipo: valor, esperado: 8018, tolerancia: 0}   # P0071, cola Cola Andina 2,25 L (la común)
+    - - {medida: unidades, tipo: valor, esperado: 8018, tolerancia: 0, fila: {producto: P0071}}   # P0071, cola Cola Andina 2,25 L (la común); a veces agrupa sus 3 sku de igual nombre
     - []   # promociones de gaseosas vigentes en dic-2025: solo PROMO001 (necesita consultar_sql)
 C5:
   turnos:

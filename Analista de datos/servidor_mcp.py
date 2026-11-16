@@ -1,4 +1,5 @@
-"""Servidor MCP: expone ver_modelo(), calcular(), buscar_producto() y consultar_sql() del procesador como tools."""
+"""Servidor MCP: expone ver_modelo(), calcular(), buscar_producto() y consultar_sql() del procesador como tools,
+y el glosario como prompt."""
 import os
 
 # El procesador abre Data/... con rutas relativas: el servidor corre siempre desde esta carpeta
@@ -10,6 +11,13 @@ from mcp.server.mcpserver.exceptions import ToolError
 import procesador_capa_semantica as procesador
 
 servidor = MCPServer("almacenes-del-sur")
+
+
+@servidor.prompt()
+def glosario() -> str:
+    """El criterio del negocio (glosario.md): va entero en el prompt de sistema de cada agente."""
+    with open("Data/capa_semantica/glosario.md") as f:
+        return f.read()
 
 
 @servidor.tool()
@@ -41,7 +49,8 @@ def calcular(medida: str, filtros: dict | None = None, agrupar_por: list[str] | 
 @servidor.tool()
 def buscar_producto(texto: str) -> dict:
     """Busca productos por nombre o marca y devuelve su código (sku), nombre, marca, categoría y precio de lista.
-    Usarla para pasar de un nombre («gaseosa cola Del Sur 2,25 L») al sku antes de filtrar por producto en calcular.
+    Usarla para pasar de un nombre («gaseosa cola Del Sur 2,25 L») al sku. En calcular, el sku va en la dimensión
+    producto: filtros={"producto": "P0298"} (no existe la dimensión sku).
     Busca las palabras sueltas, sin importar mayúsculas ni tildes: conviene pocas palabras («cola Del Sur»).
     Hay nombres repetidos en varios sku que solo difieren en precio: si hay más de uno, aclararlo o sumar todos."""
     try:

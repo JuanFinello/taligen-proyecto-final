@@ -22,7 +22,7 @@ CACHE_LECTURA, CACHE_ESCRITURA = 0.1, 1.25  # por la entrada: leer del caché cu
 
 # La versión del diseño: una huella de los archivos que deciden qué hace Haiku (prompt, criterio, capa y tools).
 # Cambia sola con cualquier cambio en ellos, aunque no haya commit; el resto (evaluador, PDF, gráficos) no cuenta
-ARCHIVOS_DEL_DISEÑO = ["agente.py", "informes.py", "servidor_mcp.py", "procesador_capa_semantica.py",
+ARCHIVOS_DEL_DISEÑO = ["agente.py", "hooks.py", "informes.py", "servidor_mcp.py", "procesador_capa_semantica.py",
                        "Data/capa_semantica/glosario.md", "Data/capa_semantica/medidas.yaml",
                        "Data/capa_semantica/esquema.yaml"]
 VERSION = hashlib.sha1(b"".join(Path(a).read_bytes() for a in ARCHIVOS_DEL_DISEÑO if Path(a).exists())).hexdigest()[:6]
