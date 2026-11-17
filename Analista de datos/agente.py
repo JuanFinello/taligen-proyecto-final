@@ -91,11 +91,22 @@ async def responder(pregunta, historial=None, tipo=None):
                     registro.anotar("analista", pregunta, vuelta, respuesta, segundos_modelo, errores=["salida"])
                     return {"pregunta": pregunta, "texto": f"No pude responder: {motivo}.", "consultas": consultas,
                             "mensajes": mensajes, "registro": None, "problemas_registro": [motivo]}
+                # Respuesta vacía: desde la salida estructurada (decisión 73), a veces Haiku devuelve el esquema con el
+                # texto vacío en la primera vuelta, sin consultar nada (7 analistas del 16 al 17-11; un informe salía
+                # con un analista menos y sin aviso). Se le devuelve para que responda, como un número sin respaldo
+                vacia = not final.texto.strip()
+                if vacia and correcciones < MAX_CORRECCIONES:
+                    registro.anotar("analista", pregunta, vuelta, respuesta, segundos_modelo, errores=["respuesta_vacia"])
+                    correcciones += 1
+                    mensajes.append({"role": "user", "content": "Tu respuesta llegó vacía. Respondé la pregunta; si "
+                                                                "necesitás datos, pedilos con las tools."})
+                    continue
                 # Hook al terminar: cada número tiene que salir de una consulta (o de la pregunta). Si no, se le
                 # devuelve el motivo para que corrija, como el error de una tool. Se controla todo lo que escribió
                 sueltos = al_terminar("\n".join([final.texto, *final.supuestos, *final.cuentas]), mensajes)
                 registro.anotar("analista", pregunta, vuelta, respuesta, segundos_modelo,
-                                errores=["numeros_sin_respaldo"] if sueltos else [], sin_respaldo=sueltos)
+                                errores=["respuesta_vacia"] * vacia + ["numeros_sin_respaldo"] * bool(sueltos),
+                                sin_respaldo=sueltos)
                 if sueltos and correcciones < MAX_CORRECCIONES:
                     correcciones += 1
                     mensajes.append({"role": "user", "content": pedido_de_correccion(sueltos)})

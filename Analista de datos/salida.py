@@ -89,6 +89,8 @@ def validar(final, pregunta, consultas, sin_respaldo_=(), tipo=None):
     una consulta (redondeado o no), y una respuesta con número no puede no tener consultas. Si después de las
     correcciones quedaron números sin respaldo, tampoco se guarda: el registro diría algo que no se puede rastrear."""
     problemas = [f"números sin respaldo después de las correcciones: {', '.join(sin_respaldo_)}"] if sin_respaldo_ else []
+    if not final.texto.strip():
+        problemas.append("el texto está vacío")
     if final.valor is not None:
         if not consultas:
             problemas.append("tiene un valor pero ninguna consulta")

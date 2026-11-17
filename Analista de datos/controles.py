@@ -14,8 +14,15 @@ MAX_SIN_CONTROL = 12  # enteros chicos sin decimales (los 4 trimestres, las 6 ca
 def numeros_del_texto(texto):
     """[(valor, tolerancia, como_esta_escrito)] de cada número del texto, con la tolerancia de su redondeo."""
     numeros = []
-    for coincidencia in NUMERO.finditer(texto):
+    coincidencias = list(NUMERO.finditer(texto))
+    for i, coincidencia in enumerate(coincidencias):
         escrito, millones = coincidencia.group(1), coincidencia.group(2)
+        # Un rango comparte la escala: en «entre 101 y 120 millones» o «de 101 a 120 millones», el 101 también son
+        # millones (decisión 82; el control lo leía como 101 pesos y frenaba el informe)
+        siguiente = coincidencias[i + 1] if i + 1 < len(coincidencias) else None
+        if (not millones and siguiente and siguiente.group(2) and not re.fullmatch(r"(?:19|20)\d\d", escrito)  # un año, no
+                and re.fullmatch(r"\s*(?:y|a|al|-|–)\s*", texto[coincidencia.end():siguiente.start()])):
+            millones = siguiente.group(2)
         if re.fullmatch(r"\d{1,3}(?:\.\d{3})+(?:,\d+)?", escrito):  # 1.247 o 663.149.556,5: puntos de miles
             entero, _, decimales = escrito.replace(".", "").partition(",")
         else:  # 25,9 (coma decimal) o 25.9 (por si escribe con punto)

@@ -54,4 +54,4 @@ Chequeo: ✓/✗ contra `esperados.yaml` (R = reserva, decisión 80: no se ajust
 
 Las salidas (trazas por caso, diagnósticos y PDF) quedan en `salidas/completa-<corrida>/`, que no se commitea.
 
-Leído a mano: los diagnósticos y P15, P13, P16, I1 e I3 están bien. **I2 tiene un problema**: atribuye al Sur un desvío de −53,71 % en enero, que es el error de carga del presupuesto (Perfumería, Sur, ene-2026, ×10; decisión 6), sin decirlo. P14 encontró el quiebre de stock, pero esta vez no lo atribuyó al proveedor (en la corrida de la decisión 79, sí).
+Leído a mano: los diagnósticos y P15, P13, P16, I1 e I3 están bien. **I2 tiene un problema**: atribuye al Sur un desvío de −53,71 % en enero, que es el error de carga del presupuesto (Perfumería, Sur, ene-2026, ×10; decisión 6), sin decirlo. **Resuelto en la decisión 82**: la causa era un analista que devolvió una respuesta vacía; con los analistas completos, I2 detecta el error de carga. P14 encontró el quiebre de stock, pero esta vez no lo atribuyó al proveedor (en la corrida de la decisión 79, sí).
