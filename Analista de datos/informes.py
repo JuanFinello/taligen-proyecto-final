@@ -83,11 +83,12 @@ def revisar(plan):
     return problemas
 
 
-async def planificar(pedido, claude, sistema):
+async def planificar(pedido, claude, sistema, contexto=""):
     """Paso 1 del coordinador: el plan con su estructura garantizada (salida estructurada). Si no cumple los límites,
     el código le devuelve los problemas una vez para que corrija, como en la redacción (decisión 75); antes el
     informe se cortaba y el programado lo reintentaba entero. Devuelve (plan, problemas que quedaron)."""
-    mensajes = [{"role": "user", "content": pedido}]
+    # contexto: lo que pasa la puerta (decisión 78): el tipo que reconoció y, en una conversación, los turnos anteriores
+    mensajes = [{"role": "user", "content": contexto + pedido}]
     for intento in (1, 2):
         inicio = time.monotonic()
         # Sin tools: el coordinador no consulta la base (PERMITIDAS["coordinador"] en hooks.py está vacía)
@@ -455,15 +456,21 @@ def armar_diagnostico(pedido, plan, diagnostico, consultas, carpeta):
     return ruta
 
 
-async def main(pedido, carpeta, nombre="Informe"):
+class NoSeEntrega(Exception):
+    """El plan o la redacción siguen con problemas después de corregirlos: no hay informe."""
+
+
+async def atender(pedido, carpeta, nombre="Informe", contexto=""):
+    """Un pedido de informe o diagnóstico, de punta a punta. Devuelve {texto, consultas, salida}; si no se puede
+    entregar, NoSeEntrega. Lo llaman este script y la puerta (puerta.py, decisión 78)."""
     async with anthropic.AsyncAnthropic() as claude:
         sistema = con_cache(INSTRUCCIONES_COORDINADOR + await glosario_del_servidor())  # planificar y redactar lo comparten
-        plan, problemas = await planificar(pedido, claude, sistema)
+        plan, problemas = await planificar(pedido, claude, sistema, contexto)
         print(json.dumps(plan.model_dump(), ensure_ascii=False, indent=2))
         for problema in problemas:
             print("⚠ " + problema)
         if problemas:
-            sys.exit("El plan sigue sin cumplir los límites después de corregirlo: no se manda a los analistas")
+            raise NoSeEntrega("El plan sigue sin cumplir los límites después de corregirlo: no se manda a los analistas")
         hallazgos = await investigar(plan)
         for h in hallazgos:
             print(f"\n## {h['objetivo']}\n{h['hallazgo']}\nConsultas: "
@@ -473,7 +480,7 @@ async def main(pedido, carpeta, nombre="Informe"):
     for problema in problemas:
         print(("✗ " if isinstance(problema, Grave) else "⚠ ") + problema)
     if any(isinstance(p, Grave) for p in problemas):
-        sys.exit("La redacción sigue con problemas graves después de corregirla: no se entrega")
+        raise NoSeEntrega("La redacción sigue con problemas graves después de corregirla: no se entrega")
     if problemas:
         print("Se entrega igual: lo que queda es de forma.")
     # Todo lo que produjo el modelo, para rearmar el PDF sin volver a llamarlo (y para la traza)
@@ -485,11 +492,22 @@ async def main(pedido, carpeta, nombre="Informe"):
         ensure_ascii=False, indent=1, default=str))
     if plan.tipo == "diagnostico":
         ruta = armar_diagnostico(pedido, plan, redaccion, consultas, carpeta)
-        print("\n" + ruta.read_text().split("## Supuestos")[0] + f"Diagnóstico: {ruta}\n")
+        texto = ruta.read_text().split("## Supuestos")[0].split("\n", 1)[1].strip()
+        print("\n" + texto + f"\n\nDiagnóstico: {ruta}\n")
     else:
-        print(f"\nPDF: {armar(pedido, plan, redaccion, consultas, carpeta, nombre)}\n")
+        ruta = armar(pedido, plan, redaccion, consultas, carpeta, nombre)
+        texto = "\n".join([redaccion.titulo, *(f"- {p}" for p in redaccion.puntos), "", f"PDF: {ruta}"])
+        print(f"\nPDF: {ruta}\n")
     print(f"Traza: {escribir_traza(carpeta)}\n")
     registro.resumen_corrida(registro.leer(registro.LLAMADAS), registro.CORRIDA)
+    return {"texto": texto, "consultas": consultas, "salida": str(ruta)}
+
+
+async def main(pedido, carpeta, nombre="Informe"):
+    try:
+        await atender(pedido, carpeta, nombre)
+    except NoSeEntrega as motivo:
+        sys.exit(str(motivo))
 
 
 def escribir_traza(carpeta):

@@ -1,4 +1,4 @@
-"""Evaluador: corre el agente con las preguntas y conversaciones de esperados.yaml y compara sus consultas contra lo esperado.
+"""Evaluador: pasa por la puerta (puerta.py, decisión 78) y corre el agente con las preguntas y conversaciones de esperados.yaml y compara sus consultas contra lo esperado.
 Uso: .venv/bin/python evaluador.py                    (todas, una vez)
      .venv/bin/python evaluador.py P03 P05 C1         (solo esas; C1–C5 son conversaciones, se evalúa cada turno)
      .venv/bin/python evaluador.py --veces 5 P03      (cada una 5 veces: Haiku varía entre corridas)"""
@@ -11,7 +11,7 @@ import yaml
 
 import procesador_capa_semantica as procesador
 import registro
-from agente import conversar, responder
+from puerta import atender
 from controles import MAX_SIN_CONTROL, numeros_del_texto, sin_respaldo, valores_de
 
 with open("Data/preguntas/esperados.yaml") as f:
@@ -144,22 +144,33 @@ def reproducible(respuesta):
 PARALELO = 5  # casos a la vez (decisión 74). Más no gana mucho: el más largo (una conversación) marca el tiempo
 
 
+def ruteo(respuesta):
+    """Todos los casos del evaluador son del agente: si la puerta los manda al coordinador, falla (decisión 78)."""
+    if respuesta["ruta"] != "agente":
+        return [f"ruteo: la puerta lo tomó como {respuesta['tipo']} y lo mandó al coordinador ({respuesta['motivo']})"]
+    return []
+
+
 async def correr(id_):
     """Una corrida de una pregunta o de una conversación: devuelve (pasó, líneas para mostrar)."""
     registro.CASO.set(id_)  # cada tarea tiene su copia del contexto: las llamadas quedan anotadas con su caso
     if id_ not in CONVERSACIONES:
-        respuesta = await responder(PREGUNTAS[id_])
-        malos = fallos(ESPERADOS[id_], respuesta["consultas"], respuesta)
+        respuesta = (await atender([PREGUNTAS[id_]]))[0]
+        malos = fallos(ESPERADOS[id_], respuesta["consultas"], respuesta) + ruteo(respuesta)
         if motivo := reproducible(respuesta):
             malos.append("consulta: " + motivo)
         return not falla(malos), [("✓" if not falla(malos) else "✗") + (" " + " · ".join(malos) if malos else "")]
     # Conversación: se evalúa turno por turno, así se ve si heredó lo anterior (decisión 32)
-    respuestas = await conversar(CONVERSACIONES[id_])
+    respuestas = await atender(CONVERSACIONES[id_])
     paso, lineas, hasta_ahora = True, [], []
     for numero, (respuesta, chequeos) in enumerate(zip(respuestas, ESPERADOS[id_]["turnos"]), 1):
         # Valen sus consultas y las de turnos anteriores (puede reusar un número ya consultado); como el valor
         # esperado depende de los filtros, un turno que pierde un filtro igual falla
         hasta_ahora += respuesta["consultas"]
+        if mal_ruteado := ruteo(respuesta):
+            paso = False
+            lineas.append(f"turno {numero}: ✗ {mal_ruteado[0]}")
+            continue
         motivo = reproducible(respuesta)
         if motivo:  # la respuesta del turno declara consultas que no dan su valor: falla aunque el número esperado esté
             paso = False
@@ -214,4 +225,4 @@ if __name__ == "__main__":
         i = argumentos.index("--veces")
         veces = int(argumentos[i + 1])
         del argumentos[i:i + 2]
-    asyncio.run(main(argumentos or list(ESPERADOS), veces))
+    asyncio.run(main(argumentos or [k for k in ESPERADOS if k != "TIPOS"], veces))

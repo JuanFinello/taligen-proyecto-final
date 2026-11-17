@@ -59,8 +59,9 @@ def con_cache(texto):
     return [{"type": "text", "text": texto, "cache_control": CACHE}]
 
 
-async def responder(pregunta, historial=None):
-    """Responde una pregunta. Con historial (los mensajes de los turnos anteriores), sigue esa conversación (decisión 31)."""
+async def responder(pregunta, historial=None, tipo=None):
+    """Responde una pregunta. Con historial (los mensajes de los turnos anteriores), sigue esa conversación (decisión 31).
+    tipo: el que reconoció la puerta (decisión 78); solo va al registro, el agente no lo ve."""
     # Paso 1: lanzar el servidor MCP y pedirle la lista de tools
     async with (stdio_client(SERVIDOR) as (lectura, escritura), ClientSession(lectura, escritura) as mcp,
                 anthropic.AsyncAnthropic() as claude):
@@ -100,7 +101,7 @@ async def responder(pregunta, historial=None):
                     mensajes.append({"role": "user", "content": pedido_de_correccion(sueltos)})
                     continue
                 # El registro se valida antes de guardarse; si no pasa, no se guarda y queda el motivo
-                datos, problemas = salida.validar(final, pregunta, consultas, sueltos)
+                datos, problemas = salida.validar(final, pregunta, consultas, sueltos, tipo)
                 if datos:
                     salida.guardar(datos)
                 return {"pregunta": pregunta, "texto": final.texto, "consultas": consultas, "mensajes": mensajes,

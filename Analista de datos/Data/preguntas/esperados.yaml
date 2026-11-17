@@ -74,3 +74,31 @@ C5:
     - []   # ambigua: tiene que preguntar o dar las dos lecturas (fiscal 2.514.025.456,5 · calendario 2.632.210.699,5)
     - - {medida: ventas_netas, tipo: valor, esperado: 2514025456.5, tolerancia: 0.5}
     - - {medida: margen_pct, tipo: valor, esperado: 26.6, tolerancia: 0.05}
+
+# Tipos que tiene que reconocer la puerta (decisión 78), sin las apartadas. Diagnóstico e informe van al
+# coordinador; el resto, al agente. En las conversaciones, «agente» = cualquier tipo que vaya al agente: en esos
+# turnos se mide la ruta, no el tipo. `puerta.py --medir` clasifica solo estos casos, sin responderlos.
+TIPOS:
+  P01: puntual
+  P02: puntual
+  P03: puntual
+  P04: puntual
+  P05: puntual
+  P06: comparativa
+  P07: comparativa
+  P08: comparativa
+  P10: ranking
+  P11: ranking
+  P13: diagnostico
+  P15: diagnostico
+  P16: diagnostico
+  P17: ambigua
+  P20: sin_dato
+  I1: informe
+  I2: informe
+  I3: informe
+  C1: [comparativa, agente, agente]
+  C2: [puntual, agente, agente]
+  C3: [puntual, agente, agente]
+  C4: [puntual, agente, agente]
+  C5: [ambigua, agente, agente]
