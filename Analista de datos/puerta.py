@@ -5,7 +5,7 @@ forzada con enum, primero el motivo y después la etiqueta, validada con pydanti
 diagnóstico e informe van al coordinador (informes.py); los demás tipos, al agente (agente.py), como hasta ahora.
 
 Uso: .venv/bin/python puerta.py [--traza archivo.md] "¿pregunta?" ["¿turno siguiente?" …]
-     .venv/bin/python puerta.py --medir      (solo clasifica los casos de TIPOS en esperados.yaml y compara)"""
+     .venv/bin/python puerta.py --medir [P09 C1 …]   (solo clasifica los casos de TIPOS en esperados.yaml y compara)"""
 import asyncio
 import json
 import sys
@@ -164,9 +164,9 @@ def tipos_esperados():
     return casos
 
 
-async def medir():
+async def medir(ids=()):
     """Solo la puerta: clasifica cada caso y lo compara con lo esperado. Lo que importa es la ruta; el tipo, aparte."""
-    casos = tipos_esperados()
+    casos = [c for c in tipos_esperados() if not ids or c[0] in ids]
     semaforo = asyncio.Semaphore(5)
     async with anthropic.AsyncAnthropic() as claude:
         async def uno(caso):
@@ -193,8 +193,8 @@ async def medir():
 
 if __name__ == "__main__":
     argumentos = sys.argv[1:]
-    if argumentos == ["--medir"]:
-        sys.exit(asyncio.run(medir()))
+    if argumentos[:1] == ["--medir"]:
+        sys.exit(asyncio.run(medir(argumentos[1:])))
     ruta_traza = None
     if argumentos[:1] == ["--traza"]:
         ruta_traza, argumentos = argumentos[1], argumentos[2:]

@@ -34,6 +34,16 @@ P17:
 P20:
   - {tipo: sin_dato}
 
+# Apartadas (semana 5): valores verificados con SQL escrito a mano el 2026-11-17, antes de correr el agente con ellas.
+P09:
+  - {medida: desvio_presupuesto_pct, tipo: valor, esperado: -5.21, tolerancia: 0.005}   # T4 AF2026: ventas 2.514.025.456,5 · presupuesto 2.652.332.885,56
+P12:
+  - {medida: unidades, tipo: grupo, dimension: subcategoria, codigo: Desodorantes, esperado: 19.13, tolerancia: 0.005}   # 68.899 → 82.076; también la mayor suba absoluta
+P18:
+  - {medida: ventas_netas, tipo: lecturas, esperados: [1768156506.0, 1736332149.5], tolerancia: 0.5}   # calendario 2025 · AF2025
+P19:
+  - {tipo: sin_dato}   # la base no tiene tickets ni transacciones
+
 # Hallazgos de los diagnósticos (semana 3), todavía sin chequeo automático.
 # Estaban en las descripciones de esquema.yaml; se movieron acá para no darle la respuesta al agente (decisión 24).
 #   P13 y C2: desde ago-2025 el costo de PR01 (Molinos del Plata) sube de ~74 % a ~83 % del precio de lista,
@@ -41,6 +51,10 @@ P20:
 #   P15:      desde jun-2025 (apertura de S39) las comparables del Oeste caen ~6 % interanual,
 #             mientras las otras regiones crecen 3–5 %.
 #   P16:      la única promoción del 25 % es PROMO001 «Verano Cola Andina» (dic-2025).
+#   P14:      quiebre de stock de Lácteos en el Norte en sep-2025: 29,7 % de los registros de stock en 0 (meses vecinos
+#             ~1,5 %); ventas −19,9 % contra sep-2024 mientras las otras regiones crecen; todas las sucursales y
+#             subcategorías; sin promociones. El quiebre es de un proveedor: Lácteos La Pradera, 60 % en 0 (los otros dos,
+#             ~1,5 %), −9.899.276 ARS, más que la caída de la categoría (−6.224.046); Usina Láctea del Oeste crece +3.593.730.
 
 # Conversaciones (semana 2): un chequeo por turno, verificados con SQL directo el 2026-11-11.
 # Un turno pasa si alguna de SUS consultas cumple; así se ve si heredó período, filtros y medida.
@@ -94,6 +108,12 @@ TIPOS:
   P16: diagnostico
   P17: ambigua
   P20: sin_dato
+  # Apartadas: tipos declarados en la decisión 5 (antes de verlas), medidos por primera vez en la semana 5
+  P09: comparativa
+  P12: ranking
+  P14: diagnostico
+  P18: ambigua
+  P19: sin_dato
   I1: informe
   I2: informe
   I3: informe
