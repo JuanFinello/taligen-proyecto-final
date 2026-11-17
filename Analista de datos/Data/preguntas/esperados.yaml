@@ -34,6 +34,10 @@ P17:
 P20:
   - {tipo: sin_dato}
 
+# Reserva (decisión 80): las apartadas, ya vistas. Nunca se ajusta nada por una falla de ellas (si un cambio las rompe,
+# se deshace el cambio) y el evaluador las informa aparte. P14 no tiene chequeo numérico: solo cuenta en la puerta.
+RESERVA: [P09, P12, P14, P18, P19]
+
 # Apartadas (semana 5): valores verificados con SQL escrito a mano el 2026-11-17, antes de correr el agente con ellas.
 P09:
   - {medida: desvio_presupuesto_pct, tipo: valor, esperado: -5.21, tolerancia: 0.005}   # T4 AF2026: ventas 2.514.025.456,5 · presupuesto 2.652.332.885,56

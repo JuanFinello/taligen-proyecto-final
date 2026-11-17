@@ -16,6 +16,8 @@ from controles import MAX_SIN_CONTROL, numeros_del_texto, sin_respaldo, valores_
 
 with open("Data/preguntas/esperados.yaml") as f:
     ESPERADOS = yaml.safe_load(f)
+RESERVA = set(ESPERADOS.pop("RESERVA"))  # decisión 80: se informan aparte y no se ajusta nada por ellas
+ESPERADOS.pop("TIPOS")  # los de la puerta (puerta.py --medir), no son casos
 with open("Data/preguntas/preguntas.json") as f:
     PREGUNTAS = {p["id"]: p["texto"] for p in json.load(f)}
 with open("Data/preguntas/conversaciones.json") as f:
@@ -154,14 +156,18 @@ def ruteo(respuesta):
 async def correr(id_):
     """Una corrida de una pregunta o de una conversación: devuelve (pasó, líneas para mostrar)."""
     registro.CASO.set(id_)  # cada tarea tiene su copia del contexto: las llamadas quedan anotadas con su caso
+    return evaluar(id_, await atender(CONVERSACIONES.get(id_) or [PREGUNTAS[id_]]))
+
+
+def evaluar(id_, respuestas):
+    """(pasó, líneas) de las respuestas de un caso con chequeo. Lo usa también correr_todo.py (decisión 81)."""
     if id_ not in CONVERSACIONES:
-        respuesta = (await atender([PREGUNTAS[id_]]))[0]
+        respuesta = respuestas[0]
         malos = fallos(ESPERADOS[id_], respuesta["consultas"], respuesta) + ruteo(respuesta)
         if motivo := reproducible(respuesta):
             malos.append("consulta: " + motivo)
         return not falla(malos), [("✓" if not falla(malos) else "✗") + (" " + " · ".join(malos) if malos else "")]
     # Conversación: se evalúa turno por turno, así se ve si heredó lo anterior (decisión 32)
-    respuestas = await atender(CONVERSACIONES[id_])
     paso, lineas, hasta_ahora = True, [], []
     for numero, (respuesta, chequeos) in enumerate(zip(respuestas, ESPERADOS[id_]["turnos"]), 1):
         # Valen sus consultas y las de turnos anteriores (puede reusar un número ya consultado); como el valor
@@ -203,7 +209,7 @@ async def main(ids, veces=1):
     resultados += await asyncio.gather(*(uno(*t) for t in trabajos[1:]))
 
     # El detalle, en el orden de los casos y no en el que terminaron
-    aprobadas = 0
+    aprobadas = {True: 0, False: 0}  # True: reserva
     for id_ in ids:
         print(f"\n===== {id_}: {PREGUNTAS.get(id_) or ' → '.join(CONVERSACIONES[id_])}")
         suyos = [r for (caso, _), r in zip(trabajos, resultados) if caso == id_]
@@ -213,8 +219,11 @@ async def main(ids, veces=1):
         pasadas = sum(paso for paso, _ in suyos)
         if veces > 1:
             print(f"{'✓' if pasadas == veces else '✗'} {id_}: {pasadas} de {veces}")
-        aprobadas += pasadas == veces  # aprueba solo si pasa todas las veces (una conversación: todos sus turnos)
-    print(f"\nResultado: {aprobadas} de {len(ids)} pasan" + (f" (las {veces} veces)" if veces > 1 else "")
+        aprobadas[id_ in RESERVA] += pasadas == veces  # aprueba solo si pasa todas las veces (conversación: todos sus turnos)
+    trabajo, reserva = [i for i in ids if i not in RESERVA], [i for i in ids if i in RESERVA]
+    partes = [f"{aprobadas[False]} de {len(trabajo)} de trabajo"] if trabajo else []
+    partes += [f"{aprobadas[True]} de {len(reserva)} de la reserva (no se ajusta nada por ellas)"] if reserva else []
+    print(f"\nResultado: {' · '.join(partes)} pasan" + (f" (las {veces} veces)" if veces > 1 else "")
           + f" · {time.monotonic() - inicio:.0f} s de reloj")
 
 
@@ -225,4 +234,4 @@ if __name__ == "__main__":
         i = argumentos.index("--veces")
         veces = int(argumentos[i + 1])
         del argumentos[i:i + 2]
-    asyncio.run(main(argumentos or [k for k in ESPERADOS if k != "TIPOS"], veces))
+    asyncio.run(main(argumentos or list(ESPERADOS), veces))

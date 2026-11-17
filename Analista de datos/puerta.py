@@ -130,7 +130,7 @@ async def atender(turnos, carpeta=None, nombre="Informe"):
             clasificacion = await clasificar(turno, [p for p, _ in anteriores], claude)
             print(f"[{clasificacion.tipo}] {clasificacion.motivo}", flush=True)
             if clasificacion.tipo in AL_COORDINADOR:
-                destino = carpeta or f"salidas/{registro.CORRIDA}" + (f"-t{numero}" if len(turnos) > 1 else "")
+                destino = (carpeta or f"salidas/{registro.CORRIDA}") + (f"-t{numero}" if len(turnos) > 1 else "")
                 try:
                     resultado = await informes.atender(turno, destino, nombre,
                                                        contexto_para_coordinador(clasificacion, anteriores),
