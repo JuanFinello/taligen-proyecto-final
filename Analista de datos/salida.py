@@ -3,7 +3,6 @@ Haiku escribe lo que es suyo (el texto, el número principal, los supuestos y la
 las consultas las pone el código, con lo que de verdad corrió, para que la traza no dependa de lo que el modelo diga.
 Forma: la del enunciado, Respuesta = {pregunta, texto, valor, unidad, supuestos, consultas: [{medida, filtros, sql}],
 cuentas}. Las respuestas válidas se suman a registros/respuestas.jsonl (no se commitea)."""
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
@@ -83,10 +82,11 @@ class Registro(BaseModel):
     cuentas: List[str]
 
 
-def validar(final, pregunta, consultas):
+def validar(final, pregunta, consultas, sin_respaldo_=()):
     """El registro armado y validado, o (None, [problemas]). Además del esquema: si hay un valor, tiene que salir de
-    una consulta (redondeado o no), y una respuesta con número no puede no tener consultas."""
-    problemas = []
+    una consulta (redondeado o no), y una respuesta con número no puede no tener consultas. Si después de las
+    correcciones quedaron números sin respaldo, tampoco se guarda: el registro diría algo que no se puede rastrear."""
+    problemas = [f"números sin respaldo después de las correcciones: {', '.join(sin_respaldo_)}"] if sin_respaldo_ else []
     if final.valor is not None:
         if not consultas:
             problemas.append("tiene un valor pero ninguna consulta")

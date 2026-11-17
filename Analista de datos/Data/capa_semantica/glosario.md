@@ -40,7 +40,7 @@ Es mensual, por sucursal y categoría, así que solo se compara contra meses com
 
 ## Stock y quiebre
 
-La foto de stock se toma los lunes. Un producto está en quiebre cuando la foto muestra stock cero. La tasa normal ronda el 1 %. Ante una caída de ventas concentrada en una región y un proveedor, conviene mirar el stock antes que la demanda.
+La foto de stock se toma los lunes. Un producto está en quiebre cuando la foto muestra stock cero. Para saber si una tasa de quiebre es alta, se la compara con la misma semana del año anterior y con las semanas cercanas, no con un número fijo: varía de semana a semana. Ante una caída de ventas concentrada en una región y un proveedor, conviene mirar el stock antes que la demanda.
 
 ## Promociones y marca propia
 

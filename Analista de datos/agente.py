@@ -100,7 +100,7 @@ async def responder(pregunta, historial=None):
                     mensajes.append({"role": "user", "content": pedido_de_correccion(sueltos)})
                     continue
                 # El registro se valida antes de guardarse; si no pasa, no se guarda y queda el motivo
-                datos, problemas = salida.validar(final, pregunta, consultas)
+                datos, problemas = salida.validar(final, pregunta, consultas, sueltos)
                 if datos:
                     salida.guardar(datos)
                 return {"pregunta": pregunta, "texto": final.texto, "consultas": consultas, "mensajes": mensajes,

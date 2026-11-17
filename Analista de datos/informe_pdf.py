@@ -1,6 +1,5 @@
 """El PDF de un informe: solo maqueta lo que recibe, no consulta ni decide nada (decisión 41).
 Cada indicador y cada gráfico lleva el número de su consulta ([C1], [C2]…), que está con su SQL en el anexo."""
-import json
 import re
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
@@ -14,7 +13,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import (Image, KeepTogether, PageBreak, Paragraph, Preformatted, SimpleDocTemplate, Spacer,
+from reportlab.platypus import (Image, KeepTogether, PageBreak, Paragraph, SimpleDocTemplate, Spacer,
                                 Table, TableStyle)
 
 from graficos import NOMBRES, TINTA, TINTA_SUAVE, formato

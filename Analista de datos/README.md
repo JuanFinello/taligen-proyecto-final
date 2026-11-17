@@ -1,33 +1,70 @@
 # Analista de datos
 
-Agente que responde preguntas de negocio sobre **Almacenes del Sur** (40 sucursales, AF2025 y AF2026) y arma informes en PDF. Cada número sale de una consulta registrada que se puede volver a correr.
+Agente que responde preguntas de negocio sobre **Almacenes del Sur** (cadena ficticia: 40 sucursales, AF2025 y AF2026, con ingestas de datos nuevos) y arma informes ejecutivos en PDF. Cada número sale de una consulta registrada que se puede mostrar y volver a correr.
 
-> Estado: semana 1. Está lista la capa semántica; el agente todavía no existe.
+> Estado: semanas 1 a 4 completas; semana 5 con caché, salida estructurada, corridas en paralelo y una revisión total hechos (decisiones 72 a 77); falta abrir las preguntas apartadas. Modelo: `claude-haiku-5-5`.
 
 ## Cómo correrlo
 
-Requiere Python 3.12 y la variable `ANTHROPIC_API_KEY`.
+Requiere Python 3.12 y la variable de entorno `ANTHROPIC_API_KEY`. Todo se corre desde esta carpeta.
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install duckdb anthropic python-dotenv pyyaml
+.venv/bin/python -m pip install anthropic==1.15.0 mcp==2.3.0 duckdb==1.5.6 pyyaml==6.0.3 pydantic==2.14.1 matplotlib==3.11.2 reportlab==5.1.0
+
+.venv/bin/python agente.py "¿Cuál fue el margen bruto de Perfumería en el AF2026?"     # una pregunta
+.venv/bin/python agente.py "¿primer turno?" "¿Y en la región Sur?"                     # una conversación
+.venv/bin/python agente.py --traza trazas/X.md "¿pregunta?"                             # con su traza
+.venv/bin/python informes.py "Preparame un informe ejecutivo del T2 del AF2026"         # informe (PDF) o diagnóstico
+.venv/bin/python informe_programado.py [--hoy 2026-05-04]                             # los informes del lunes
+.venv/bin/python evaluador.py [--veces N] [P03 C1 …]                                  # evaluador
+.venv/bin/python registro.py [--todas | --comparar A B]                               # costo y tiempo
+.venv/bin/python verificar_base.py [ruta.duckdb]                                      # la base, después de una ingesta
 ```
+
+`agente.py` levanta solo el servidor MCP (`servidor_mcp.py`) por stdio. Los informes programados los lanza un temporizador de systemd los lunes a las 8 (`programado/`).
 
 ## Estructura
 
 ```
-Data/base/almacenes_del_sur.duckdb    la base (solo lectura)
-Data/capa_semantica/
-  medidas.yaml                        qué se calcula: métricas
-  esquema.yaml                        sobre qué datos: tablas, columnas, joins, dimensiones
-  glosario.md                         con qué criterio
-  medidas_original.yaml               el archivo original, como referencia
-Data/preguntas/                       preguntas, conversaciones y pedidos de informe
+agente.py                    el agente: loop de Haiku con las tools del servidor MCP, caché y salida estructurada
+hooks.py                     antes de cada tool, después y al terminar; tools permitidas por agente
+servidor_mcp.py              tools ver_modelo, calcular, buscar_producto, consultar_sql; el glosario como prompt
+procesador_capa_semantica.py arma y corre el SQL de cada medida desde los YAML
+controles.py                 ningún número sin respaldo en una consulta
+salida.py                    el registro de cada respuesta: esquema, validación y registros/respuestas.jsonl
+informes.py                  informes y diagnósticos: coordinador (planifica y redacta) y analistas
+graficos.py, informe_pdf.py  gráficos y PDF, todo código
+informe_programado.py        informes semanal, mensual, trimestral y anual por calendario real
+verificar_base.py            controles de integridad de la base
+evaluador.py, registro.py    aciertos contra lo esperado; costo, caché y tiempo de cada llamada
+Data/base/                   almacenes_del_sur.duckdb (solo lectura) e INGESTA.md, la guía para datos nuevos
+Data/capa_semantica/         medidas.yaml (qué se calcula), esquema.yaml (sobre qué datos), glosario.md (con qué criterio)
+Data/preguntas/              preguntas, conversaciones, pedidos de informe y esperados.yaml (valores verificados)
+trazas/                      entregas: respuestas, conversación, diagnóstico e informes con sus consultas y SQL
+programado/                  el servicio y el temporizador de systemd
+registros/, salidas/         lo que genera cada corrida (no se commitea)
 ```
+
+## Evaluación
+
+`evaluador.py` corre 12 preguntas y las 5 conversaciones (17 casos; en las conversaciones, cada turno con su chequeo) y compara las consultas del agente contra `Data/preguntas/esperados.yaml`: que use la medida esperada y que dé el valor, con tolerancia de 0,5 en montos, una décima en % y pp, exacto en conteos y el mismo orden en rankings. Además vuelve a correr las consultas que declara cada respuesta y controla que den el valor reportado (acierto de consulta, decisión 75). La ambigua pasa si consultó las dos lecturas o declaró la elegida en supuestos; la sin dato, si dice que no está sin responder con otro número (decisión 76). Corre de a 5 casos en paralelo (unos 45 segundos) y, con `--veces N`, aprueba solo si pasa las N veces. Resultado en las últimas corridas: 17 de 17. Los 25 valores esperados se volvieron a calcular con SQL escrito a mano, sin el procesador, y coinciden. Las cinco preguntas apartadas (P09, P12, P14, P18 y P19) no se usan para ajustar nada hasta la semana 5.
+
+## Costos
+
+Medido con `registro.py`, con el caché del prefijo (decisión 72):
+
+| Qué | US$ | Tiempo |
+|---|---|---|
+| Una pregunta suelta | 0,0007–0,0019 | 4–10 s |
+| Una conversación de 3 turnos | 0,0024–0,0041 | 12–20 s |
+| El evaluador completo (17 casos) | ~0,030 | ~45 s de reloj |
+| Un informe (plan, 2 a 4 analistas, redacción y PDF) | 0,016–0,031 | 60–90 s |
+| Un año de informes programados (52 semanales, 12 mensuales, 4 trimestrales, 1 anual) | ~1,70 | |
 
 ## Análisis de los datos
 
-Antes de construir el agente revisé las 8 tablas y sus joins contra la base (22-10-2026). La estructura está limpia: todos los joins calzan y no duplican filas, no hay nulos, claves repetidas ni textos mal escritos, los signos son coherentes y el precio de cada venta coincide con `precio_lista`. Hay un solo error de carga: el presupuesto de ene-2026, Perfumería, región Sur, viene ×10. Una trampa de calendario: la primera y la última semana tienen 5 y 4 días, así que por semana parecen caídas. El resto son eventos reales que el agente tiene que saber explicar: el aumento de costo de PR01 desde ago-2025, la caída de las comparables del Oeste desde la apertura de S39, el quiebre de stock de PR09 en el Norte en sep-2025, quiebres crónicos en Almacén (P0005, S10, S38) y ventas bajo costo por promociones. Todo está, con gráficos, en `Modelo de datos.canvas`; en `esquema.yaml` quedaron el error del presupuesto, las semanas incompletas, PR01 y el Oeste.
+Antes de construir el agente revisé las 8 tablas y sus joins contra la base (22-10-2026). La estructura está limpia: todos los joins calzan y no duplican filas, no hay nulos, claves repetidas ni textos mal escritos, los signos son coherentes y el precio de cada venta coincide con `precio_lista`. Hay un solo error de carga: el presupuesto de ene-2026, Perfumería, región Sur, viene ×10. Una trampa de calendario: la primera y la última semana tienen 5 y 4 días, así que por semana parecen caídas. El resto son eventos reales que el agente tiene que saber explicar: el aumento de costo de PR01 desde ago-2025, la caída de las comparables del Oeste desde la apertura de S39, el quiebre de stock de PR09 en el Norte en sep-2025, quiebres crónicos en Almacén (P0005, S10, S38) y ventas bajo costo por promociones. Todo está, con gráficos, en `Modelo de datos.canvas`. Al agente se le da criterio, no estos hallazgos (decisión 24): en `esquema.yaml` quedaron solo lo que hace falta para no equivocarse, como las semanas incompletas y las sucursales que abrieron dentro del período.
 
 ## Preguntas
 
@@ -113,10 +150,6 @@ Estudio las preguntas de a una para entender el patrón general. Casi todas se o
 
 **39. Cada resultado trae las fechas de su período.** En una corrida de P07, Haiku tradujo «T2 del AF2026» como «ago a oct de 2026», cuando es de 2025: deducir el año calendario de un año fiscal es una cuenta, y las cuentas van en código (decisiones 28 a 30). Ahora `calcular()` agrega `periodo` (desde y hasta) cuando hay filtros de fecha; en una comparación, cada período trae el suyo. Si los días no son seguidos (por ejemplo, «agosto» sin año abarca los dos años) no se informa rango, porque sería engañoso. La misma función da el inicio del período anterior que usan los comparables, que siguen dando igual (P08: 2,1 %). Descarté corregirlo en el glosario, que ya explica el año fiscal con un ejemplo, y no obligar a Haiku a escribir las fechas: si no las escribe, no hay error. También van a servir en los informes de la semana 3, que declaran el período.
 
-## Evaluación
-
-*Pendiente.*
-
 **40. Los gráficos los arma el código, y el tipo sale de la forma del resultado.** El enunciado pide que los gráficos no los haga el modelo. `graficos.py` recibe un resultado agrupado de `calcular()` y elige solo: línea si se agrupó por tiempo (ordenada por fecha, no por valor); barras horizontales de mayor a menor para otra dimensión; y barras divergentes (azul si subió, rojo si bajó) para una comparación por grupo o el desvío contra presupuesto. En la comparación dibuja la diferencia si la medida es aditiva y la variación (en pp si es un %) si no lo es, igual que el orden de `calcular()` (decisión 28). Devuelve, además del PNG, los números que dibujó, para rastrear cada gráfico hasta su consulta. Las barras llevan el valor escrito (en un PDF no hay tooltip), con una sola escala por gráfico y en castellano («−$ 4,2 M», «−1,2 pp»). Los colores son los de la paleta de referencia de la skill de visualización. Elegí matplotlib porque genera PNG sin ventana para insertar en el PDF; descarté que el modelo elija el tipo de gráfico, porque la forma del resultado ya lo define.
 
 **41. El PDF solo maqueta, y cada cifra cita su consulta.** `informe_pdf.py` recibe el contenido ya armado (título, período, resumen, indicadores, secciones con gráfico, conclusiones y consultas) y no consulta ni decide nada: así el armado del contenido, que van a hacer los agentes, queda separado del diseño. Cada indicador y cada gráfico lleva el número de su consulta ([C1], [C2]…), y el anexo muestra cada una con su medida, sus filtros y su SQL con parámetros, que se puede volver a correr. El anexo recibe el resultado de `calcular()` tal cual y saca el SQL con `sqls()`, la misma función de las trazas, que pasó de `agente.py` a `procesador_capa_semantica.py` para que la usen los dos: armando el anexo a mano puse el SQL del total en lugar del agrupado que produjo el gráfico. Si un indicador o un gráfico cita una consulta que no está en el anexo, el PDF no se arma. Usa reportlab con la fuente DejaVu que trae matplotlib, porque la estándar del PDF no tiene el signo «−».
@@ -185,6 +218,10 @@ Estudio las preguntas de a una para entender el patrón general. Casi todas se o
 
 **73. El registro de cada respuesta sale por salida estructurada y se valida antes de guardarse.** El enunciado de la semana 5 lo pide, con la forma sugerida `{pregunta, texto, valor, unidad, supuestos, consultas: [{medida, filtros, sql}], cuentas}`. Hasta ahora la respuesta era texto libre y las consultas quedaban solo en memoria y en las trazas. Ahora el loop del agente pide la respuesta final con un esquema JSON (`output_config.format`, que se combina con las tools: mientras Haiku pide tools, el loop sigue igual). Haiku escribe lo que es suyo: el texto, el número principal sin redondear, su unidad, los supuestos que eligió y las cuentas. Las consultas no las escribe Haiku: las pone el código, con lo que de verdad corrió y su SQL, para que la traza no dependa del modelo. Descarté pedir el registro en una llamada aparte después de la respuesta: costaba una llamada más por pregunta y el modelo podía describir consultas que no corrió. Antes de guardar, `salida.py` valida el registro entero con el esquema y además controla que el valor salga de una consulta (redondeado o truncado, como el control de la decisión 71) y que tenga unidad; el control de números sin respaldo pasa a revisar también los supuestos y las cuentas. Si no pasa, no se guarda y queda el motivo. Las válidas se suman a `registros/respuestas.jsonl` (no se commitea). Medido con dos corridas del evaluador y los cuatro informes: 70 respuestas guardadas, ninguna rechazada ni con error de esquema; 65 con valor, 63 con supuestos y 23 con cuentas. Evaluador: 17 de 17 y 16 de 17. La falla fue C2 turno 3 (25 de 26 en su historial): la respuesta era correcta (Molinos del Plata, −8,62 pp), pero la sacó de `efectos_margen` y el evaluador solo mira `margen_pct`; no viene del cambio. Costo: el evaluador pasó de US$ 0,024–0,029 a 0,028–0,034, porque la salida en JSON es algo más larga; los informes, igual que antes (US$ 0,08).
 
-## Costos
+**74. Las corridas van en paralelo; la Batch API no encaja.** El enunciado de la semana 5 pide correr las corridas completas en paralelo y pensar si encaja la Batch API. El evaluador corría los 17 casos uno tras otro (unos 210 segundos de reloj) y los analistas de un informe también, aunque no dependen entre sí. Ahora el evaluador corre de a 5 casos con `asyncio` (cada uno con su servidor MCP y su conexión a la base, que se abre en solo lectura), y los analistas de un informe, todos a la vez. Dos cuidados. Primero, el registro anotaba el caso en una variable global: con casos simultáneos se mezclarían, así que pasó a una variable de contexto, que cada tarea ve por separado. Segundo, el caché (decisión 72): el primer caso corre solo y escribe el prefijo, y los demás lo leen; si arrancaran todos juntos, cada uno pagaría la escritura. Las consultas de un informe se siguen numerando en el orden de los encargos, no en el que terminaron, para que C1, C2… no cambien entre corridas. El detalle del evaluador se imprime en el orden de los casos. Medido: el evaluador bajó de unos 210 a 44 segundos de reloj, con el mismo costo (US$ 0,030) y 17 de 17, y con cada llamada anotada con su caso; los informes, de 87–162 a 59–90 segundos cada uno, con el mismo costo. La Batch API cobra la mitad, pero procesa los pedidos de forma asincrónica, con resultados que pueden tardar minutos u horas. El agente es un loop: cada llamada depende del resultado de la tool anterior, y una pregunta lleva de 2 a 10 llamadas en cadena. Por Batch, cada vuelta esperaría su lote: una corrida del evaluador pasaría de un minuto a horas para ahorrar unos US$ 0,015. Los informes programados tampoco: son 1 a 4 por semana, con el mismo loop. Encajaría con muchas llamadas sueltas e independientes (por ejemplo, clasificar miles de textos), que este sistema no tiene. Tampoco paralelicé los cuatro informes del primer lunes de mayo: pasa una vez por año. El usuario preguntó por Batch para los informes programados, que se sabe cuándo salen: ahí la demora se tolera, pero un informe es una cadena de 6 a 8 rondas (planificar, las vueltas de cada analista, redactar), y Batch garantiza cada ronda dentro de 24 horas, no en minutos: para llegar al lunes a las 8 habría que arrancar el sábado, con los datos ya cargados. El ahorro sería de menos de US$ 1 por año (unos US$ 1,70 anuales para 52 semanales, 12 mensuales, 4 trimestrales y 1 anual), probablemente menos porque el caché se aprovecha peor, a cambio de reescribir el loop para mandar, esperar y retomar en cada ronda.
 
-*Pendiente.*
+**75. El evaluador vuelve a correr las consultas declaradas, y el plan del coordinador se puede corregir.** Salió de una revisión total del proyecto contra el enunciado. Uno: el enunciado define el acierto de consulta como que la consulta que la respuesta declara, vuelta a ejecutar, dé el valor reportado; el evaluador solo miraba si alguna consulta daba el valor esperado. Ahora, con el valor del registro (decisión 73), vuelve a correr cada consulta con los mismos argumentos, controla que genere el mismo SQL y que el valor salga de sus resultados. La primera versión comparaba exacto y falló en P03 y P11: DuckDB suma en paralelo y una suma grande cambia en el décimo decimal entre corridas (460.758.207,2699909 y …2699913); ahora admite una diferencia de una milmillonésima, o el redondeo. Dos: C2 turno 3 falló dos veces porque Haiku sacó la variación del margen de `efectos_margen`, que la trae con otro nombre, y el evaluador solo aceptaba `margen_pct`: ahora acepta las dos, porque es la misma medida. Tres: si el plan del coordinador no cumplía los límites (por ejemplo, 5 preguntas), el informe se cortaba y el programado lo reintentaba entero; ahora el coordinador recibe los problemas y corrige una vez, como en la redacción. Además, una respuesta que después de las dos correcciones sigue con números sin respaldo ya no se guarda como registro válido (pasó en 5 de 239 preguntas frenadas), y la traza y `registro.py` aclaran que sus segundos son la suma de las llamadas, no el tiempo de reloj, ahora que hay paralelo. Medido: evaluador 17 de 17 (una corrida dio 13 por el error de decimales, ya corregido, y por P17 y P20, ver la decisión 76) y los cuatro informes bien.
+
+**76. La ambigua y la sin dato se evalúan como dice el enunciado.** En una corrida fallaron P17 y P20, y las dos respuestas cumplían el enunciado. En P17 («el último trimestre») Haiku consultó la lectura fiscal, la declaró en supuestos y ofreció calcular la calendario; el evaluador exigía las dos lecturas (decisión 35), y el enunciado acepta «pedir la aclaración o declarar el supuesto; nunca elegir una en silencio». Probablemente lo empuja el campo de supuestos de la salida estructurada (decisión 73). En P20 (clientes nuevos) respondió que la base no tiene clientes, sin dar otro número, pero antes consultó las ventas del mes; el evaluador exigía cero consultas, y el enunciado pide decir que no está y no responder con otro indicador. El usuario eligió el criterio del enunciado: un evaluador más estricto que el curso da fallas que no lo son, y las apartadas P18 (ambigua) y P19 (sin dato) se van a juzgar así. La ambigua pasa si consultó las dos lecturas, o una declarada en supuestos; falla si eligió una en silencio. La sin dato pasa si no hay valor en el registro ni cifras de sus consultas en el texto; una consulta que no usa queda como aviso, que se muestra pero no hace fallar, para seguir viendo si Haiku gasta de más. Probado con los siete casos posibles y medido: dos corridas, 17 de 17, sin avisos.
+
+**77. Revisión total: el criterio del quiebre, el README y las entregas de la semana 4.** La revisión recalculó con SQL escrito a mano, sin el procesador, los 25 valores esperados y varias cifras de los informes: coinciden todos. Encontró además tres cosas. El glosario decía que el quiebre normal ronda el 1 %, pero en las 104 semanas de la base la mediana es 1,32 % y 9 de cada 10 semanas quedan debajo de 1,52 %: el semanal decía «1,33 %, por encima del 1 % normal» de una semana típica. En vez de otro número fijo (que una ingesta volvería viejo, decisión 62), el glosario pide comparar con la misma semana del año anterior y las cercanas; medido, el semanal pasó a decir «es un aumento chico en total, concentrado en Sur», y el evaluador siguió en 17 de 17. El README empezaba como en la semana 1 («el agente todavía no existe»), con la instalación incompleta y las secciones de evaluación y costos pendientes (el título «Evaluación» había quedado en medio de las decisiones): ahora arranca con el estado, los comandos, la estructura, cómo se evalúa y cuánto cuesta cada cosa. Y lo que la semana 4 pide mostrar no estaba en el repositorio, porque `salidas/` no se commitea: quedaron en `trazas/` el informe que generó solo `informe_programado.py` (con su PDF y su SQL) y `hooks.md`, con un caso real del registro en que el hook de fin frenó una suma hecha por Haiku. También se declara acá que la apartada P09 (desvío contra presupuesto del T4 del AF2026) ya no está sin ver: es lo que calcula el informe trimestral programado, que se corrió varias veces.

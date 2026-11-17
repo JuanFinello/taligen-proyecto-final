@@ -6,6 +6,7 @@ Uso: .venv/bin/python registro.py                    (resumen de la última corr
      .venv/bin/python registro.py --todas            (una línea por corrida, con su versión)
      .venv/bin/python registro.py --comparar A B     (dos versiones caso por caso, promediando sus corridas)
 Para nombrar un cambio: CAMBIO="decisión 44" .venv/bin/python evaluador.py"""
+import contextvars
 import hashlib
 import json
 import os
@@ -29,7 +30,9 @@ VERSION = hashlib.sha1(b"".join(Path(a).read_bytes() for a in ARCHIVOS_DEL_DISE�
 CAMBIO = os.environ.get("CAMBIO", "")  # nombre opcional del cambio, para leer las comparaciones
 # Una corrida es un proceso (una pregunta, una conversación, el evaluador entero); se puede fijar con CORRIDA=…
 CORRIDA = os.environ.get("CORRIDA") or f"{datetime.now():%Y%m%d-%H%M%S}-{uuid.uuid4().hex[:4]}"
-caso = None  # el evaluador pone acá el id del caso que está corriendo (P03, C2…)
+# El id del caso que está corriendo (P03, C2…), lo pone el evaluador. Variable de contexto y no global: con los casos
+# en paralelo (decisión 74), cada tarea de asyncio ve el suyo
+CASO = contextvars.ContextVar("caso", default=None)
 
 
 def costo_usd(uso):
@@ -53,7 +56,7 @@ def anotar(agente, pregunta, vuelta, respuesta, segundos_modelo, segundos_tools=
     de números); `sin_respaldo`: los números que el control no encontró en ninguna consulta."""
     uso = respuesta.usage
     _agregar(LLAMADAS, {
-        "caso": caso, "agente": agente, "pregunta": pregunta, "vuelta": vuelta, "modelo": respuesta.model,
+        "caso": CASO.get(), "agente": agente, "pregunta": pregunta, "vuelta": vuelta, "modelo": respuesta.model,
         "fin": respuesta.stop_reason, "tokens_entrada": uso.input_tokens,
         "cache_escrito": uso.cache_creation_input_tokens or 0, "cache_leido": uso.cache_read_input_tokens or 0,
         "tokens_salida": uso.output_tokens, "costo_usd": round(costo_usd(uso), 6),
@@ -81,6 +84,8 @@ def totales(lineas):
 
 
 def mostrar(nombre, t):
+    """Una línea de totales. Los segundos son la suma de las llamadas (modelo y tools): con casos o analistas en paralelo
+    (decisión 74) es más que el tiempo de reloj, que el evaluador muestra aparte."""
     print(f"{nombre[:60]:60}  {t['llamadas']:>3} llam.  {t['entrada']:>8,} ent.  {t['cache']:>7,} caché  "
           f"{t['salida']:>6,} sal.  US$ {t['usd']:.4f}  {t['segundos']:>6.1f} s  {t['errores']} err.")
 

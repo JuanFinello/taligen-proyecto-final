@@ -84,13 +84,24 @@ def revisar(plan):
 
 
 async def planificar(pedido, claude, sistema):
-    """Paso 1 del coordinador: el plan con su estructura garantizada (salida estructurada)."""
-    inicio = time.monotonic()
-    # Sin tools: el coordinador no consulta la base (PERMITIDAS["coordinador"] en hooks.py está vacía)
-    respuesta = await claude.messages.parse(model=MODELO, max_tokens=16000, system=sistema,
-                                            messages=[{"role": "user", "content": pedido}], output_format=Plan)
-    registro.anotar("coordinador", pedido, 1, respuesta, time.monotonic() - inicio)
-    return respuesta.parsed_output, respuesta.usage
+    """Paso 1 del coordinador: el plan con su estructura garantizada (salida estructurada). Si no cumple los límites,
+    el código le devuelve los problemas una vez para que corrija, como en la redacción (decisión 75); antes el
+    informe se cortaba y el programado lo reintentaba entero. Devuelve (plan, problemas que quedaron)."""
+    mensajes = [{"role": "user", "content": pedido}]
+    for intento in (1, 2):
+        inicio = time.monotonic()
+        # Sin tools: el coordinador no consulta la base (PERMITIDAS["coordinador"] en hooks.py está vacía)
+        respuesta = await claude.messages.parse(model=MODELO, max_tokens=16000, system=sistema, messages=mensajes,
+                                                output_format=Plan)
+        plan, problemas = respuesta.parsed_output, revisar(respuesta.parsed_output)
+        registro.anotar("coordinador", pedido, intento, respuesta, time.monotonic() - inicio,
+                        errores=["plan"] if problemas else [])
+        if not problemas:
+            break
+        mensajes += [{"role": "assistant", "content": respuesta.content[-1].text},
+                     {"role": "user", "content": "El plan no cumple los límites. Corregilo y devolvé el plan completo:\n- "
+                                                 + "\n- ".join(problemas)}]
+    return plan, problemas
 
 
 def encargo_para_analista(encargo):
@@ -104,11 +115,12 @@ def encargo_para_analista(encargo):
 
 
 async def investigar(plan):
-    """Paso 2: cada pregunta va a un analista que arranca de cero (decisión 42); uno tras otro.
-    Las consultas se numeran C1, C2… en el orden en que salieron, para que el informe las cite."""
+    """Paso 2: cada pregunta va a un analista que arranca de cero (decisión 42); todos a la vez, porque no dependen
+    entre sí (decisión 74). Las consultas se numeran C1, C2… en el orden de los encargos y, dentro de cada uno, en el
+    que salieron: la numeración no depende de cuál terminó primero."""
+    respuestas = await asyncio.gather(*(responder(encargo_para_analista(e)) for e in plan.encargos))
     hallazgos, numero = [], 0
-    for encargo in plan.encargos:
-        respuesta = await responder(encargo_para_analista(encargo))
+    for encargo, respuesta in zip(plan.encargos, respuestas):
         consultas = []
         for consulta in respuesta["consultas"]:
             numero += 1
@@ -278,8 +290,9 @@ def revisar_redaccion(redaccion, consultas):
     grupos a resaltar que están en su gráfico y cada número con respaldo."""
     por_id = {c["id"]: c for c in consultas}
     problemas = []
-    if len(redaccion.titulo.split()) > 18:
-        problemas.append("el título tiene más de 15 palabras: tiene que ser el mensaje en una oración corta")
+    if len(redaccion.titulo.split()) > 18:  # se piden hasta 15; el control deja un margen para no corregir por una palabra
+        problemas.append(f"el título tiene {len(redaccion.titulo.split())} palabras: tiene que ser el mensaje en una "
+                         f"oración de hasta 15")
     if len(redaccion.indicadores) != 3:
         problemas.append(f"tiene {len(redaccion.indicadores)} indicadores: van exactamente 3")
     if not 1 <= len(redaccion.pruebas) <= 2:
@@ -445,13 +458,12 @@ def armar_diagnostico(pedido, plan, diagnostico, consultas, carpeta):
 async def main(pedido, carpeta, nombre="Informe"):
     async with anthropic.AsyncAnthropic() as claude:
         sistema = con_cache(INSTRUCCIONES_COORDINADOR + await glosario_del_servidor())  # planificar y redactar lo comparten
-        plan, _ = await planificar(pedido, claude, sistema)
+        plan, problemas = await planificar(pedido, claude, sistema)
         print(json.dumps(plan.model_dump(), ensure_ascii=False, indent=2))
-        problemas = revisar(plan)
         for problema in problemas:
             print("⚠ " + problema)
         if problemas:
-            sys.exit("El plan no cumple los límites: no se manda a los analistas")
+            sys.exit("El plan sigue sin cumplir los límites después de corregirlo: no se manda a los analistas")
         hallazgos = await investigar(plan)
         for h in hallazgos:
             print(f"\n## {h['objetivo']}\n{h['hallazgo']}\nConsultas: "
@@ -531,7 +543,9 @@ def escribir_traza(carpeta):
                                                   "el control encontró: " + "; ".join(encontrado)))
     lineas += ["", "Lo que escribió (el código pone los valores de los indicadores y dibuja los gráficos):", "",
                "```json", json.dumps(g["redaccion"], ensure_ascii=False, indent=1), "```", "",
-               "## 4. Costo y tiempo", "", "| Paso | Llamadas | Tokens de entrada | Tokens de salida | US$ | Segundos |",
+               "## 4. Costo y tiempo", "", "Los segundos son la suma de las llamadas: los analistas trabajan en paralelo "
+               "(decisión 74), así que el tiempo de reloj es menor.", "",
+               "| Paso | Llamadas | Tokens de entrada | Tokens de salida | US$ | Segundos (suma) |",
                "|---|---|---|---|---|---|",
                fila("Plan", [l for l in llamadas if l["agente"] == "coordinador" and l not in redaccion]),
                fila("Analistas", [l for l in llamadas if l["agente"] == "analista"]),

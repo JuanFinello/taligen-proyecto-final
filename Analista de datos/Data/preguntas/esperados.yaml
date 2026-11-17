@@ -1,6 +1,8 @@
 # Valores esperados de las preguntas de semana 1, verificados a mano con SQL directo (card «chequeos»).
 # Cada pregunta tiene uno o más chequeos. Uno pasa si alguna consulta del agente usó esa medida y dio ese valor.
-#   tipo: valor (un número) · variacion (comparar_con; en % o pp) · ranking (códigos en orden)
+#   tipo: valor (un número) · variacion (comparar_con; en % o pp) · ranking (códigos en orden) · grupo (una fila de
+#         un agrupado) · lecturas (ambigua) · sin_dato (decisión 76). margen_pct también se acepta de efectos_margen.
+#   Además, las consultas que declara la respuesta, vueltas a correr, tienen que dar su valor (decisión 75).
 #   tolerancia: la mitad del último dígito con que se verificó el valor
 P01:
   - {medida: ventas_netas, tipo: valor, esperado: 9747823869, tolerancia: 0.5}
@@ -23,13 +25,14 @@ P10:
   - {medida: ventas_netas, tipo: ranking, dimension: sucursal, esperado: [S02, S11, S21, S01, S22]}
 P11:
   - {medida: margen_bruto, tipo: ranking, dimension: proveedor, esperado: [PR11, PR15, PR07]}
-# Semana 2. Ambigua: con dos lecturas da las dos (decisión 8), así que tiene que haber consultado ambas.
+# Semana 2. Ambigua (decisión 76, como el enunciado): pasa si consultó las dos lecturas, o si consultó una y la
+# declaró en supuestos; nunca si eligió una en silencio.
 P17:
-  - {medida: ventas_netas, tipo: valor, esperado: 2514025456.5, tolerancia: 0.5}   # fiscal: T4 AF2026 (feb–abr 2026)
-  - {medida: ventas_netas, tipo: valor, esperado: 2632210699.5, tolerancia: 0.5}   # calendario: ene–mar 2026
-# Sin dato en la base: dice que no está, sin responder con otro indicador, así que no consulta nada.
+  - {medida: ventas_netas, tipo: lecturas, esperados: [2514025456.5, 2632210699.5], tolerancia: 0.5}   # fiscal: T4 AF2026 (feb–abr 2026) · calendario: ene–mar 2026
+# Sin dato en la base (decisión 76, como el enunciado): pasa si dice que no está y no responde con otro número (sin
+# valor en el registro ni cifras de sus consultas en el texto). Una consulta que no usa es un aviso, no una falla.
 P20:
-  - {tipo: ninguna_consulta}
+  - {tipo: sin_dato}
 
 # Hallazgos de los diagnósticos (semana 3), todavía sin chequeo automático.
 # Estaban en las descripciones de esquema.yaml; se movieron acá para no darle la respuesta al agente (decisión 24).
