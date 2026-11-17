@@ -10,11 +10,11 @@ import asyncio
 import json
 import sys
 import time
-from typing import Literal
+from typing import Literal, Optional
 
 import anthropic
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 import informes
 import registro
@@ -22,7 +22,7 @@ from agente import con_cache, glosario_del_servidor, guardar_traza, responder
 from procesador_capa_semantica import ver_modelo
 
 MODELO = "claude-haiku-5-5"
-TIPOS = ["puntual", "comparativa", "ranking", "diagnostico", "ambigua", "sin_dato", "informe"]
+TIPOS = ("puntual", "comparativa", "ranking", "diagnostico", "ambigua", "sin_dato", "informe")
 AL_COORDINADOR = {"diagnostico", "informe"}
 
 TOOL = {"name": "clasificar", "strict": True,
@@ -31,7 +31,7 @@ TOOL = {"name": "clasificar", "strict": True,
             # Primero el motivo: con la tool forzada, Haiku 5.5 no piensa antes de llamarla (módulo 6, 2.2)
             "motivo": {"type": "string", "description": "Primero razoná en una o dos oraciones: qué medida, qué "
                        "período y qué filtros pide, si dice dónde mirar, si la base lo tiene y si tiene más de una lectura."},
-            "tipo": {"type": "string", "enum": TIPOS, "description": (
+            "tipo": {"type": "string", "enum": list(TIPOS), "description": (
                 "puntual: un valor de una medida, o un listado de lo que la base tiene (qué promociones hubo, qué productos), "
                 "con su período y filtros. "
                 "comparativa: la variación de una medida contra otro período o contra el presupuesto. "
@@ -52,7 +52,7 @@ INSTRUCCIONES = ("Clasificás preguntas de negocio sobre Almacenes del Sur antes
 
 class Clasificacion(BaseModel):
     motivo: str
-    tipo: Literal["puntual", "comparativa", "ranking", "diagnostico", "ambigua", "sin_dato", "informe"]
+    tipo: Optional[Literal[TIPOS]]  # None: no se pudo clasificar (negativa o salida inválida); va al agente
 
 
 _sistema = None
@@ -79,9 +79,18 @@ async def clasificar(texto, anteriores, claude):
     respuesta = await claude.messages.create(model=MODELO, max_tokens=1000, system=await sistema(), tools=[TOOL],
                                              tool_choice={"type": "tool", "name": "clasificar"},
                                              messages=[{"role": "user", "content": con_anteriores(texto, anteriores)}])
-    registro.anotar("clasificador", texto, 1, respuesta, time.monotonic() - inicio)
-    bloque = next(b for b in respuesta.content if b.type == "tool_use")
-    return Clasificacion.model_validate(bloque.input)
+    bloque = next((b for b in respuesta.content if b.type == "tool_use"), None)
+    try:
+        clasificacion = Clasificacion.model_validate(bloque.input) if bloque else None
+    except ValidationError:
+        clasificacion = None
+    if clasificacion is None or clasificacion.tipo is None:
+        # Haiku 5.5 puede negarse (stop_reason «refusal», módulo 6, 5.5) y entonces no hay tool. Va al agente, el
+        # camino de siempre, y queda anotado: frenar la pregunta por no poder clasificarla sería peor
+        clasificacion = Clasificacion(motivo=f"no se pudo clasificar (fin: {respuesta.stop_reason})", tipo=None)
+    registro.anotar("clasificador", texto, 1, respuesta, time.monotonic() - inicio,
+                    errores=[] if clasificacion.tipo else ["clasificacion"])
+    return clasificacion
 
 
 def contexto_para_coordinador(clasificacion, anteriores):
@@ -91,6 +100,26 @@ def contexto_para_coordinador(clasificacion, anteriores):
         partes.append("Turnos anteriores de la conversación (el pedido hereda su período, filtros y medida):\n"
                       + "\n".join(f"- Pregunta: {p}\n  Respuesta: {r}" for p, r in anteriores))
     return "\n\n".join(partes) + "\n\nPedido: "
+
+
+def al_historial(turno, resultado):
+    """Un turno del coordinador, para el historial del agente en los turnos siguientes: la pregunta, las consultas
+    que corrieron sus analistas (cada una como la llamada a la tool que fue, con su resultado) y el texto. Sin las
+    consultas, el agente veía números en el historial que no salían de ninguna tool: si los repetía, el hook de fin
+    los frenaba y se confundía (probado: en «¿Y cuánto vendió la región Sur?» rehízo el diagnóstico)."""
+    mensajes = [{"role": "user", "content": turno}]
+    if resultado["consultas"]:
+        mensajes += [
+            {"role": "assistant", "content": [{"type": "tool_use", "id": f"coordinador_{c['id']}", "name": c["tool"],
+                                               "input": c["argumentos"]} for c in resultado["consultas"]]},
+            {"role": "user", "content": [{"type": "tool_result", "tool_use_id": f"coordinador_{c['id']}",
+                                          "content": json.dumps(c["resultado"], ensure_ascii=False, default=str)}
+                                         for c in resultado["consultas"]]}]
+    # Sin la línea de la ruta (salidas/20261117-…): el hook tomaría sus dígitos por números sin respaldo
+    texto = "\n".join(l for l in resultado["texto"].splitlines() if not l.startswith(("Diagnóstico: ", "PDF: ")))
+    # Con quién lo respondió: si no, el agente lo toma como propio y a veces se pone a «corregirlo» en el turno siguiente
+    return mensajes + [{"role": "assistant", "content": f"(Respondido como {resultado['tipo']} por el coordinador, con "
+                                                        f"las consultas de arriba.)\n\n{texto.strip()}"}]
 
 
 async def atender(turnos, carpeta=None, nombre="Informe"):
@@ -104,12 +133,11 @@ async def atender(turnos, carpeta=None, nombre="Informe"):
                 destino = carpeta or f"salidas/{registro.CORRIDA}" + (f"-t{numero}" if len(turnos) > 1 else "")
                 try:
                     resultado = await informes.atender(turno, destino, nombre,
-                                                       contexto_para_coordinador(clasificacion, anteriores))
+                                                       contexto_para_coordinador(clasificacion, anteriores),
+                                                       clasificacion.tipo)
                 except informes.NoSeEntrega as motivo:
                     resultado = {"texto": f"No pude responder: {motivo}.", "consultas": [], "salida": None}
-                # Para los turnos siguientes, el diagnóstico entra al historial como una respuesta más
-                historial = [*historial, {"role": "user", "content": turno},
-                             {"role": "assistant", "content": resultado["texto"]}]
+                historial = [*historial, *al_historial(turno, {**resultado, "tipo": clasificacion.tipo})]
                 respuesta = {"pregunta": turno, "mensajes": historial, "ruta": "coordinador", **resultado}
             else:
                 respuesta = {**await responder(turno, historial, clasificacion.tipo), "ruta": "agente"}
@@ -180,5 +208,6 @@ if __name__ == "__main__":
         if respuesta.get("problemas_registro"):
             print("⚠ registro no guardado: " + "; ".join(respuesta["problemas_registro"]))
     if ruta_traza:
-        guardar_traza([r for r in respuestas if r["ruta"] == "agente"], ruta_traza)
+        # Los turnos del coordinador entran con su texto y sus consultas; su recorrido completo, en la carpeta que nombran
+        guardar_traza(respuestas, ruta_traza, "puerta.py")
         print(f"\nTraza guardada en {ruta_traza}")

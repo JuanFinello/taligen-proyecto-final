@@ -13,6 +13,7 @@ import anthropic
 from pydantic import BaseModel, Field
 
 import registro
+import salida
 from agente import CACHE, con_cache, glosario_del_servidor, resumen, responder
 from controles import AVISO, MAX_SIN_CONTROL, numeros_del_texto, sin_respaldo, valores_de
 from graficos import CALCULADOS, color_de, es_destacado, graficar
@@ -83,7 +84,7 @@ def revisar(plan):
     return problemas
 
 
-async def planificar(pedido, claude, sistema, contexto=""):
+async def planificar(pedido, claude, sistema, contexto="", tipo=None):
     """Paso 1 del coordinador: el plan con su estructura garantizada (salida estructurada). Si no cumple los límites,
     el código le devuelve los problemas una vez para que corrija, como en la redacción (decisión 75); antes el
     informe se cortaba y el programado lo reintentaba entero. Devuelve (plan, problemas que quedaron)."""
@@ -94,7 +95,13 @@ async def planificar(pedido, claude, sistema, contexto=""):
         # Sin tools: el coordinador no consulta la base (PERMITIDAS["coordinador"] en hooks.py está vacía)
         respuesta = await claude.messages.parse(model=MODELO, max_tokens=16000, system=sistema, messages=mensajes,
                                                 output_format=Plan)
-        plan, problemas = respuesta.parsed_output, revisar(respuesta.parsed_output)
+        plan = respuesta.parsed_output
+        if tipo and plan.tipo != tipo:
+            # El tipo lo decide la puerta (decisión 78): si el coordinador eligió otro, se impone y los límites se
+            # controlan con el de la puerta. Si no, la puerta quedaría de adorno
+            print(f"⚠ el coordinador lo planificó como {plan.tipo}; la puerta dijo {tipo}, y queda {tipo}")
+            plan.tipo = tipo
+        problemas = revisar(plan)
         registro.anotar("coordinador", pedido, intento, respuesta, time.monotonic() - inicio,
                         errores=["plan"] if problemas else [])
         if not problemas:
@@ -460,12 +467,12 @@ class NoSeEntrega(Exception):
     """El plan o la redacción siguen con problemas después de corregirlos: no hay informe."""
 
 
-async def atender(pedido, carpeta, nombre="Informe", contexto=""):
+async def atender(pedido, carpeta, nombre="Informe", contexto="", tipo=None):
     """Un pedido de informe o diagnóstico, de punta a punta. Devuelve {texto, consultas, salida}; si no se puede
     entregar, NoSeEntrega. Lo llaman este script y la puerta (puerta.py, decisión 78)."""
     async with anthropic.AsyncAnthropic() as claude:
         sistema = con_cache(INSTRUCCIONES_COORDINADOR + await glosario_del_servidor())  # planificar y redactar lo comparten
-        plan, problemas = await planificar(pedido, claude, sistema, contexto)
+        plan, problemas = await planificar(pedido, claude, sistema, contexto, tipo)
         print(json.dumps(plan.model_dump(), ensure_ascii=False, indent=2))
         for problema in problemas:
             print("⚠ " + problema)
@@ -492,15 +499,25 @@ async def atender(pedido, carpeta, nombre="Informe", contexto=""):
         ensure_ascii=False, indent=1, default=str))
     if plan.tipo == "diagnostico":
         ruta = armar_diagnostico(pedido, plan, redaccion, consultas, carpeta)
-        texto = ruta.read_text().split("## Supuestos")[0].split("\n", 1)[1].strip()
-        print("\n" + texto + f"\n\nDiagnóstico: {ruta}\n")
+        texto = ruta.read_text().split("## Supuestos")[0].split("\n", 1)[1].strip() + f"\n\nDiagnóstico: {ruta}"
+        print("\n" + texto + "\n")
     else:
         ruta = armar(pedido, plan, redaccion, consultas, carpeta, nombre)
         texto = "\n".join([redaccion.titulo, *(f"- {p}" for p in redaccion.puntos), "", f"PDF: {ruta}"])
         print(f"\nPDF: {ruta}\n")
     print(f"Traza: {escribir_traza(carpeta)}\n")
+    # Como cada respuesta del agente (decisión 73): el registro con la forma del enunciado, más dónde quedó la salida.
+    # Valor y cuentas van vacíos: los números del texto ya los controló revisar_citas, y las cuentas las hace el código
+    final = salida.RespuestaFinal(texto=texto, valor=None, unidad=None, supuestos=plan.supuestos, cuentas=[])
+    datos, problemas_registro = salida.validar(final, pedido, consultas, tipo=plan.tipo)
+    if datos:
+        datos.salida = str(ruta)
+        salida.guardar(datos)
+    else:
+        print("⚠ registro no guardado: " + "; ".join(problemas_registro))
     registro.resumen_corrida(registro.leer(registro.LLAMADAS), registro.CORRIDA)
-    return {"texto": texto, "consultas": consultas, "salida": str(ruta)}
+    return {"texto": texto, "consultas": consultas, "salida": str(ruta), "registro": datos,
+            "problemas_registro": problemas_registro}
 
 
 async def main(pedido, carpeta, nombre="Informe"):
@@ -521,11 +538,11 @@ def escribir_traza(carpeta):
     segundos = lambda ls: sum(l["segundos_modelo"] + l["segundos_tools"] for l in ls)
     fila = lambda paso, ls: f"| {paso} | {len(ls)} | {sum(l['tokens_entrada'] for l in ls):,} | " \
                             f"{sum(l['tokens_salida'] for l in ls):,} | {usd(ls):.4f} | {segundos(ls):.1f} |"
-    salida = "diagnostico.md" if plan["tipo"] == "diagnostico" else "informe.pdf"
+    archivo_salida = "diagnostico.md" if plan["tipo"] == "diagnostico" else "informe.pdf"
     lineas = [f"# Traza: {g['pedido']}", "",
               f"Corrida `{g['corrida']}` · versión del diseño `{g['version']}` · `{MODELO}`. Para volver a correrla:", "",
               "```", f'.venv/bin/python informes.py {json.dumps(g["pedido"], ensure_ascii=False)} {carpeta}', "```", "",
-              f"Resultado: `{Path(carpeta, salida)}` · SQL de las consultas citadas: `{Path(carpeta, 'consultas.sql')}`", "",
+              f"Resultado: `{Path(carpeta, archivo_salida)}` · SQL de las consultas citadas: `{Path(carpeta, 'consultas.sql')}`", "",
               "## 1. Coordinador: el plan", "", f"Tipo: **{plan['tipo']}** · {plan['titulo']}", "", "Supuestos:",
               *[f"- {s}" for s in plan["supuestos"]], ""]
     for numero, encargo in enumerate(plan["encargos"], 1):

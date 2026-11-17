@@ -81,6 +81,7 @@ class Registro(BaseModel):
     supuestos: List[str]
     consultas: List[ConsultaRegistrada]
     cuentas: List[str]
+    salida: Optional[str] = None  # informe o diagnóstico: dónde quedó el PDF o el .md
 
 
 def validar(final, pregunta, consultas, sin_respaldo_=(), tipo=None):

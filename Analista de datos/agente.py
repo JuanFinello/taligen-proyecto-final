@@ -160,12 +160,12 @@ def resumen(resultado):
     return " · ".join(partes)
 
 
-def guardar_traza(respuestas, ruta):
+def guardar_traza(respuestas, ruta, comando="agente.py"):
     """Traza legible de una pregunta o conversación (decisión 36): cada turno con su respuesta y sus consultas con SQL."""
     turnos = [r["pregunta"] for r in respuestas]
     lineas = [f"# Traza: {' → '.join(turnos)}", "",
               f"Generada el {date.today()} con `{MODELO}`. Para volver a correrla:", "",
-              "```", ".venv/bin/python agente.py " + " ".join(json.dumps(t, ensure_ascii=False) for t in turnos), "```"]
+              "```", f".venv/bin/python {comando} " + " ".join(json.dumps(t, ensure_ascii=False) for t in turnos), "```"]
     for numero, respuesta in enumerate(respuestas, 1):
         titulo = f"Turno {numero}: " if len(respuestas) > 1 else ""
         lineas += ["", f"## {titulo}{respuesta['pregunta']}", "", "### Respuesta", "", respuesta["texto"], "",
