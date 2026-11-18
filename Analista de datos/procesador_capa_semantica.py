@@ -233,6 +233,86 @@ def comparar_por_grupo(m, medida, filtros, filtros_anterior, agrupar_por, orden,
             "parametros": {"actual": actual["parametros"], "anterior": anterior["parametros"]}}
 
 
+# Presupuesto sospechoso (decisión 84, «avisar datos sospechosos» del enunciado). Criterio del glosario: un desvío
+# enorme en una categoría y un mes que no aparece en los meses vecinos suele ser un error de carga. Por celda (mes,
+# sucursal, categoría) se compara presupuesto ÷ ventas con la mediana de la misma celda en los dos meses de cada lado.
+# Medido en la base: el 99,8 % de las celdas da entre 0,76 y 1,26 veces sus vecinos; lo más alto después del error
+# conocido (Perfumería, Sur, ene-2026: 9 a 11 veces) es 1,72 (S08 Lácteos sep-2025, un quiebre de stock real).
+# El umbral de 3 veces deja margen para los dos lados. Se calcula la primera vez que se pide un desvío
+VECES_SOSPECHOSO = 3
+_sospechosos = None
+
+
+def celdas_de_presupuesto_sospechosas(con):
+    """[(anio, mes, sucursal, categoria, presupuesto, ventas, veces sus vecinos)] de una base abierta. La usa también
+    verificar_base.py (decisión 85), con la base que verifica."""
+    return con.execute(f"""
+                WITH vendido AS (
+                    SELECT date_trunc('month', v.fecha) AS mes, v.sucursal_id, p.categoria, SUM(v.importe_neto) AS ventas
+                    FROM ventas v JOIN productos p ON v.sku = p.sku GROUP BY 1, 2, 3),
+                celdas AS (
+                    SELECT pz.mes, pz.sucursal_id, pz.categoria, pz.importe_presupuesto AS presupuesto, vd.ventas,
+                           pz.importe_presupuesto / vd.ventas AS cociente
+                    FROM presupuesto pz JOIN vendido vd
+                      ON vd.mes = pz.mes AND vd.sucursal_id = pz.sucursal_id AND vd.categoria = pz.categoria
+                    WHERE vd.ventas > 0),
+                con_vecinos AS (
+                    SELECT a.*, (SELECT median(b.cociente) FROM celdas b
+                                 WHERE b.sucursal_id = a.sucursal_id AND b.categoria = a.categoria AND b.mes <> a.mes
+                                   AND b.mes BETWEEN a.mes - INTERVAL 2 MONTH AND a.mes + INTERVAL 2 MONTH) AS vecinos
+                    FROM celdas a)
+                SELECT year(mes), month(mes), sucursal_id, categoria, presupuesto, ventas, cociente / vecinos
+                FROM con_vecinos
+                WHERE cociente / vecinos >= {VECES_SOSPECHOSO} OR cociente / vecinos <= {1 / VECES_SOSPECHOSO}
+                ORDER BY 1, 2, 3, 4""").fetchall()
+
+
+def presupuestos_sospechosos():
+    """{(anio, mes, sucursal, categoria): (presupuesto, ventas, veces sus vecinos)} de las celdas sospechosas."""
+    global _sospechosos
+    if _sospechosos is None:
+        with duckdb.connect(BASE, read_only=True) as con:
+            _sospechosos = {(a, m, s, c): (p, v, veces) for a, m, s, c, p, v, veces in celdas_de_presupuesto_sospechosas(con)}
+    return _sospechosos
+
+
+def aviso_de_presupuesto(filtros, agrupar_por, total_ventas, total_presupuesto):
+    """Si el desvío pedido incluye presupuesto sospechoso: (aviso, el desvío sin esas celdas, grupos afectados)."""
+    sospechosos = presupuestos_sospechosos()
+    if not sospechosos:
+        return None
+    celda = ["anio", "mes", "sucursal", "categoria"]
+    filas = calcular("presupuesto", filtros, list(dict.fromkeys([*agrupar_por, *celda])))["filas"]
+    marcadas = [f for f in filas if (f["anio"], f["mes"], f["sucursal"], f["categoria"]) in sospechosos]
+    if not marcadas:
+        return None
+    partes = {}
+    for f in marcadas:
+        partes.setdefault((f["anio"], f["mes"], f["categoria"]), []).append(f)
+    meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
+             "noviembre", "diciembre"]
+    coma = lambda x: f"{x:.1f}".replace(".", ",")
+    textos, todas = [], []
+    for (anio, mes, categoria), celdas in partes.items():
+        veces = [sospechosos[(anio, mes, f["sucursal"], categoria)][2] for f in celdas]
+        todas += veces
+        textos.append(f"el presupuesto de {categoria} de {meses[mes - 1]} de {anio} en {len(celdas)} sucursales "
+                      f"({', '.join(sorted(f['sucursal'] for f in celdas))}), comparado con lo vendido, es entre "
+                      f"{coma(min(veces))} y {coma(max(veces))} veces más alto que en sus meses vecinos")
+    p_s = sum(f["valor"] for f in marcadas)
+    v_s = sum(sospechosos[(f["anio"], f["mes"], f["sucursal"], f["categoria"])][1] for f in marcadas)
+    v, p = total_ventas - v_s, total_presupuesto - p_s
+    # Los números del aviso también como datos: si Haiku los repite, el control los encuentra (decisión 49)
+    sin = {"valor": (v - p) / p * 100 if p else None, "ventas_netas": v, "presupuesto": p,
+           "presupuesto_sospechoso": p_s, "celdas_sospechosas": len(marcadas),
+           "veces_vecinos_min": min(todas), "veces_vecinos_max": max(todas)}
+    aviso = ("Dato sospechoso: " + "; ".join(textos) + ". Un salto así en una categoría y un mes, que no aparece en "
+             "los meses vecinos, suele ser un error de carga del presupuesto: hay que verificarlo antes de sacar "
+             "conclusiones. sin_presupuesto_sospechoso trae el desvío calculado sin esas filas.")
+    grupos = {tuple(f[d] for d in agrupar_por) for f in marcadas}
+    return aviso, sin, grupos
+
+
 def desvio_presupuesto(filtros, agrupar_por, orden, limite, comparar_con=None, comparables=False):
     """Desvío contra presupuesto (decisión 30): ventas_netas y presupuesto con los mismos filtros, y el % lo hace el código."""
     if comparar_con or comparables:
@@ -248,7 +328,11 @@ def desvio_presupuesto(filtros, agrupar_por, orden, limite, comparar_con=None, c
             "parametros": {"ventas_netas": ventas["parametros"], "presupuesto": presupuesto["parametros"]}}
     if not agrupar_por:
         v, p = ventas["valor"], presupuesto["valor"]
-        return {**base, "valor": desvio(v, p), "ventas_netas": v, "presupuesto": p, "diferencia": None if v is None or p is None else v - p}
+        resultado = {**base, "valor": desvio(v, p), "ventas_netas": v, "presupuesto": p,
+                     "diferencia": None if v is None or p is None else v - p}
+        if v is not None and p and (sospecha := aviso_de_presupuesto(filtros, [], v, p)):
+            resultado["aviso"], resultado["sin_presupuesto_sospechoso"] = sospecha[0], sospecha[1]
+        return resultado
 
     clave = lambda fila: tuple(fila[d] for d in agrupar_por)
     vendido = {clave(f): f["valor"] for f in ventas["filas"]}
@@ -259,7 +343,15 @@ def desvio_presupuesto(filtros, agrupar_por, orden, limite, comparar_con=None, c
                       "diferencia": None if v is None else v - p})
     filas.sort(key=lambda f: (f["valor"] is None, -(f["valor"] or 0) if orden == "desc" else (f["valor"] or 0)))
     total = {"valor": desvio(ventas["total"], presupuesto["total"]), "ventas_netas": ventas["total"], "presupuesto": presupuesto["total"]}
-    return {**base, "filas": filas[:int(limite)] if limite else filas, "total": total}
+    resultado = {**base, "filas": filas[:int(limite)] if limite else filas, "total": total}
+    if ventas["total"] is not None and presupuesto["total"] and (
+            sospecha := aviso_de_presupuesto(filtros, agrupar_por, ventas["total"], presupuesto["total"])):
+        aviso, sin, grupos = sospecha
+        for fila in resultado["filas"]:
+            if clave(fila) in grupos:
+                fila["presupuesto_sospechoso"] = True
+        resultado["aviso"], resultado["sin_presupuesto_sospechoso"] = aviso, sin
+    return resultado
 
 
 def efectos(p0, c0, p1, c1):

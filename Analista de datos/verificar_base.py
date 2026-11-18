@@ -1,6 +1,9 @@
 """Verifica la base después de una ingesta de datos nuevos (decisión 63; guía: Data/base/INGESTA.md).
 La base no declara claves foráneas: si una fila no calza en un join, el número sale mal sin ningún error. Este
 script lo controla antes de que el agente o el informe programado usen la base.
+Dos niveles (decisión 85): los errores (estructura, valores imposibles, importes que no cierran) bloquean, porque con
+ellos un número sale mal; los avisos (algo raro que puede ser real o un error de carga) se informan y no bloquean,
+porque un salto en las ventas puede ser justo lo que hay que encontrar (el quiebre de P14).
 Uso: .venv/bin/python verificar_base.py [ruta.duckdb]      (sale con código 1 si hay algún error)"""
 import re
 import sys
@@ -8,7 +11,7 @@ import sys
 import duckdb
 import yaml
 
-from procesador_capa_semantica import BASE
+from procesador_capa_semantica import BASE, VECES_SOSPECHOSO, celdas_de_presupuesto_sospechosas
 
 
 def joins_del_esquema():
@@ -72,7 +75,90 @@ CONTROLES = [
     ("presupuesto: categorías que existen en productos",
      "SELECT COUNT(*) FROM presupuesto WHERE categoria NOT IN (SELECT DISTINCT categoria FROM productos)"),
     ("stock: la semana es un lunes", "SELECT COUNT(*) FROM stock_semanal WHERE semana != DATE_TRUNC('week', semana)"),
+    # Valores imposibles e importes que no cierran (decisión 85): con ellos, una suma sale mal sin ningún error
+    ("ventas: neto = bruto − descuento", "SELECT COUNT(*) FROM ventas WHERE ABS(importe_neto - (importe_bruto - descuento)) > 0.01"),
+    ("ventas: en una venta, descuento entre 0 y el bruto",
+     "SELECT COUNT(*) FROM ventas WHERE tipo_movimiento = 'venta' AND (descuento < 0 OR descuento > importe_bruto)"),
+    ("ventas: en una venta, unidades y costo positivos",
+     "SELECT COUNT(*) FROM ventas WHERE tipo_movimiento = 'venta' AND (unidades <= 0 OR costo <= 0)"),
+    ("stock: sin unidades negativas", "SELECT COUNT(*) FROM stock_semanal WHERE stock_unidades < 0"),
+    ("presupuesto: importes positivos", "SELECT COUNT(*) FROM presupuesto WHERE importe_presupuesto <= 0"),
+    ("productos: precio de lista positivo", "SELECT COUNT(*) FROM productos WHERE precio_lista <= 0"),
+    ("promociones: termina después de empezar y descuento entre 0 y 100",
+     "SELECT COUNT(*) FROM promociones WHERE fecha_hasta < fecha_desde OR descuento_pct <= 0 OR descuento_pct >= 100"),
 ]
+
+# Lo raro que puede ser real o un error de carga: se avisa con ejemplos y no bloquea (decisión 85). Cada consulta
+# devuelve filas de ejemplo; el umbral de los saltos es el del presupuesto (decisión 84): 3 veces sus vecinos.
+V = VECES_SOSPECHOSO
+SOSPECHAS = [
+    ("ventas: el costo por unidad de un producto salta contra sus meses vecinos", f"""
+        WITH m AS (SELECT sku, DATE_TRUNC('month', fecha) AS mes, SUM(costo) / SUM(unidades) AS cu
+                   FROM ventas WHERE tipo_movimiento = 'venta' GROUP BY 1, 2)
+        SELECT sku, mes, cu / vecinos FROM (
+            SELECT a.*, (SELECT MEDIAN(b.cu) FROM m b WHERE b.sku = a.sku AND b.mes <> a.mes
+                         AND b.mes BETWEEN a.mes - INTERVAL 2 MONTH AND a.mes + INTERVAL 2 MONTH) AS vecinos FROM m a)
+        WHERE cu / vecinos >= {V} OR cu / vecinos <= {1 / V}"""),
+    ("ventas: las ventas de un día de una sucursal saltan contra el mismo día de las semanas vecinas", f"""
+        WITH d AS (SELECT sucursal_id, fecha, SUM(importe_neto) AS x FROM ventas GROUP BY 1, 2)
+        SELECT sucursal_id, fecha, x / vecinos FROM (
+            SELECT a.*, (SELECT MEDIAN(b.x) FROM d b WHERE b.sucursal_id = a.sucursal_id AND b.fecha <> a.fecha
+                         AND DAYOFWEEK(b.fecha) = DAYOFWEEK(a.fecha) AND b.fecha BETWEEN a.fecha - 28 AND a.fecha + 28)
+                   AS vecinos FROM d a)
+        WHERE x / vecinos >= {V} OR x / vecinos <= {1 / V}"""),
+    ("ventas: días sin ventas de una sucursal abierta (¿carga incompleta?)", """
+        SELECT s.sucursal_id, f.fecha FROM sucursales s
+        JOIN fechas f ON f.fecha >= s.fecha_apertura AND f.fecha <= (SELECT MAX(fecha) FROM ventas)
+        LEFT JOIN (SELECT DISTINCT sucursal_id, fecha FROM ventas) v ON v.sucursal_id = s.sucursal_id AND v.fecha = f.fecha
+        WHERE v.fecha IS NULL"""),
+    ("ventas: una fila con más de 50 veces las unidades habituales de su producto", """
+        SELECT v.sucursal_id, v.fecha, v.sku, v.unidades FROM ventas v
+        JOIN (SELECT sku, MEDIAN(unidades) AS med FROM ventas WHERE tipo_movimiento = 'venta' GROUP BY 1) m USING (sku)
+        WHERE v.tipo_movimiento = 'venta' AND v.unidades > 50 * m.med"""),
+    ("ventas: el bruto no es unidades × precio de lista", """
+        SELECT v.fecha, v.sucursal_id, v.sku FROM ventas v JOIN productos p USING (sku)
+        WHERE ABS(v.importe_bruto - v.unidades * p.precio_lista) > 0.01"""),
+    ("ventas: un descuento sin promoción, o que no es el % de su promoción", """
+        SELECT v.fecha, v.sucursal_id, v.sku FROM ventas v LEFT JOIN promociones pr USING (promocion_id)
+        WHERE (v.descuento <> 0 AND v.promocion_id IS NULL)
+           OR ABS(v.descuento - v.importe_bruto * pr.descuento_pct / 100) > 1"""),
+    ("stock: una semana con más de 10 veces el stock habitual de su sucursal y producto", """
+        SELECT st.sucursal_id, st.sku, st.semana FROM stock_semanal st
+        JOIN (SELECT sucursal_id, sku, MEDIAN(stock_unidades) AS med FROM stock_semanal GROUP BY 1, 2) m USING (sucursal_id, sku)
+        WHERE m.med > 0 AND st.stock_unidades > 10 * m.med"""),
+    ("stock: semanas sin foto de una sucursal abierta", """
+        SELECT s.sucursal_id, w.semana FROM sucursales s
+        JOIN (SELECT DISTINCT semana FROM stock_semanal) w ON w.semana >= s.fecha_apertura  -- desde su primera semana completa
+        LEFT JOIN (SELECT DISTINCT sucursal_id, semana FROM stock_semanal) st ON st.sucursal_id = s.sucursal_id AND st.semana = w.semana
+        WHERE st.semana IS NULL"""),
+    ("productos: un texto escrito como una orden para el asistente (decisión 57)", """
+        SELECT sku, descripcion FROM productos
+        WHERE REGEXP_MATCHES(LOWER(descripcion || ' ' || marca || ' ' || subcategoria),
+                             'asistente|instrucci|ignor[aá]|prompt|respond[eé] que|system')"""),
+]
+
+
+def dato(x):
+    """Un valor de un ejemplo, legible: la fecha sin la hora, los cocientes como «11,5 veces», los textos cortados."""
+    if hasattr(x, "date") and callable(x.date):
+        return str(x.date())
+    if isinstance(x, float):
+        return f"({x:.1f} veces)".replace(".", ",")
+    return str(x)[:60]
+
+
+def sospechas(con):
+    """[(sospecha, cuántas, ejemplos)] de las que aparecen."""
+    salida = []
+    presupuesto = celdas_de_presupuesto_sospechosas(con)
+    if presupuesto:
+        salida.append(("presupuesto: presupuesto ÷ ventas salta contra sus meses vecinos (decisión 84)", len(presupuesto),
+                       [f"{a}-{m:02d} {s} {c} ({v:.1f} veces)".replace(".", ",") for a, m, s, c, _, _, v in presupuesto[:3]]))
+    for nombre, sql in SOSPECHAS:
+        filas = con.execute(sql).fetchall()
+        if filas:
+            salida.append((nombre, len(filas), [" ".join(dato(x) for x in f) for f in filas[:3]]))
+    return salida
 
 
 def avisos(con):
@@ -102,18 +188,22 @@ def verificar(ruta=BASE):
             resultados.append((f"{tabla}: cada fila encuentra su {unida}", con.execute(sql).fetchone()[0]))
         for nombre, sql in CONTROLES:
             resultados.append((nombre, con.execute(sql).fetchone()[0]))
-        return resultados, avisos(con)
+        return resultados, avisos(con), sospechas(con)
 
 
 def main():
     ruta = sys.argv[1] if len(sys.argv) > 1 else BASE
-    resultados, notas = verificar(ruta)
+    resultados, notas, raras = verificar(ruta)
     for nombre, malas in resultados:
         print(f"{'✓' if malas == 0 else '✗'} {nombre}" + (f": {malas} filas con problema" if malas else ""))
     for nota in notas:
         print(f"· {nota}")
+    if raras:
+        print(f"\nAvisos: {len(raras)} cosas raras (pueden ser reales o un error de carga; no bloquean)")
+    for nombre, cuantas, ejemplos in raras:
+        print(f"⚠ {nombre}: {cuantas}. Por ejemplo: {' · '.join(ejemplos)}")
     errores = sum(1 for _, malas in resultados if malas)
-    print(f"\n{len(resultados) - errores} de {len(resultados)} controles bien")
+    print(f"\n{len(resultados) - errores} de {len(resultados)} controles bien" + (f" · {len(raras)} avisos" if raras else ""))
     sys.exit(1 if errores else 0)
 
 

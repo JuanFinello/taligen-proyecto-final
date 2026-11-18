@@ -124,7 +124,7 @@ def main():
     lunes = hoy - timedelta(days=hoy.weekday())
 
     # Antes de gastar en el modelo: si la base quedó mal después de una ingesta, no se arma nada con ella
-    resultados, _ = verificar()
+    resultados, *_ = verificar()  # los avisos (decisión 85) no frenan el informe
     rotos = [f"{nombre} ({malas})" for nombre, malas in resultados if malas]
     if rotos:
         anotar(f"lunes {lunes}{simulado} · no corrió: la base no pasa verificar_base.py · " + "; ".join(rotos))

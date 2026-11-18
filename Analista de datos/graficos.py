@@ -23,7 +23,8 @@ NEUTRAS = {"descuentos", "presupuesto", "stock_promedio", "cantidad_sucursales",
 CALCULADOS = {"valor", "participacion_pct", "actual", "anterior", "variacion", "diferencia", "aporte_pct",
               "ventas_netas", "presupuesto", "margen_pct_anterior", "margen_pct_actual", "variacion_pp",
               "efecto_precio_pp", "efecto_costo_pp", "precio_anterior", "precio_actual", "costo_unitario_anterior",
-              "costo_unitario_actual", "variacion_precio_pct", "variacion_costo_unitario_pct"}  # lo que calcular() agrega a cada fila; el resto son dimensiones
+              "costo_unitario_actual", "variacion_precio_pct", "variacion_costo_unitario_pct",
+              "presupuesto_sospechoso"}  # lo que calcular() agrega a cada fila; el resto son dimensiones
 TEMPORALES = ["fecha", "semana", "mes", "mes_fiscal", "trimestre_fiscal", "anio", "anio_fiscal"]
 MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 MESES_FISCALES = MESES[4:] + MESES[:4]  # el año fiscal empieza en mayo

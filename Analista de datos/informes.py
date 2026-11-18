@@ -259,6 +259,12 @@ def dato_de(resultado, campo):
     En una consulta agrupada el total viene aparte: un número (medida aditiva) o un dict (desvío, efectos)."""
     total = resultado.get("total")
     fuente = {**resultado, **total} if isinstance(total, dict) else resultado
+    if "." in campo:  # «total.valor», «sin_presupuesto_sospechoso.valor»: Haiku a veces nombra el campo con su
+        parte, resto = campo.split(".", 1)  # camino, y el informe no salía (decisión 84). El total ya está en fuente
+        sub = fuente.get(parte) if parte != "total" else fuente
+        if not isinstance(sub, dict):
+            return None
+        return dato_de({**{k: v for k, v in resultado.items() if k != "total"}, **sub}, resto)
     valor = fuente.get(campo)
     if valor is None and campo in ("valor", "total") and isinstance(total, (int, float)):
         valor = total

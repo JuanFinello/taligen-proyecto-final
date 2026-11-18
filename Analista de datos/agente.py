@@ -172,6 +172,7 @@ def resumen(resultado):
 
 
 def guardar_traza(respuestas, ruta, comando="agente.py"):
+    from explicar import explicar  # acá y no arriba: explicar importa graficos, que el loop no necesita
     """Traza legible de una pregunta o conversación (decisión 36): cada turno con su respuesta y sus consultas con SQL."""
     turnos = [r["pregunta"] for r in respuestas]
     lineas = [f"# Traza: {' → '.join(turnos)}", "",
@@ -184,7 +185,8 @@ def guardar_traza(respuestas, ruta, comando="agente.py"):
         if not respuesta["consultas"]:
             lineas += ["", "Ninguna en este turno."]
         for i, consulta in enumerate(respuesta["consultas"], 1):
-            lineas += ["", f"**{i}. `{consulta['tool']}`** `{json.dumps(consulta['argumentos'], ensure_ascii=False)}`"]
+            lineas += ["", f"**{i}. `{consulta['tool']}`** `{json.dumps(consulta['argumentos'], ensure_ascii=False)}`",
+                       "", *(f"> {l}  " for l in explicar(consulta).splitlines())]  # en castellano (decisión 83)
             if resumen(consulta["resultado"]):
                 lineas += ["", f"Resultado: {resumen(consulta['resultado'])}"]
             for parte, sql, parametros in sqls(consulta["resultado"]):

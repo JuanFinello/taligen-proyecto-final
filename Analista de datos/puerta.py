@@ -4,12 +4,15 @@ que descomponerlo. La puerta clasifica cada pregunta o turno con una llamada cor
 forzada con enum, primero el motivo y después la etiqueta, validada con pydantic) y el código elige el camino:
 diagnóstico e informe van al coordinador (informes.py); los demás tipos, al agente (agente.py), como hasta ahora.
 
-Uso: .venv/bin/python puerta.py [--traza archivo.md] "¿pregunta?" ["¿turno siguiente?" …]
+Uso: .venv/bin/python puerta.py                     (chat: una pregunta por vez; «?» muestra de dónde salió)
+     .venv/bin/python puerta.py [--traza archivo.md] "¿pregunta?" ["¿turno siguiente?" …]
      .venv/bin/python puerta.py --medir [P09 C1 …]   (solo clasifica los casos de TIPOS en esperados.yaml y compara)"""
 import asyncio
+import contextlib
 import json
 import sys
 import time
+from pathlib import Path
 from typing import Literal, Optional
 
 import anthropic
@@ -18,8 +21,9 @@ from pydantic import BaseModel, ValidationError
 
 import informes
 import registro
-from agente import con_cache, glosario_del_servidor, guardar_traza, responder
-from procesador_capa_semantica import ver_modelo
+from agente import con_cache, glosario_del_servidor, guardar_traza, responder, resumen
+from explicar import explicar
+from procesador_capa_semantica import sqls, ver_modelo
 
 MODELO = "claude-haiku-5-5"
 TIPOS = ("puntual", "comparativa", "ranking", "diagnostico", "ambigua", "sin_dato", "informe")
@@ -122,30 +126,41 @@ def al_historial(turno, resultado):
                                                         f"las consultas de arriba.)\n\n{texto.strip()}"}]
 
 
+class Conversacion:
+    """Una conversación que recuerda sus turnos: cada uno va por su camino y hereda lo anterior. La usan atender (los
+    turnos de una vez) y el chat (de a uno, decisión 83)."""
+    def __init__(self, carpeta=None, nombre="Informe", varios_turnos=False):
+        self.carpeta, self.nombre, self.varios_turnos = carpeta, nombre, varios_turnos
+        self.historial, self.anteriores = [], []
+
+    async def turno(self, turno):
+        """La respuesta de un turno, con tipo, motivo y ruta."""
+        numero = len(self.anteriores) + 1
+        async with anthropic.AsyncAnthropic() as claude:
+            clasificacion = await clasificar(turno, [p for p, _ in self.anteriores], claude)
+        print(f"[{clasificacion.tipo}] {clasificacion.motivo}", flush=True)
+        if clasificacion.tipo in AL_COORDINADOR:
+            destino = (self.carpeta or f"salidas/{registro.CORRIDA}") + (f"-t{numero}" if self.varios_turnos else "")
+            try:
+                resultado = await informes.atender(turno, destino, self.nombre,
+                                                   contexto_para_coordinador(clasificacion, self.anteriores),
+                                                   clasificacion.tipo)
+            except informes.NoSeEntrega as motivo:
+                resultado = {"texto": f"No pude responder: {motivo}.", "consultas": [], "salida": None}
+            self.historial = [*self.historial, *al_historial(turno, {**resultado, "tipo": clasificacion.tipo})]
+            respuesta = {"pregunta": turno, "mensajes": self.historial, "ruta": "coordinador", **resultado}
+        else:
+            respuesta = {**await responder(turno, self.historial, clasificacion.tipo), "ruta": "agente"}
+            self.historial = respuesta["mensajes"]
+        respuesta.update(tipo=clasificacion.tipo, motivo=clasificacion.motivo)
+        self.anteriores.append((turno, respuesta["texto"]))
+        return respuesta
+
+
 async def atender(turnos, carpeta=None, nombre="Informe"):
     """Una pregunta o una conversación, cada turno por su camino. Cada respuesta lleva tipo, motivo y ruta."""
-    historial, anteriores, respuestas = [], [], []
-    async with anthropic.AsyncAnthropic() as claude:
-        for numero, turno in enumerate(turnos, 1):
-            clasificacion = await clasificar(turno, [p for p, _ in anteriores], claude)
-            print(f"[{clasificacion.tipo}] {clasificacion.motivo}", flush=True)
-            if clasificacion.tipo in AL_COORDINADOR:
-                destino = (carpeta or f"salidas/{registro.CORRIDA}") + (f"-t{numero}" if len(turnos) > 1 else "")
-                try:
-                    resultado = await informes.atender(turno, destino, nombre,
-                                                       contexto_para_coordinador(clasificacion, anteriores),
-                                                       clasificacion.tipo)
-                except informes.NoSeEntrega as motivo:
-                    resultado = {"texto": f"No pude responder: {motivo}.", "consultas": [], "salida": None}
-                historial = [*historial, *al_historial(turno, {**resultado, "tipo": clasificacion.tipo})]
-                respuesta = {"pregunta": turno, "mensajes": historial, "ruta": "coordinador", **resultado}
-            else:
-                respuesta = {**await responder(turno, historial, clasificacion.tipo), "ruta": "agente"}
-                historial = respuesta["mensajes"]
-            respuesta.update(tipo=clasificacion.tipo, motivo=clasificacion.motivo)
-            anteriores.append((turno, respuesta["texto"]))
-            respuestas.append(respuesta)
-    return respuestas
+    conversacion = Conversacion(carpeta, nombre, len(turnos) > 1)
+    return [await conversacion.turno(t) for t in turnos]
 
 
 def tipos_esperados():
@@ -191,6 +206,61 @@ async def medir(ids=()):
     registro.resumen_corrida(registro.leer(registro.LLAMADAS), registro.CORRIDA)
 
 
+def de_donde_salio(respuesta):
+    """Cada consulta de una respuesta: en castellano, su resultado y el SQL que lo produjo (decisión 83)."""
+    lineas = []
+    for numero, consulta in enumerate(respuesta["consultas"], 1):
+        lineas += ["", f"── Consulta {consulta.get('id', f'C{numero}')} ──", explicar(consulta)]
+        if consulta["tool"] == "calcular" and resumen(consulta["resultado"]):
+            lineas.append(f"Resultado: {resumen(consulta['resultado'])}")
+        for parte, sql, parametros in sqls(consulta["resultado"]):
+            lineas += [f"SQL {parte}".rstrip(": ") + (f" · parámetros {parametros}" if parametros else ""), sql]
+    if respuesta.get("salida"):
+        lineas += ["", f"Completo, con su traza: {respuesta['salida']}"]
+    return "\n".join(lineas) if lineas else "Esta respuesta no usó consultas."
+
+
+def costo_del_caso(caso):
+    lineas = [l for l in registro.leer(registro.LLAMADAS) if l.get("corrida") == registro.CORRIDA and l.get("caso") == caso]
+    return sum(l["costo_usd"] for l in lineas)
+
+
+async def chat():
+    """El chat en la terminal (decisión 83): una pregunta por vez, la conversación hereda lo anterior, y «?» muestra
+    de dónde salió la última respuesta. Lo que va imprimiendo el agente (tools, planes) va a un .log, no a la pantalla."""
+    conversacion = Conversacion(varios_turnos=True)
+    log = Path(f"salidas/chat-{registro.CORRIDA}.log")
+    log.parent.mkdir(parents=True, exist_ok=True)
+    print("Analista de Almacenes del Sur. Preguntá lo que necesites (ventas, margen, presupuesto, stock, promociones),\n"
+          "pedí un informe o un diagnóstico. «?» muestra de dónde salió la última respuesta; «salir» termina.")
+    ultima, total = None, 0.0
+    while True:
+        try:
+            texto = input("\n› ").strip()
+        except (EOFError, KeyboardInterrupt):
+            break
+        if texto.lower() in ("salir", "chau", "exit", "q"):
+            break
+        if not texto:
+            continue
+        if texto in ("?", "¿?", "de dónde salió", "fuente", "fuentes"):
+            print(de_donde_salio(ultima) if ultima else "Todavía no hay respuestas.")
+            continue
+        caso = f"chat-t{len(conversacion.anteriores) + 1}"
+        registro.CASO.set(caso)
+        print("…", flush=True)
+        inicio = time.monotonic()
+        with open(log, "a") as archivo, contextlib.redirect_stdout(archivo):
+            print(f"\n===== {caso}: {texto}")
+            ultima = await conversacion.turno(texto)
+        costo = costo_del_caso(caso)
+        total += costo
+        print(f"\n{ultima['texto']}\n")
+        print(f"[{ultima['tipo'] or 'sin clasificar'} → {ultima['ruta']} · {len(ultima['consultas'])} consulta{'s' * (len(ultima['consultas']) != 1)} · "
+              f"US$ {costo:.4f} · {time.monotonic() - inicio:.0f} s]  «?» para ver de dónde salió")
+    print(f"\nConversación: {len(conversacion.anteriores)} preguntas · US$ {total:.4f} · detalle en {log}")
+
+
 if __name__ == "__main__":
     argumentos = sys.argv[1:]
     if argumentos[:1] == ["--medir"]:
@@ -199,7 +269,7 @@ if __name__ == "__main__":
     if argumentos[:1] == ["--traza"]:
         ruta_traza, argumentos = argumentos[1], argumentos[2:]
     if not argumentos:
-        sys.exit(__doc__.split("\n\n")[-1])
+        sys.exit(asyncio.run(chat()))
     respuestas = asyncio.run(atender(argumentos))
     for numero, respuesta in enumerate(respuestas, 1):
         print(f"\n===== {f'Turno {numero}: ' if len(respuestas) > 1 else ''}{respuesta['pregunta']}"
