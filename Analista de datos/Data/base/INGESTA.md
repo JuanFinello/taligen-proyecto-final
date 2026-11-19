@@ -45,3 +45,7 @@ cp /tmp/base_nueva.duckdb Data/base/almacenes_del_sur.duckdb
 ```
 
 Si `verificar_base.py` marca un error, se corrige en la copia y se vuelve al paso 3. Los avisos (⚠) no bloquean: son cosas raras que pueden ser reales o un error de carga (un salto de 3 veces contra los meses o semanas vecinas, un día sin ventas, un texto escrito como una orden para el asistente). Hay que mirarlos uno por uno antes de dar la base por buena; los dos de la base original son conocidos: el presupuesto de Perfumería del Sur de enero de 2026 y el texto de P0040 (decisión 85). El informe programado también corre `verificar_base.py` antes de arrancar: con la base rota no gasta en el modelo, lo anota en `salidas/programado/historial.txt` y avisa.
+
+## Un ensayo completo
+
+`pruebas/ingesta_simulada.py` hace todo esto sobre copias, con un mes simulado (mayo de 2026, una sucursal y un producto nuevos, hechos reales y errores de carga plantados): sirve de ejemplo de cómo cargar cada tabla y de prueba de que el agente y los informes toman los datos nuevos solos (decisión 87).

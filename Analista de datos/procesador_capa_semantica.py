@@ -417,6 +417,23 @@ def sqls(resultado):
     return [("", sql, parametros)] if sql else []
 
 
+def join_y_dimensiones(nombre_tabla):
+    """(join, columna de cada dimensión, dimensiones válidas) de una tabla. Una tabla de dimensión (sucursales) no
+    tiene join: va sola con su alias. Cada dimensión usa la columna propia de la tabla si la declara (decisión 22), si
+    no la del mapa general, y solo sirve si su tabla está en el join (alias = la palabra después de cada tabla)."""
+    tabla = ESQUEMA["tablas"][nombre_tabla]
+    join = tabla["join"] or f"{nombre_tabla} {tabla['alias']}"
+    columna_de = {**ESQUEMA["dimensiones"], **tabla.get("dimensiones_propias", {})}
+    alias_del_join = set(re.findall(r"(?:^|JOIN )\w+ (\w+)", join))
+    return join, columna_de, [d for d, c in columna_de.items() if c.split(".")[0] in alias_del_join]
+
+
+def dimensiones_validas(medida):
+    """Las dimensiones con que se puede filtrar o abrir una medida (las calculadas, las de la medida que usan)."""
+    base = {"desvio_presupuesto_pct": "presupuesto", "efectos_margen": "margen_bruto"}.get(medida, medida)
+    return join_y_dimensiones(MEDIDAS[base]["tabla"])[2] if "tabla" in MEDIDAS.get(base, {}) else []
+
+
 def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, comparar_con=None,
              comparables=False, abiertas_hasta=None):
     """Calcula una medida con filtros: un valor (columna = valor) o una lista (columna IN lista).
@@ -459,17 +476,8 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
                                                 actual["valor"], anterior["valor"]))
         return resultado
 
-    # Paso 2: el join completo de la tabla (decisión 9)
-    # Una tabla de dimensión (por ejemplo, sucursales) no tiene join: va sola con su alias
-    tabla = ESQUEMA["tablas"][m["tabla"]]
-    join = tabla["join"] or f"{m['tabla']} {tabla['alias']}"
-
-    # Columna de cada dimensión: la propia de la tabla si la declara (decisión 22), si no la del mapa general
-    columna_de = {**ESQUEMA["dimensiones"], **tabla.get("dimensiones_propias", {})}
-
-    # Solo sirven las dimensiones cuya tabla está en el join (alias = la palabra después de cada nombre de tabla)
-    alias_del_join = set(re.findall(r"(?:^|JOIN )\w+ (\w+)", join))
-    validas = [d for d, c in columna_de.items() if c.split(".")[0] in alias_del_join]
+    # Paso 2: el join completo de la tabla (decisión 9) y las dimensiones que se pueden usar con ella
+    join, columna_de, validas = join_y_dimensiones(m["tabla"])
     for dimension in [*filtros, *agrupar_por]:
         if dimension not in columna_de:
             # Que el error diga qué usar: si pidió el nombre de una columna (sku), la dimensión que la usa (producto)

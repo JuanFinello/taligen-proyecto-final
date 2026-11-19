@@ -23,6 +23,7 @@ import informes
 import registro
 from agente import con_cache, glosario_del_servidor, guardar_traza, responder, resumen
 from explicar import explicar
+from sugerir import sugerencias
 from procesador_capa_semantica import sqls, ver_modelo
 
 MODELO = "claude-haiku-5-5"
@@ -232,8 +233,9 @@ async def chat():
     log = Path(f"salidas/chat-{registro.CORRIDA}.log")
     log.parent.mkdir(parents=True, exist_ok=True)
     print("Analista de Almacenes del Sur. Preguntá lo que necesites (ventas, margen, presupuesto, stock, promociones),\n"
-          "pedí un informe o un diagnóstico. «?» muestra de dónde salió la última respuesta; «salir» termina.")
-    ultima, total = None, 0.0
+          "pedí un informe o un diagnóstico. «?» muestra de dónde salió la última respuesta; un número, una de las\n"
+          "preguntas sugeridas; «salir» termina.")
+    ultima, total, propuestas = None, 0.0, []
     while True:
         try:
             texto = input("\n› ").strip()
@@ -246,6 +248,13 @@ async def chat():
         if texto in ("?", "¿?", "de dónde salió", "fuente", "fuentes"):
             print(de_donde_salio(ultima) if ultima else "Todavía no hay respuestas.")
             continue
+        if texto.isdigit():  # una de las preguntas sugeridas (decisión 86)
+            if not 1 <= int(texto) <= len(propuestas):
+                print(f"No hay una sugerencia {texto}." + (f" Elegí entre 1 y {len(propuestas)}, o escribí tu pregunta."
+                                                            if propuestas else " Escribí tu pregunta."))
+                continue
+            texto = propuestas[int(texto) - 1]
+            print(f"→ {texto}")
         caso = f"chat-t{len(conversacion.anteriores) + 1}"
         registro.CASO.set(caso)
         print("…", flush=True)
@@ -258,6 +267,9 @@ async def chat():
         print(f"\n{ultima['texto']}\n")
         print(f"[{ultima['tipo'] or 'sin clasificar'} → {ultima['ruta']} · {len(ultima['consultas'])} consulta{'s' * (len(ultima['consultas']) != 1)} · "
               f"US$ {costo:.4f} · {time.monotonic() - inicio:.0f} s]  «?» para ver de dónde salió")
+        propuestas = sugerencias(ultima)
+        if propuestas:
+            print("\n¿Seguimos? (escribí el número)\n" + "\n".join(f"  {i}. {x}" for i, x in enumerate(propuestas, 1)))
     print(f"\nConversación: {len(conversacion.anteriores)} preguntas · US$ {total:.4f} · detalle en {log}")
 
 
