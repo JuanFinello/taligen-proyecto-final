@@ -4,7 +4,7 @@ import json
 
 import duckdb
 
-from controles import AVISO, numeros_sin_respaldo
+from controles import AVISO, grupos_sin_filtro, numeros_sin_respaldo
 
 _PARSER = duckdb.connect()  # en memoria, sin base: solo para leer el tipo de cada sentencia
 
@@ -61,3 +61,16 @@ def pedido_de_correccion(sueltos):
             "No hagas cuentas propias (restas, sumas, promedios). Reescribí la respuesta completa: "
             "sacá esos números o reemplazalos por uno que salga de una consulta; si necesitás un dato "
             "que no consultaste, consultalo con calcular.")
+
+
+def grupos_no_usados(pregunta, consultas, supuestos):
+    """Al terminar, también: las categorías y regiones que nombra la pregunta y ninguna consulta usa (decisión 95)."""
+    return grupos_sin_filtro(pregunta, consultas, supuestos)
+
+
+def pedido_de_filtro(faltan):
+    """El motivo que recibe el modelo cuando la pregunta nombra un grupo que ninguna consulta usa."""
+    nombres = ", ".join(f"{'la categoría' if d == 'categoria' else 'la región'} {v}" for d, v in faltan)
+    return (f"La pregunta nombra {nombres} y ninguna de tus consultas la filtra ni abre por esa dimensión: la respuesta "
+            "puede ser de toda la cadena y no de lo que se preguntó. Si la pregunta se refiere a eso, volvé a consultar "
+            "con ese filtro y reescribí la respuesta completa. Si no se refiere a eso, decí en supuestos por qué no lo usaste.")

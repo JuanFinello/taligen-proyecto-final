@@ -16,7 +16,8 @@ from mcp.client.stdio import get_default_environment
 
 import registro
 import salida
-from hooks import al_terminar, antes_de_tool, despues_de_tool, pedido_de_correccion, tools_de
+from hooks import (al_terminar, antes_de_tool, despues_de_tool, grupos_no_usados, pedido_de_correccion,
+                   pedido_de_filtro, tools_de)
 from procesador_capa_semantica import sqls
 
 MODELO = "claude-haiku-5-5"
@@ -104,12 +105,15 @@ async def responder(pregunta, historial=None, tipo=None):
                 # Hook al terminar: cada número tiene que salir de una consulta (o de la pregunta). Si no, se le
                 # devuelve el motivo para que corrija, como el error de una tool. Se controla todo lo que escribió
                 sueltos = al_terminar("\n".join([final.texto, *final.supuestos, *final.cuentas]), mensajes)
+                # Y cada categoría o región que nombra la pregunta tiene que estar en alguna consulta (decisión 95)
+                faltan = grupos_no_usados(pregunta, consultas, final.supuestos)
                 registro.anotar("analista", pregunta, vuelta, respuesta, segundos_modelo,
-                                errores=["respuesta_vacia"] * vacia + ["numeros_sin_respaldo"] * bool(sueltos),
-                                sin_respaldo=sueltos)
-                if sueltos and correcciones < MAX_CORRECCIONES:
+                                errores=["respuesta_vacia"] * vacia + ["numeros_sin_respaldo"] * bool(sueltos)
+                                + ["grupo_sin_filtro"] * bool(faltan), sin_respaldo=sueltos)
+                if (sueltos or faltan) and correcciones < MAX_CORRECCIONES:
                     correcciones += 1
-                    mensajes.append({"role": "user", "content": pedido_de_correccion(sueltos)})
+                    pedidos = ([pedido_de_correccion(sueltos)] if sueltos else []) + ([pedido_de_filtro(faltan)] if faltan else [])
+                    mensajes.append({"role": "user", "content": "\n\n".join(pedidos)})
                     continue
                 # El registro se valida antes de guardarse; si no pasa, no se guarda y queda el motivo
                 datos, problemas = salida.validar(final, pregunta, consultas, sueltos, tipo)

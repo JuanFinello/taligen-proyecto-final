@@ -1,0 +1,43 @@
+# Test 2 (decisión 94): la misma pregunta dicha de otras maneras. Cada variante se califica con el chequeo de la
+# pregunta original en esperados.yaml (misma medida, mismo número). No se usan las de la reserva.
+# autor: quién la escribió. Las de «claude» las escribió quien conoce el agente (el problema del oráculo, decisión 88):
+# las del usuario valen más. Para sumar una: otra línea con estilo, texto y autor: usuario.
+#
+# Estilos: coloquial (como habla un gerente), errores (sin tildes, tipeo, minúsculas), sinonimos (otras palabras u
+# otro orden), corta (como un mensaje).
+
+P01:  # ¿Cuánto vendió la cadena en el año fiscal 2025?
+  - {estilo: coloquial, autor: claude, texto: "che, ¿cuánto facturamos en todo el año fiscal 2025?"}
+  - {estilo: errores, autor: claude, texto: "cuanto vendio la cadena en el año fsical 2025"}
+  - {estilo: sinonimos, autor: claude, texto: "Para el año fiscal 2025, ¿cuál fue el total vendido por toda la cadena?"}
+  - {estilo: corta, autor: claude, texto: "ventas AF2025?"}
+P02:  # ¿Cuántas unidades de Lácteos se vendieron en marzo de 2026?
+  - {estilo: coloquial, autor: claude, texto: "¿cuántas unidades de lácteos movimos en marzo del 2026?"}
+  - {estilo: errores, autor: claude, texto: "cuantas unidades de lacteos se vendieron en marso 2026"}
+  - {estilo: sinonimos, autor: claude, texto: "En marzo de 2026, la categoría Lácteos, ¿qué cantidad de unidades vendió?"}
+  - {estilo: corta, autor: claude, texto: "unidades lacteos mar-26"}
+P03:  # ¿Qué margen bruto tuvo Perfumería en el AF2026?
+  - {estilo: coloquial, autor: claude, texto: "¿cuánta guita nos dejó Perfumería en el año fiscal 2026, después de pagar la mercadería?"}
+  - {estilo: errores, autor: claude, texto: "que margen bruto tubo perfumeria en el af 2026"}
+  - {estilo: sinonimos, autor: claude, texto: "Perfumería, año fiscal 2026: ventas netas menos costo, ¿cuánto da en pesos?"}
+  - {estilo: corta, autor: claude, texto: "margen bruto perfu AF26"}
+P06:  # ¿Cuánto crecieron las ventas de Bebidas en el T3 del AF2026 contra el mismo trimestre del año anterior?
+  - {estilo: coloquial, autor: claude, texto: "¿cómo nos fue con Bebidas en el tercer trimestre fiscal de 2026 comparado con el del año anterior?"}
+  - {estilo: errores, autor: claude, texto: "cuanto crecieron las ventas de bebidas en el t3 del af2026 contra el mismo trimestre del año anterir"}
+  - {estilo: sinonimos, autor: claude, texto: "Variación interanual de las ventas de Bebidas en el tercer trimestre del año fiscal 2026"}
+  - {estilo: corta, autor: claude, texto: "bebidas T3 AF26 vs T3 AF25 %"}
+P07:  # ¿Cuánto cambió el margen de Almacén en el T2 del AF2026 contra el T2 del AF2025?
+  - {estilo: coloquial, autor: claude, texto: "¿el margen de Almacén subió o bajó en el segundo trimestre fiscal 2026 frente al mismo del año anterior? ¿cuánto?"}
+  - {estilo: errores, autor: claude, texto: "cuanto cambio el margen de almacen en el t2 del af2026 contra el t2 del af2025"}
+  - {estilo: sinonimos, autor: claude, texto: "Almacén: diferencia de margen % entre el T2 del AF2025 y el T2 del AF2026"}
+  - {estilo: corta, autor: claude, texto: "margen % almacen T2 AF26 vs AF25"}
+P10:  # ¿Cuáles fueron las 5 sucursales que más vendieron en el AF2026?
+  - {estilo: coloquial, autor: claude, texto: "¿cuáles fueron nuestras 5 sucursales estrella en ventas en el AF2026?"}
+  - {estilo: errores, autor: claude, texto: "cuales fueron las 5 sucursales que mas vendieron en el af2026"}
+  - {estilo: sinonimos, autor: claude, texto: "Top 5 de locales por ventas netas en el año fiscal 2026"}
+  - {estilo: corta, autor: claude, texto: "top 5 sucursales AF26"}
+P20:  # ¿Cuántos clientes nuevos tuvimos en marzo de 2026? (sin dato)
+  - {estilo: coloquial, autor: claude, texto: "¿cuánta gente nueva vino a comprar en marzo de 2026?"}
+  - {estilo: errores, autor: claude, texto: "cuantos clientes nuevos tuvimos en marso 2026"}
+  - {estilo: sinonimos, autor: claude, texto: "¿Cuántas altas de clientes hubo en marzo de 2026?"}
+  - {estilo: corta, autor: claude, texto: "clientes nuevos mar-26"}

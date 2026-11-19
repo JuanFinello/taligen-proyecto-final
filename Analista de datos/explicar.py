@@ -41,6 +41,8 @@ def periodo(filtros):
         return f"del {fecha(f['fecha']['desde'])} al {fecha(f['fecha']['hasta'])}"
     if "fecha" in f:
         return "los días " + lista(fecha(x) for x in como_lista(f["fecha"]))
+    if isinstance(f.get("semana"), dict):  # un rango de semanas, como el de días (decisión 69)
+        return f"las semanas del {fecha(f['semana']['desde'])} al {fecha(f['semana']['hasta'])}"
     if "semana" in f:
         return "la semana del " + lista(fecha(x) for x in como_lista(f["semana"]))
     if "anio_fiscal" in f and not isinstance(f["anio_fiscal"], list):

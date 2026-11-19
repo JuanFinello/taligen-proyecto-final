@@ -1,7 +1,10 @@
 """Controles que corre el código sobre lo que escribe el modelo (decisión 49; son los hooks de la semana 4).
-numeros_sin_respaldo: cada número de una respuesta tiene que salir de una consulta (o de la pregunta)."""
+numeros_sin_respaldo: cada número de una respuesta tiene que salir de una consulta (o de la pregunta).
+grupos_sin_filtro: cada categoría o región que nombra la pregunta tiene que estar en alguna consulta (decisión 95)."""
+import functools
 import json
 import re
+import unicodedata
 
 # Un número en castellano: 1.247 · 25,9 · 663.149.556 · 0,24. Pegado a una letra no cuenta (AF2026, T2, PR01, C3)
 NUMERO = re.compile(r"(?<![\w.,])(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)(?![\w])(\s*(?:M\b|millones|mill\.))?")
@@ -101,3 +104,65 @@ def sin_respaldo(texto, valores):
         if not any(abs(valor - v) <= tolerancia or 0 <= v - valor < digito for v in valores):
             sueltos.append(escrito)
     return sueltos
+
+
+# Decisión 95. El test 2 (decisión 94) mostró que «Almacén: diferencia de margen %…» se respondía con toda la cadena
+# las tres veces, aunque el glosario dice que «Almacén» es la categoría: lo escrito en el prompt no alcanza siempre.
+# Este control es código: si la pregunta nombra una categoría o una región y ninguna consulta la filtra, la abre por
+# esa dimensión o filtra algo más fino de adentro (un producto de la categoría, una sucursal de la región), la
+# respuesta vuelve a Haiku para que la corrija o explique en supuestos por qué no la usó.
+NOMBRADAS = {"categoria": ("subcategoria", "producto", "marca"), "region": ("sucursal",)}
+
+
+def sin_tildes(texto):
+    return unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode().lower()
+
+
+@functools.cache
+def nombres_propios():
+    """Los nombres de la base que traen una palabra de categoría o de región («Almacenes del Sur», la marca «Del Sur»,
+    el proveedor «Lácteos La Pradera», la sucursal «Puerto Norte», 37 productos): antes de buscar se sacan de la
+    pregunta, los más largos primero, para que «la gaseosa cola Del Sur» no cuente como la región Sur."""
+    import duckdb
+    from procesador_capa_semantica import BASE
+    with duckdb.connect(BASE, read_only=True) as con:
+        nombres = [n for (n,) in con.execute("""SELECT marca FROM productos UNION SELECT descripcion FROM productos
+                                                UNION SELECT nombre FROM proveedores UNION SELECT nombre FROM sucursales""").fetchall()]
+    largos = {sin_tildes(n) for n in nombres}
+    largos |= {re.sub(r"\s*(s\.a\.|\(marca propia\))", "", n).strip() for n in largos}  # «Industrias Del Sur S.A. (marca propia)»
+    largos |= {n.removeprefix("almacenes del sur ").strip() for n in largos} | {"almacenes del sur"}  # «Puerto Norte» solo
+    return sorted((n for n in largos if n), key=len, reverse=True)
+
+
+@functools.cache
+def valores_de_dimension(dimension):
+    from procesador_capa_semantica import ver_modelo  # acá y no arriba: los valores salen de la base (decisión 62)
+    return ver_modelo()["dimensiones"][dimension]["valores"]
+
+
+def _usa(consulta, dimension, valor):
+    """¿Esta consulta tiene en cuenta ese valor: lo filtra, abre por su dimensión o filtra algo más fino de adentro?"""
+    argumentos = consulta.get("argumentos") or {}
+    if consulta.get("tool") == "consultar_sql":
+        return sin_tildes(valor) in sin_tildes(argumentos.get("sql", ""))
+    filtros = argumentos.get("filtros") or {}
+    elegido = filtros.get(dimension)
+    return (elegido == valor or (isinstance(elegido, list) and valor in elegido)
+            or dimension in (argumentos.get("agrupar_por") or [])
+            or any(filtros.get(fina) for fina in NOMBRADAS[dimension]))
+
+
+def grupos_sin_filtro(pregunta, consultas, supuestos=()):
+    """[(dimensión, valor)] que la pregunta nombra y ninguna consulta usa. No cuentan los que ya explicó en supuestos."""
+    texto = sin_tildes(pregunta)
+    for nombre in nombres_propios():
+        texto = re.sub(rf"\b{re.escape(nombre)}\b", " ", texto)
+    explicados = sin_tildes(" ".join(supuestos))
+    faltan = []
+    for dimension in NOMBRADAS:
+        for valor in valores_de_dimension(dimension):
+            palabra = rf"\b{re.escape(sin_tildes(valor))}\b"
+            if re.search(palabra, texto) and not re.search(palabra, explicados) \
+                    and not any(_usa(c, dimension, valor) for c in consultas):
+                faltan.append((dimension, valor))
+    return faltan
