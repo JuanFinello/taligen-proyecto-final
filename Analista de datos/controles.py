@@ -166,3 +166,75 @@ def grupos_sin_filtro(pregunta, consultas, supuestos=()):
                     and not any(_usa(c, dimension, valor) for c in consultas):
                 faltan.append((dimension, valor))
     return faltan
+
+
+FECHA_ESCRITA = re.compile(r"\b\d{1,2}\s+de\s+(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|"
+                           r"octubre|noviembre|diciembre)\b|\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b", re.IGNORECASE)
+
+
+def numeros_de_consultas_en(texto, consultas):
+    """¿El texto trae alguna cifra de los resultados de estas consultas? (sin contar los enteros chicos ni el año).
+    Lo usan el evaluador (la sin dato, decisión 76) y el control de períodos fuera de la base (decisión 97)."""
+    valores = valores_de([c["resultado"] for c in consultas])
+    # El día de una fecha no es una cifra: «hasta el 30 de abril de 2026» coincidía con un resultado igual a 30 y una
+    # respuesta sin dato contaba como respondida (decisión 97)
+    texto = FECHA_ESCRITA.sub(" ", texto)
+    for valor, tolerancia, escrito in numeros_del_texto(texto):
+        if (valor.is_integer() and valor <= MAX_SIN_CONTROL and "," not in escrito) or 1900 <= valor <= 2100:
+            continue
+        if any(abs(valor - abs(v)) <= tolerancia for v in valores):
+            return True
+    return False
+
+
+# Decisión 97. El test 3 (decisión 96): ante «el AF2027» o «marzo de 2024», fuera de la base, el agente dice que no hay
+# datos pero a veces agrega el número del período más cercano, y una vez el registro lo guardó como la respuesta. Si
+# todos los períodos que la pregunta escribe explícitamente caen fuera de la base, la respuesta no lleva números de
+# consultas ni valor: dice que no hay datos y puede ofrecer el período más cercano, sin su número (lo eligió el usuario).
+# Solo períodos escritos («AF2027», «año fiscal 2027», «marzo de 2024», «en 2023», «15/03/2024»); lo relativo («el mes
+# pasado», «ayer») se cuenta desde el último dato y ya se declara (decisión 62).
+MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
+         "noviembre", "diciembre"]
+
+
+def _fin_de_mes(anio, mes):
+    from datetime import date, timedelta
+    return (date(anio + mes // 12, mes % 12 + 1, 1) - timedelta(days=1))
+
+
+def periodos_escritos(pregunta):
+    """[(cómo está escrito, desde, hasta)] de los períodos explícitos de la pregunta."""
+    from datetime import date
+    texto = sin_tildes(pregunta)
+    salida = []
+    for m in re.finditer(r"\b(?:af|ano fiscal|anio fiscal)\s*(20\d\d)\b", texto):
+        n = int(m.group(1))
+        salida.append((m.group(0), date(n - 1, 5, 1), date(n, 4, 30)))
+    fiscales = [m.span() for m in re.finditer(r"\b(?:af|ano fiscal|anio fiscal)\s*20\d\d\b", texto)]
+    for m in re.finditer(rf"\b({'|'.join(MESES)})\s+(?:de|del)\s+(20\d\d)\b", texto):
+        mes, anio = MESES.index(m.group(1)) + 1, int(m.group(2))
+        salida.append((m.group(0), date(anio, mes, 1), _fin_de_mes(anio, mes)))
+    meses = [m.span() for m in re.finditer(rf"\b(?:{'|'.join(MESES)})\s+(?:de|del)\s+20\d\d\b", texto)]
+    for m in re.finditer(r"\b(?:en|de|del|ano|anio|el)\s+(20\d\d)\b", texto):
+        dentro = lambda s: any(a <= m.start(1) < b for a, b in fiscales + meses)  # el año de «marzo de 2024» o «AF2027»
+        if not dentro(m):
+            n = int(m.group(1))
+            salida.append((m.group(0), date(n, 1, 1), date(n, 12, 31)))
+    for m in re.finditer(r"\b(\d{1,2})[/-](\d{1,2})[/-](20\d\d)\b", texto):
+        try:
+            d = date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+        except ValueError:
+            continue
+        salida.append((m.group(0), d, d))
+    return salida
+
+
+def periodo_fuera_de_la_base(pregunta):
+    """Los períodos escritos, si todos caen enteros fuera de la base; si no, []."""
+    from datetime import date
+    from procesador_capa_semantica import COBERTURA
+    desde, hasta = date.fromisoformat(COBERTURA["ventas_desde"]), date.fromisoformat(COBERTURA["ventas_hasta"])
+    periodos = periodos_escritos(pregunta)
+    if periodos and all(h < desde or d > hasta for _, d, h in periodos):
+        return periodos
+    return []

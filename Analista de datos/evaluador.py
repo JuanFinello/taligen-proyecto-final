@@ -12,7 +12,7 @@ import yaml
 import procesador_capa_semantica as procesador
 import registro
 from puerta import atender
-from controles import MAX_SIN_CONTROL, numeros_del_texto, sin_respaldo, valores_de
+from controles import numeros_de_consultas_en, sin_respaldo, valores_de
 
 with open("Data/preguntas/esperados.yaml") as f:
     ESPERADOS = yaml.safe_load(f)
@@ -100,17 +100,6 @@ def fallos(chequeos, consultas, respuesta=None):
         elif not any(cumple(chequeo, c) for c in consultas):
             malos.append(diagnostico(chequeo, consultas))
     return malos
-
-
-def numeros_de_consultas_en(texto, consultas):
-    """¿El texto trae alguna cifra de los resultados de estas consultas? (sin contar los enteros chicos ni el año)"""
-    valores = valores_de([c["resultado"] for c in consultas])
-    for valor, tolerancia, escrito in numeros_del_texto(texto):
-        if (valor.is_integer() and valor <= MAX_SIN_CONTROL and "," not in escrito) or 1900 <= valor <= 2100:
-            continue
-        if any(abs(valor - abs(v)) <= tolerancia for v in valores):
-            return True
-    return False
 
 
 def falla(lineas_malas):

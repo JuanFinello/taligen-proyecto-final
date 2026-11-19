@@ -16,8 +16,8 @@ from mcp.client.stdio import get_default_environment
 
 import registro
 import salida
-from hooks import (al_terminar, antes_de_tool, despues_de_tool, grupos_no_usados, pedido_de_correccion,
-                   pedido_de_filtro, tools_de)
+from hooks import (al_terminar, antes_de_tool, despues_de_tool, fuera_de_la_base, grupos_no_usados,
+                   pedido_de_correccion, pedido_de_filtro, pedido_sin_numeros, tools_de)
 from procesador_capa_semantica import sqls
 
 MODELO = "claude-haiku-5-5"
@@ -107,12 +107,16 @@ async def responder(pregunta, historial=None, tipo=None):
                 sueltos = al_terminar("\n".join([final.texto, *final.supuestos, *final.cuentas]), mensajes)
                 # Y cada categoría o región que nombra la pregunta tiene que estar en alguna consulta (decisión 95)
                 faltan = grupos_no_usados(pregunta, consultas, final.supuestos)
+                # Y un período escrito que la base no tiene no se responde con números de otro (decisión 97)
+                afuera = fuera_de_la_base(pregunta, "\n".join([final.texto, *final.supuestos]), final.valor, consultas)
                 registro.anotar("analista", pregunta, vuelta, respuesta, segundos_modelo,
                                 errores=["respuesta_vacia"] * vacia + ["numeros_sin_respaldo"] * bool(sueltos)
-                                + ["grupo_sin_filtro"] * bool(faltan), sin_respaldo=sueltos)
-                if (sueltos or faltan) and correcciones < MAX_CORRECCIONES:
+                                + ["grupo_sin_filtro"] * bool(faltan) + ["periodo_fuera_de_la_base"] * bool(afuera),
+                                sin_respaldo=sueltos)
+                if (sueltos or faltan or afuera) and correcciones < MAX_CORRECCIONES:
                     correcciones += 1
-                    pedidos = ([pedido_de_correccion(sueltos)] if sueltos else []) + ([pedido_de_filtro(faltan)] if faltan else [])
+                    pedidos = ([pedido_de_correccion(sueltos)] if sueltos else []) + ([pedido_de_filtro(faltan)] if faltan else []) \
+                        + ([pedido_sin_numeros(afuera)] if afuera else [])
                     mensajes.append({"role": "user", "content": "\n\n".join(pedidos)})
                     continue
                 # El registro se valida antes de guardarse; si no pasa, no se guarda y queda el motivo

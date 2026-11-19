@@ -4,7 +4,7 @@ import json
 
 import duckdb
 
-from controles import AVISO, grupos_sin_filtro, numeros_sin_respaldo
+from controles import AVISO, grupos_sin_filtro, numeros_de_consultas_en, numeros_sin_respaldo, periodo_fuera_de_la_base
 
 _PARSER = duckdb.connect()  # en memoria, sin base: solo para leer el tipo de cada sentencia
 
@@ -74,3 +74,23 @@ def pedido_de_filtro(faltan):
     return (f"La pregunta nombra {nombres} y ninguna de tus consultas la filtra ni abre por esa dimensión: la respuesta "
             "puede ser de toda la cadena y no de lo que se preguntó. Si la pregunta se refiere a eso, volvé a consultar "
             "con ese filtro y reescribí la respuesta completa. Si no se refiere a eso, decí en supuestos por qué no lo usaste.")
+
+
+def fuera_de_la_base(pregunta, texto, valor, consultas):
+    """Al terminar, también: si todos los períodos escritos de la pregunta caen fuera de la base, la respuesta no lleva
+    valor ni números de consultas (decisión 97). Devuelve los períodos, o [] si está bien."""
+    periodos = periodo_fuera_de_la_base(pregunta)
+    if periodos and (valor is not None or numeros_de_consultas_en(texto, consultas)):
+        return periodos
+    return []
+
+
+def pedido_sin_numeros(periodos):
+    """El motivo que recibe el modelo cuando responde con números un período que la base no tiene."""
+    from procesador_capa_semantica import COBERTURA
+    from datetime import date
+    desde, hasta = (date.fromisoformat(COBERTURA[k]).strftime("%d-%m-%Y") for k in ("ventas_desde", "ventas_hasta"))
+    pedidos = ", ".join(f"«{escrito}»" for escrito, _, _ in periodos)
+    return (f"La pregunta pide {pedidos}, que está fuera de la base (hay ventas del {desde} al {hasta}). No respondas con "
+            "números de otro período: decí que no hay datos para lo pedido y dejá el valor vacío. Si sirve, ofrecé "
+            "consultar el período más cercano, sin dar su número. Reescribí la respuesta completa.")
