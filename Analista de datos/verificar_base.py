@@ -89,8 +89,13 @@ CONTROLES = [
 ]
 
 # Lo raro que puede ser real o un error de carga: se avisa con ejemplos y no bloquea (decisión 85). Cada consulta
-# devuelve filas de ejemplo; el umbral de los saltos es el del presupuesto (decisión 84): 3 veces sus vecinos.
+# devuelve filas de ejemplo. El umbral de cada salto depende del ruido de su serie (decisión 92, medido en
+# pruebas/sensibilidad.py): el presupuesto y el costo unitario son muy estables, y con 1,5 veces sus vecinos ven un
+# error del doble sin falsas alarmas (en dos años, solo 2 avisos más, los dos hechos reales: una apertura y un quiebre);
+# las ventas de un día son ruidosas (con 1,5 serían 450 alarmas) y siguen con 3, el umbral del agente (decisión 84).
 V = VECES_SOSPECHOSO
+ESTABLE = 1.5
+UMBRALES = {"presupuesto": ESTABLE, "costo": ESTABLE, "dia": V}
 SOSPECHAS = [
     ("ventas: el costo por unidad de un producto salta contra sus meses vecinos", f"""
         WITH m AS (SELECT sku, DATE_TRUNC('month', fecha) AS mes, SUM(costo) / SUM(unidades) AS cu
@@ -98,7 +103,7 @@ SOSPECHAS = [
         SELECT sku, mes, cu / vecinos FROM (
             SELECT a.*, (SELECT MEDIAN(b.cu) FROM m b WHERE b.sku = a.sku AND b.mes <> a.mes
                          AND b.mes BETWEEN a.mes - INTERVAL 2 MONTH AND a.mes + INTERVAL 2 MONTH) AS vecinos FROM m a)
-        WHERE cu / vecinos >= {V} OR cu / vecinos <= {1 / V}"""),
+        WHERE cu / vecinos >= {ESTABLE} OR cu / vecinos <= {1 / ESTABLE}"""),
     ("ventas: las ventas de un día de una sucursal saltan contra el mismo día de las semanas vecinas", f"""
         WITH d AS (SELECT sucursal_id, fecha, SUM(importe_neto) AS x FROM ventas GROUP BY 1, 2)
         SELECT sucursal_id, fecha, x / vecinos FROM (
@@ -126,6 +131,13 @@ SOSPECHAS = [
         SELECT st.sucursal_id, st.sku, st.semana FROM stock_semanal st
         JOIN (SELECT sucursal_id, sku, MEDIAN(stock_unidades) AS med FROM stock_semanal GROUP BY 1, 2) m USING (sucursal_id, sku)
         WHERE m.med > 0 AND st.stock_unidades > 10 * m.med"""),
+    # Una foto que repite la anterior en todos los productos no pasa con stock real (en la base real y en el año
+    # simulado, ninguna): es la de la semana anterior cargada otra vez (decisión 92). Puede ser real si la sucursal
+    # no se movió en toda la semana, por eso avisa y no bloquea
+    ("stock: una foto de una sucursal idéntica a la de la semana anterior", """
+        WITH f AS (SELECT sucursal_id, semana, sku, stock_unidades FROM stock_semanal)
+        SELECT a.sucursal_id, a.semana FROM f a JOIN f b ON b.sucursal_id = a.sucursal_id AND b.sku = a.sku AND b.semana = a.semana - 7
+        GROUP BY 1, 2 HAVING COUNT(*) >= 50 AND COUNT(*) FILTER (WHERE a.stock_unidades <> b.stock_unidades) = 0"""),
     ("stock: semanas sin foto de una sucursal abierta", """
         SELECT s.sucursal_id, w.semana FROM sucursales s
         JOIN (SELECT DISTINCT semana FROM stock_semanal) w ON w.semana >= s.fecha_apertura  -- desde su primera semana completa
@@ -150,7 +162,8 @@ def dato(x):
 def sospechas(con):
     """[(sospecha, cuántas, ejemplos)] de las que aparecen."""
     salida = []
-    presupuesto = celdas_de_presupuesto_sospechosas(con)
+    # Los más lejos de sus vecinos primero: son los más probables errores de carga
+    presupuesto = sorted(celdas_de_presupuesto_sospechosas(con, ESTABLE), key=lambda c: -max(c[6], 1 / c[6]))
     if presupuesto:
         salida.append(("presupuesto: presupuesto ÷ ventas salta contra sus meses vecinos (decisión 84)", len(presupuesto),
                        [f"{a}-{m:02d} {s} {c} ({v:.1f} veces)".replace(".", ",") for a, m, s, c, _, _, v in presupuesto[:3]]))

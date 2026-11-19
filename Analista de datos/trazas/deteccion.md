@@ -1,6 +1,6 @@
 # Tasa de detección de `verificar_base.py` (decisión 89)
 
-Comando: `.venv/bin/python pruebas/deteccion.py 30` · 30 semillas · 235 s, sin modelo · sobre el año simulado (decisión 88), con los errores en el AF2027
+Comando: `.venv/bin/python pruebas/deteccion.py 30` · 30 semillas · ~240 s, sin modelo · sobre el año simulado (decisión 88), con los errores en el AF2027
 
 | Error de carga | Nivel esperado | Control | Detectado |
 |---|---|---|---|
@@ -27,9 +27,9 @@ Errores comunes de carga elegidos sin buscar un control que los atrape (no es un
 
 | Error de carga | Detectado | Por qué control |
 |---|---|---|
-| un día de una sucursal cargado con el código de otra | **30 de 30** (100 %) | ventas: días sin ventas de una sucursal abierta (¿carga incompleta?); ventas: las ventas de un día de una sucursal saltan contra el mismo día de las semanas vecinas |
+| un día de una sucursal cargado con el código de otra | **30 de 30** (100 %) | presupuesto: presupuesto ÷ ventas salta contra sus meses vecinos (decisión 84); ventas: días sin ventas de una sucursal abierta (¿carga incompleta?); ventas: las ventas de un día de una sucursal saltan contra el mismo día de las semanas vecinas |
 | un día de una sucursal cargado sin una categoría | **0 de 30** (0 %) | — |
-| la foto de stock de una sucursal repite la de la semana anterior | **0 de 30** (0 %) | — |
-| el presupuesto de una sucursal cargado con los números del mes siguiente | **0 de 30** (0 %) | — |
+| la foto de stock de una sucursal repite la de la semana anterior | **30 de 30** (100 %) | stock: una foto de una sucursal idéntica a la de la semana anterior |
+| el presupuesto de una sucursal cargado con los números del mes siguiente | **4 de 30** (13 %) | presupuesto: presupuesto ÷ ventas salta contra sus meses vecinos (decisión 84) |
 | un día de una sucursal con los importes 5 % más altos (lista de precios vieja) | **30 de 30** (100 %) | ventas: el bruto no es unidades × precio de lista |
 | un día de una sucursal cargado con la fecha del día siguiente | **30 de 30** (100 %) | ventas: días sin ventas de una sucursal abierta (¿carga incompleta?); ventas: la promoción es de ese producto y estaba vigente |

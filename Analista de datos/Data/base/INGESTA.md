@@ -44,7 +44,7 @@ cp /tmp/base_nueva.duckdb Data/base/almacenes_del_sur.duckdb
 .venv/bin/python evaluador.py        # si no se tocó historia, tiene que seguir pasando todo
 ```
 
-Si `verificar_base.py` marca un error, se corrige en la copia y se vuelve al paso 3. Los avisos (⚠) no bloquean: son cosas raras que pueden ser reales o un error de carga (un salto de 3 veces contra los meses o semanas vecinas, un día sin ventas, un texto escrito como una orden para el asistente). Hay que mirarlos uno por uno antes de dar la base por buena; los dos de la base original son conocidos: el presupuesto de Perfumería del Sur de enero de 2026 y el texto de P0040 (decisión 85). El informe programado también corre `verificar_base.py` antes de arrancar: con la base rota no gasta en el modelo, lo anota en `salidas/programado/historial.txt` y avisa.
+Si `verificar_base.py` marca un error, se corrige en la copia y se vuelve al paso 3. Los avisos (⚠) no bloquean: son cosas raras que pueden ser reales o un error de carga (un salto contra los meses o semanas vecinas: 1,5 veces en el presupuesto y el costo, que son estables, y 3 en las ventas de un día; un día sin ventas; una foto de stock idéntica a la anterior; un texto escrito como una orden para el asistente). Hay que mirarlos uno por uno antes de dar la base por buena; los de la base original son conocidos: el presupuesto de Perfumería del Sur de enero de 2026 (los primeros ejemplos, a 10 veces), dos celdas a 1,6 y 1,7 veces que son hechos reales (la apertura de S39 y el quiebre de Lácteos de S08) y el texto de P0040 (decisiones 85 y 92). El informe programado también corre `verificar_base.py` antes de arrancar: con la base rota no gasta en el modelo, lo anota en `salidas/programado/historial.txt` y avisa.
 
 ## Un ensayo completo
 

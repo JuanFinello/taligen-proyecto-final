@@ -109,6 +109,16 @@ medidas:
   aditiva: false
   descripcion: Sucursales con al menos un movimiento en el período. Para contar cuántas sucursales hay, usar sucursales_abiertas.
   sinonimos: []
+- id: dias_con_ventas
+  nombre: Días con ventas
+  tabla: ventas
+  formula: COUNT(DISTINCT v.sucursal_id || '|' || CAST(v.fecha AS VARCHAR))
+  unidad: sucursal-días
+  aditiva: false
+  descripcion: Cuántos días vendió cada sucursal, sumados (una sucursal en un día cuenta 1). Comparado con el período anterior, dice si faltan días con ventas.
+  sinonimos:
+  - días de venta
+  - días sin ventas
 - id: sucursales_abiertas
   nombre: Sucursales abiertas
   tabla: sucursales

@@ -22,6 +22,7 @@ Qué período cubre la base lo dice ver_modelo (cobertura). «El último mes», 
 
 - **«Ventas», sin más, son ventas netas**: brutas menos descuentos y devoluciones.
 - Las devoluciones son movimientos con `tipo_movimiento = 'devolucion'` e importes negativos. Sumar el importe bruto de todos los movimientos no da las ventas brutas.
+- **Ante una caída de ventas, primero ver si faltan días**: comparar los días con ventas (`dias_con_ventas`: una sucursal en un día cuenta 1) contra el período anterior. Si son menos, parte de la caída son días sin ventas (un corte, un cierre o una carga incompleta) y no menos demanda: hay que decirlo antes de buscar otra causa.
 
 ## Margen
 

@@ -243,9 +243,10 @@ VECES_SOSPECHOSO = 3
 _sospechosos = None
 
 
-def celdas_de_presupuesto_sospechosas(con):
+def celdas_de_presupuesto_sospechosas(con, veces=VECES_SOSPECHOSO):
     """[(anio, mes, sucursal, categoria, presupuesto, ventas, veces sus vecinos)] de una base abierta. La usa también
-    verificar_base.py (decisión 85), con la base que verifica."""
+    verificar_base.py (decisión 85), con la base que verifica y su propio umbral (decisión 92): el agente avisa desde 3
+    veces, lo que casi seguro es un error; la verificación, que la lee una persona, desde 1,5."""
     return con.execute(f"""
                 WITH vendido AS (
                     SELECT date_trunc('month', v.fecha) AS mes, v.sucursal_id, p.categoria, SUM(v.importe_neto) AS ventas
@@ -263,7 +264,7 @@ def celdas_de_presupuesto_sospechosas(con):
                     FROM celdas a)
                 SELECT year(mes), month(mes), sucursal_id, categoria, presupuesto, ventas, cociente / vecinos
                 FROM con_vecinos
-                WHERE cociente / vecinos >= {VECES_SOSPECHOSO} OR cociente / vecinos <= {1 / VECES_SOSPECHOSO}
+                WHERE cociente / vecinos >= {veces} OR cociente / vecinos <= {1 / veces}
                 ORDER BY 1, 2, 3, 4""").fetchall()
 
 

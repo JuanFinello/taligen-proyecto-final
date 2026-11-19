@@ -1,8 +1,8 @@
 # El agente sobre el año simulado (decisión 90)
 
-Comando: `.venv/bin/python pruebas/agente_anio.py` · base: el AF2027 simulado (decisión 88) · US$ 0.067
+Comando: `.venv/bin/python pruebas/agente_anio.py` · base: el AF2027 simulado (decisión 88) · US$ 0.076
 
-**9 de 10** pasan los chequeos por código.
+**10 de 10** pasan los chequeos por código.
 
 | Caso | Qué prueba | Tipo → camino | Chequeo |
 |---|---|---|---|
@@ -12,7 +12,7 @@ Comando: `.venv/bin/python pruebas/agente_anio.py` · base: el AF2027 simulado (
 | precio | el aumento de precios (y el efecto mix) | comparativa → agente | ✓  |
 | marca_propia | el cambio de mix | comparativa → agente | ✓  |
 | caida | una caída de −30 % (segundo oráculo) | diagnostico → coordinador | ✓ variación en [-25.5, -17.4]: sí, -20.36 |
-| corte | una región sin ventas tres días | diagnostico → coordinador | ✗ encuentra los días sin ventas · no dice lo esperado |
+| corte | una región sin ventas tres días | diagnostico → coordinador | ✓ encuentra los días sin ventas |
 | discontinuado | un producto discontinuado (no es un quiebre) | diagnostico → coordinador | ✓ no lo atribuye a un quiebre |
 | quiebre | un quiebre de stock | diagnostico → coordinador | ✓ encuentra el quiebre |
 | cierre | una sucursal que cerró (la base no lo sabe) | diagnostico → coordinador | ✓ ve que no vende desde enero |
@@ -28,95 +28,93 @@ Comando: `.venv/bin/python pruebas/agente_anio.py` · base: el AF2027 simulado (
 
 ## Respuestas
 
-**total.** ¿Cuánto vendimos en el AF2027? (9 s)
+**total.** ¿Cuánto vendimos en el AF2027? (12 s)
 
-> En el AF2027 (mayo de 2026 a abril de 2027), las ventas netas de Almacenes del Sur fueron de $10.298.309.220,5 (ARS). Es el período completo, ya que la base llega hasta el 30 de abril de 2027.
+> Las ventas netas del AF2027 (mayo de 2026 a abril de 2027) fueron de $10.298.309.220,50. Frente al AF2026 ($10.166.198.308,00), subieron $132.110.912,50, es decir +1,30 %. Con solo las sucursales comparables (abiertas antes del 1/5/2025), las ventas fueron de $9.983.041.833,50 contra $9.948.072.093,00 del AF2026: +0,35 %. La mayor parte de la suba total viene de las sucursales nuevas; las comparables crecieron muy poco.
 
-**comparables.** ¿Cómo vinieron las ventas del AF2027 contra el AF2026 en sucursales comparables? (13 s)
+**comparables.** ¿Cómo vinieron las ventas del AF2027 contra el AF2026 en sucursales comparables? (16 s)
 
-> En sucursales comparables, las ventas netas del AF2027 (mayo 2026 a abril 2027) crecieron un 0,35 % frente al AF2026: $9.983.041.834 contra $9.948.072.093, una diferencia de $34.969.741. La variación total de la cadena fue de +1,30 % ($10.298.309.221 contra $10.166.198.308, diferencia de $132.110.913). La diferencia entre ambas cifras se explica por las sucursales que se sumaron después del inicio del AF2026: crecieron en total, pero en comparables la suba es muy baja. El cálculo comparable incluye solo sucursales abiertas antes del 1 de mayo de 2025. No desglosé la variación por región, formato ni sucursal.
+> En sucursales comparables, las ventas netas del AF2027 (mayo 2026 a abril 2027) fueron de $9.983.041.833,50 contra $9.948.072.093 del AF2026. La diferencia es de $34.969.740,50, una variación de +0,35 %. Si se cuentan todas las sucursales, la variación total fue de +1,30 %: $10.298.309.220,50 contra $10.166.198.308, con una diferencia de $132.110.912,50. Las comparables son las sucursales abiertas antes del 1 de mayo de 2025 y con ventas en todo el período y en su año anterior. Como la diferencia total es mayor que la de las comparables, las sucursales que no entran en esa comparación también contribuyeron a la suba total.
 
-**mascotas.** ¿Cuánto vendió la categoría Mascotas en el AF2027? (11 s)
+**mascotas.** ¿Cuánto vendió la categoría Mascotas en el AF2027? (7 s)
 
-> La categoría Mascotas vendió 59.544.500 ARS en ventas netas en el AF2027 (mayo de 2026 a abril de 2027), que es el año completo disponible en la base.
+> La categoría Mascotas vendió $59.544.500 en ventas netas en el AF2027 (mayo de 2026 a abril de 2027, año completo según la cobertura de la base).
 
-**precio.** ¿Cómo cambió el precio promedio de Almacén en el T3 del AF2027 contra el T3 del AF2026? (16 s)
+**precio.** ¿Cómo cambió el precio promedio de Almacén en el T3 del AF2027 contra el T3 del AF2026? (13 s)
 
-> El precio promedio de Almacén subió un 13,85 % en el T3 del AF2027 frente al T3 del AF2026, pasando de $2.181,18 por unidad (nov-2025 a ene-2026) a $2.483,27 por unidad (nov-2026 a ene-2027). Con el criterio comparable (solo sucursales abiertas antes del 1 de noviembre de 2025), la variación es de 13,89 %, con un precio de $2.484,16 por unidad en el AF2027 frente a los mismos $2.181,18 del AF2026. Ambas variaciones son casi iguales, así que la apertura de sucursales no explica la suba. El precio promedio mezcla productos, así que parte del movimiento puede venir de cambios en el mix de ventas y no solo de precios.
+> El precio promedio de la categoría Almacén fue de 2.483,27 ARS por unidad en el T3 del AF2027 (nov 2026 a ene 2027), contra 2.181,18 ARS en el T3 del AF2026 (nov 2025 a ene 2026). La variación total es de 13,85 %. Con comparables (mismas sucursales, abiertas antes del 1 de noviembre de 2025), el precio pasa a 2.484,16 ARS y la variación es de 13,89 %. Las dos lecturas dan prácticamente lo mismo, así que el cambio no se explica por sucursales nuevas. El precio promedio mezcla productos, por lo que parte de la suba puede venir de un cambio en el mix de lo vendido; no lo separé porque no consulté ese efecto.
 
 **marca_propia.** ¿Cómo vinieron las ventas de marca propia en el T4 del AF2027 contra el T4 del AF2026? (12 s)
 
-> Las ventas netas de marca propia (Del Sur) en el T4 del AF2027 (feb a abr 2027) fueron de $74.463.508, contra $56.100.050 en el T4 del AF2026 (feb a abr 2026). Eso es una suba de $18.363.458, o +32,7 %. En comparables (solo sucursales abiertas antes del inicio del período anterior, feb 2026), las ventas fueron $73.604.068 contra $56.100.050: +31,2 %, es decir $17.504.018 más. La suba total es un poco mayor que la comparable, así que las sucursales nuevas explican una parte del crecimiento, pero la mayor parte viene de las sucursales que ya existían. El desglose por sucursal, región o proveedor no lo incluí porque no lo pediste.
+> Las ventas netas de marca propia (Del Sur) en el T4 del AF2027 (feb a abr 2027) fueron de $74.463.508, contra $56.100.050 en el T4 del AF2026 (feb a abr 2026): +32,7 % total, unos $18.363.458 más. En comparables (solo sucursales abiertas antes del inicio del período anterior, el 1 de feb de 2026) la variación es de +31,2 %, unos $17.504.018 más, con ventas de $73.604.068 contra $56.100.050. La diferencia entre total y comparables es chica, así que el crecimiento no depende de las aperturas. Los días con ventas casi no cambiaron (3.496 contra 3.502 sucursal-días, -0,2 %), por lo que no hay días faltantes que expliquen la suba.
 
-**caida.** ¿Por qué cayeron las ventas de Bebidas en la región Oeste en el T3 del AF2027? (54 s)
+**caida.** ¿Por qué cayeron las ventas de Bebidas en la región Oeste en el T3 del AF2027? (69 s)
 
-> **Las ventas de Bebidas en el Oeste cayeron 20,36 % en el T3 del AF2027 [C1], y la caída fue sobre todo de volumen y de Vinos, que explica el 56,6 % de la caída [C2].**
+> **Los datos no alcanzan para explicar la caída de 20,4 % en Bebidas del Oeste: no se debe a días sin ventas ni a faltantes de stock, y bajó en todas las subcategorías [C1][C7].**
 > 
-> - Se vendieron menos unidades y no se cobró distinto: las unidades bajaron 20,79 % [C5] mientras el precio promedio subió 0,55 % [C6].
-> - Dentro de Bebidas, la marca Valle Alto explica el 33,9 % de la caída [C3] y la sucursal Sierra Chica el 32,1 % [C4].
-> - El quiebre casi no cambió, de 1,25 % a 1,33 % [C8], y en Vinos bajó, así que los faltantes de stock no alcanzan para explicar la caída.
+> - En las mismas sucursales, los días con ventas pasaron de 920 a 919, así que no hubo cierres ni cargas incompletas [C4].
+> - En sucursales comparables la caída fue de 23,7 % [C3], así que no se explica por aperturas ni cierres.
+> - Vinos explica el 56,6 % de la caída [C7] y bajó 20,4 % [C7], mientras que los quiebres subieron apenas 0,09 pp [C5] y Vinos bajó en quiebre [C6], así que los faltantes no alcanzan para explicarla.
 > 
-> **Siguiente paso:** La caída es más fuerte en las sucursales que estaban abiertas en los dos períodos, porque la sucursal nueva compensa parte del total, así que conviene tomar esa comparación como la lectura principal. Los datos muestran dónde se concentró la caída, pero no por qué: la base no tiene clientes ni tickets, así que no se puede saber si bajó la cantidad de compradores o el tamaño de cada compra. Lo que sigue es revisar con Valle Alto y con el equipo de Sierra Chica qué pasó con la demanda de vinos en el trimestre, y mirar si las promociones de vinos de ese período alcanzan a explicar la caída.
+> **Siguiente paso:** Antes de atribuir la caída a una causa, conviene revisar con Comercial si hubo cambios de precio, competencia o demanda en Vinos y en la región, y cruzarlo con las promociones de noviembre a enero, que se superponen con la caída pero no se pueden medir por separado con estos datos. La base no tiene datos de clientes ni de tickets, así que no se puede saber si cambió la frecuencia de compra.
 > 
 > Diagnóstico: salidas/anio_agente/caida/diagnostico.md
 
-**corte.** ¿Por qué cayeron las ventas de la región Norte en agosto de 2026? (58 s)
+**corte.** ¿Por qué cayeron las ventas de la región Norte en agosto de 2026? (54 s)
 
-> **La caída de ventas del Norte en agosto de 2026 fue de volumen, no de precio ni de altas de sucursales, pero los datos no alcanzan para explicar por qué se vendieron menos unidades [C2][C6].**
+> **La caída de ventas del Norte podría venir en buena parte de 3 días sin ventas por sucursal [C1], pero con los datos no se puede confirmar cuánto de la baja de 8,15 % [C2] se explica solo por eso.**
 > 
-> - Las ventas netas bajaron 8,15 % frente a agosto de 2025 [C2], y la caída es igual en sucursales comparables, así que no viene de locales nuevos.
-> - Las unidades vendidas bajaron 7,77 % [C5] mientras el precio promedio apenas cambió 0,41 % [C6], por lo que se vendió menos cantidad y no a otro precio.
-> - La caída se concentró en hiper y super, y en Frescos, Perfumería, Limpieza y Lácteos [C3][C4], y el quiebre de stock no parece la causa: subió apenas 0,20 pp [C7].
+> - Las ventas netas de las sucursales comparables cayeron 8,15 % frente a agosto de 2025, unos 20,2 millones de ARS menos [C2].
+> - Congelados es la subcategoría que más aporta a la caída, con −14,2 % y 3,2 millones de ARS menos [C3].
+> - En Desodorantes la tasa de quiebre subió de 0,3 % a 2,5 % [C5], y esa subcategoría no tuvo promociones ni en agosto de 2026 ni en agosto de 2025 [C6][C7].
 > 
-> **Siguiente paso:** Conviene revisar con comercial y compras qué cambió en el Norte en agosto de 2026 frente al año anterior: promociones y precios de la competencia en las subcategorías de Frescos, Perfumería, Limpieza y Lácteos, y la disponibilidad de los proveedores con más quiebre, cuyo stock también bajó. Como la base no tiene datos de clientes ni de tickets, la causa de fondo hay que buscarla con otras fuentes.
+> **Siguiente paso:** Confirmar con operaciones qué pasó en los días sin ventas de la región Norte (cierre, corte o carga incompleta); si fueron días sin venta real, recalcular la caída sobre días vendidos. Después revisar el stock de Desodorantes, Jabón para ropa y Quesos en la región, porque el quiebre subió en esos productos.
 > 
 > Diagnóstico: salidas/anio_agente/corte/diagnostico.md
 
-**discontinuado.** ¿Por qué dejó de venderse Detergente concentrado Espuma Clara 500 ml (P0168) desde enero de 2027? (66 s)
+**discontinuado.** ¿Por qué dejó de venderse Detergente concentrado Espuma Clara 500 ml (P0168) desde enero de 2027? (53 s)
 
-> **Los datos no alcanzan para explicar la causa: P0168 no tiene ventas desde enero de 2027 [C3], y ni el quiebre ni las promociones lo explican [C2] [C9].**
+> **El detergente Espuma Clara dejó de venderse por completo a partir de enero, y los datos no permiten saber por qué: su último movimiento de venta es de diciembre pasado [C4].**
 > 
-> - Las ventas no se cortaron de golpe: entre agosto y diciembre se mantuvieron entre 838.440 y 991.880 ARS por mes [C1], con una baja en septiembre que se recuperó en octubre.
-> - La tasa de quiebre fue de 0 % desde octubre [C2], y no hubo promociones sobre la subcategoría entre diciembre y abril [C9], así que ni el stock ni los descuentos explican el corte.
-> - La subcategoría Detergentes cayó 9,84 % en comparables [C14] y el proveedor Química Hogar S.A. 7,31 % [C15], por lo que el fin de P0168 se da dentro de una baja más general del rubro.
+> - En enero-abril del año pasado el producto vendió $3.712.700 [C1] en 936 días con ventas [C2]; en el mismo período de este año no registra ventas.
+> - Diciembre todavía vendió $991.880 [C6], así que la caída es de golpe en enero y no gradual, mientras el resto de la cadena sigue vendiendo [C5].
+> - Antes del corte, la tasa de quiebre era de 0,31 % [C7] y el stock promedio de 8,5 unidades [C9]; pero la base no tiene stock ni ventas del producto desde enero, así que no se puede saber si el faltante empeoró ni si el costo o el margen cambiaron [C10].
 > 
-> **Siguiente paso:** Confirmar con compras o abastecimiento si el producto fue descontinuado, reemplazado por otro código o si se dejó de pedir al proveedor, porque eso no está en la base. Revisar también el stock del producto en el último tramo del período, que no fue consultado.
+> **Siguiente paso:** Consultar con compras y el área comercial si el producto fue dado de baja, si cambió de código o si dejó de cargarse en el sistema de ventas y stock. Si hubo baja, conviene decidir si se reemplaza por otro producto de la misma subcategoría y revisar si ese reemplazo ya tiene ventas.
 > 
 > Diagnóstico: salidas/anio_agente/discontinuado/diagnostico.md
 
-**quiebre.** ¿Por qué cayeron las ventas de Jabón para ropa en la sucursal Almacenes del Sur Villa Marina en marzo de 2027? (50 s)
+**quiebre.** ¿Por qué cayeron las ventas de Jabón para ropa en la sucursal Almacenes del Sur Villa Marina en marzo de 2027? (62 s)
 
-> **Las ventas cayeron 55,5 % por vender menos unidades, no por precio, y el dato apunta a un quiebre de stock en marzo como causa probable, aunque los datos no lo prueban del todo [C1][C2].**
+> **Lo más probable es que la caída de Jabón para ropa en Villa Marina en marzo de 2027 se deba a faltantes de stock, no a menos demanda ni a promociones, aunque los datos no permiten confirmarlo del todo [C7][C10].**
 > 
-> - El precio casi no se movió: el precio promedio varió −0,13 % [C4].
-> - En marzo la tasa de quiebre de la subcategoría llegó a 60 % [C6], contra 0 % en el mismo mes del año anterior [C7].
-> - Febrero estuvo en 0 % y abril en 3,6 % [C9], y la única promoción de la subcategoría empezó recién a fin de marzo, así que no alcanza para explicar el quiebre [C8].
+> - Las ventas de la subcategoría cayeron 55,5 % frente a marzo de 2026, sin días faltantes, y el precio casi no se movió, así que se vendieron menos unidades [C1][C5].
+> - La tasa de quiebre del mes llegó a 60 % contra 0 % un año antes, y se concentró en las primeras semanas de marzo [C7].
+> - Las semanas de quiebre de 100 % coinciden con la caída, mientras que la única promoción del período arranca el 28 de marzo, es de un suavizante y no explica lo ocurrido en esas semanas [C10][C9].
 > 
-> **Siguiente paso:** Confirmar con abastecimiento y con quien carga el stock de Villa Marina si hubo faltantes reales en marzo o un error de registro. La base no permite ver si cambiaron los compradores o su gasto por compra, así que conviene revisarlo aparte antes de concluir.
+> **Siguiente paso:** Conviene revisar las ventas semanales de jabón en Villa Marina, porque en las últimas semanas de marzo el quiebre volvió a cero y aun así el mes cerró con caída, lo que no se explica solo con faltantes. También hay que ver los pedidos y la reposición de esa subcategoría en febrero y marzo, y comparar con otras sucursales para saber si el problema es local.
 > 
 > Diagnóstico: salidas/anio_agente/quiebre/diagnostico.md
 
-**cierre.** ¿Qué pasó con las ventas de la sucursal Almacenes del Sur Monte Chico en 2027? (45 s)
+**cierre.** ¿Qué pasó con las ventas de la sucursal Almacenes del Sur Monte Chico en 2027? (44 s)
 
-> **No se puede medir qué pasó con las ventas de Monte Chico en 2027 porque su última venta fue a fines de 2026 [C3].**
+> **No se puede medir cuánto cambiaron las ventas de Monte Chico en 2027, porque la sucursal no tiene ventas registradas en enero a abril de 2027 [C1].**
 > 
-> - La cadena tiene ventas hasta abril de 2027, pero Monte Chico solo hasta fines de 2026 [C8].
-> - En el mismo tramo del año anterior vendió ARS 64.503.356 [C1], y sin ventas en el período la variación y el desvío contra presupuesto quedan sin valor [C1][C4].
-> - Con estos datos no se puede afirmar si la caída se debe a un cierre, a un problema de carga o a otra causa; eso sería una interpretación que hay que verificar.
+> - En el primer cuatrimestre de 2026 la sucursal facturó 64.503.356 ARS netos [C11], con venta los 120 días del período [C2].
+> - Para el mismo período de 2027 no hay días de venta registrados [C2], y la última venta de la sucursal en toda la base es de fines de 2026 [C5].
+> - Otras sucursales de la región Norte sí venden en esos meses, por ejemplo Los Ceibos, con 320.188.854 ARS [C10]. Lo que muestran los datos es un corte en la sucursal; si fue un cierre o una carga pendiente es una interpretación que todavía no se puede confirmar.
 > 
-> **Siguiente paso:** Confirmar con Sucursales si Monte Chico cerró o si faltan cargar sus ventas de 2027, y solo después analizar la demanda, el stock o las categorías.
+> **Siguiente paso:** Consultar con operaciones y con el área de sistemas si Monte Chico cerró a fines de 2026 o si la carga de ventas de 2027 está pendiente. Según la respuesta, se recalcula la comparación: si la carga está pendiente, con los datos completos; si cerró, se informa como baja de la sucursal y no como caída de ventas.
 > 
 > Diagnóstico: salidas/anio_agente/cierre/diagnostico.md
 
 
 ## Lectura (escrita después de correr)
 
-- **Números: 5 de 5 exactos.** El de precio aclara solo que el precio promedio mezcla productos (efecto mix): +13,85 %, con +15 % de precio de lista.
-- **Comparables con una sucursal cerrada:** el agente da +0,35 %, que es lo que el sistema calcula; sin S07, que cerró, sería +1,04 %. Lo explica mal («sucursales que se sumaron»), porque la base no sabe del cierre. El límite del diseño de la decisión 88 tiene un costo concreto: subestima el crecimiento comparable en 0,7 pp.
-- **El corte del Norte no lo encontró** (el único ✗): atribuye la caída (−8,15 %, casi exactamente 3 días de 31) a menos volumen, sin mirar los días. La guía del diagnóstico manda mirar stock y promociones ante una caída, pero no si faltan días.
-- **Discontinuado, quiebre y cierre, bien:** no confunde el discontinuado con un quiebre y pide confirmar con compras; encuentra el quiebre (60 % del mes); y del cierre dice que no puede saber si cerró o faltan cargas, y pide confirmarlo con Sucursales. No inventa.
-- **El segundo oráculo destapó un límite del generador:** la caída plantada se mide en −30,9 % contra el AF2025 × crecimiento, pero en −20,4 % contra el AF2026 real. El AF2026 tuvo una caída real del Oeste (−5,7 % en el año, −7,2 % en Bebidas del T3) que el generador no repite, porque copia el AF2025 con un solo crecimiento para toda la cadena. La concentración que describe el agente (Vinos, Valle Alto, Sierra Chica) sale de comparar contra esa caída real, no del evento plantado, que fue parejo.
+Esta es la segunda corrida, después de la decisión 93 (la medida `dias_con_ventas` y el criterio del glosario «ante una caída de ventas, primero ver si faltan días»). En la primera corrida, antes del cambio, el resultado fue 9 de 10: el corte del Norte falló, porque el agente vio una caída de −8,15 % y la atribuyó a menos volumen sin mirar los días.
 
-## Costo
-
-US$ 0,067 · 88 llamadas · 408 s (`registro.py --todas`, corrida «fase 4 agente año simulado»).
+- **10 de 10.** El corte ahora se encuentra: «podría venir en buena parte de 3 días sin ventas por sucursal», y pide confirmar con operaciones si fue un cierre, un corte o una carga incompleta.
+- **El cierre mejoró:** usa los días con ventas (120 contra 0) y propone cómo recalcular según la respuesta: con los datos completos si la carga está pendiente, o como baja de la sucursal y no como caída de ventas si cerró.
+- **Los números, el discontinuado, el quiebre y la caída:** igual que antes.
+- **Comparables con una sucursal cerrada:** el sistema sigue dando +0,35 % en vez de +1,04 % sin S07. El criterio nuevo no lo arregla, porque es un límite de la base (decisión 88), no del criterio.
+- **Límite del generador** (decisión 90): la caída plantada se mide en −30,9 % contra el AF2025 por el crecimiento, pero en −20,4 % contra el AF2026 real, que tuvo una caída real del Oeste.
