@@ -54,13 +54,27 @@ def periodo(filtros):
                 partes.append(f"el T{t} del año fiscal {af} ({MESES[m1 - 1]}" + (f" de {a1}" if a1 != a3 else "")
                               + f" a {MESES[m3 - 1]} de {a3})")
             return lista(partes)
+        if "mes_fiscal" in f and len(como_lista(f["mes_fiscal"])) > 6:  # «el año fiscal 2026 sin diciembre de 2025»
+            faltan = [m for m in range(1, 13) if m not in como_lista(f["mes_fiscal"])]
+            return (f"el año fiscal {af} sin " + lista(f"{MESES[m - 1]} de {a}" for m, a in
+                                                        (mes_calendario(x, af) for x in faltan)).replace(" o ", " ni "))
         if "mes_fiscal" in f:
             return lista(f"{MESES[m - 1]} de {a}" for m, a in (mes_calendario(x, af) for x in como_lista(f["mes_fiscal"])))
+        if "mes" in f:  # meses del calendario dentro del año fiscal: de mayo a diciembre son del año anterior
+            meses = [(m, af - 1 if m >= 5 else af) for m in como_lista(f["mes"])]
+            if len(meses) == 1:
+                return f"{MESES[meses[0][0] - 1]} de {meses[0][1]}"
+            (m1, a1), (m2, a2) = meses[0], meses[-1]
+            return f"de {MESES[m1 - 1]} de {a1} a {MESES[m2 - 1]} de {a2} (año fiscal {af})"
         return f"el año fiscal {af} (mayo de {af - 1} a abril de {af})"
     if "anio_fiscal" in f:
         return "los años fiscales " + lista(f["anio_fiscal"])
     if "mes" in f:
-        meses = lista(MESES[m - 1] for m in como_lista(f["mes"]))
+        seguidos = sorted(como_lista(f["mes"]))
+        if len(seguidos) > 2 and seguidos == list(range(seguidos[0], seguidos[-1] + 1)):
+            meses = f"{MESES[seguidos[0] - 1]} a {MESES[seguidos[-1] - 1]}"  # «agosto a octubre», no «agosto, septiembre o octubre»
+        else:
+            meses = lista(MESES[m - 1] for m in como_lista(f["mes"]))
         return meses + (f" de {lista(como_lista(f['anio']))}" if "anio" in f else " (de todos los años)")
     if "anio" in f:
         return "el año calendario " + lista(como_lista(f["anio"]))
@@ -94,8 +108,16 @@ def explicar(consulta):
     if consulta["tool"] == "buscar_producto":
         return f"Buscó en el maestro de productos los que se llaman parecido a «{a.get('texto', '')}», para usar su código."
     if consulta["tool"] == "consultar_sql":
-        return ("Listado sacado directo de la base con SQL (no es una medida de la capa semántica: se usa para lo que "
-                "la capa no cubre, como qué promociones hubo). El SQL exacto está debajo.")
+        # Del SQL no se puede saber qué calcula: si empieza con un comentario, ese comentario lo dice (decisión 106)
+        comentario = []
+        for linea in str(a.get("sql", "")).strip().splitlines():
+            if not linea.strip().startswith("--"):
+                break
+            comentario.append(linea.strip().removeprefix("--").strip())
+        que = " ".join(comentario).rstrip(".")
+        return ((f"{que}. " if que else "Listado sacado directo de la base. ")
+                + "Con SQL directo sobre la base: no es una medida de la capa semántica, se usa para lo que la capa no "
+                  "cubre.")
     if consulta["tool"] != "calcular":
         return f"{consulta['tool']} {json.dumps(a, ensure_ascii=False)}"
     medida = MEDIDAS.get(a.get("medida"), {"nombre": a.get("medida"), "descripcion": ""})
@@ -112,6 +134,8 @@ def explicar(consulta):
     if a.get("agrupar_por"):
         grupos = [DIMENSIONES.get(d, d) for d in a["agrupar_por"] if not d.startswith("nombre_")]
         orden = "de mayor a menor" if a.get("orden", "desc") == "desc" else "de menor a mayor"
+        if a["agrupar_por"][0] in PERIODO:  # por tiempo, el informe lo muestra en orden de fechas
+            orden = "en orden de fechas"
         corte = f", los {a['limite']} primeros" if a.get("limite") else ""
         lineas.append(f"Abierto por {lista(grupos) if len(grupos) == 1 else ' y '.join(grupos)}, {orden}{corte}.")
     return "\n".join(lineas)

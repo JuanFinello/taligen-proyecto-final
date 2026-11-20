@@ -1,0 +1,1366 @@
+{
+ "pedido": "Preparame un informe ejecutivo de la semana del lunes 12-05-2025 al domingo 18-05-2025, sobre qué requiere la atención de la gerencia esta semana: la tasa de quiebre de stock de la semana, por región y por proveedor; las sucursales con mayor caída de ventas netas; y los productos con caída fuerte. Todo contra la misma semana del año anterior (del lunes 13-05-2024 al domingo 19-05-2024). Las ventas netas y el margen del total, solo como contexto.",
+ "nombre": "Informe semanal",
+ "corrida": "20261120-154408-8b9a",
+ "version": "7a2865",
+ "plan": {
+  "tipo": "informe",
+  "titulo": "Qué requiere la atención de la gerencia: semana del lunes 12 al domingo 18 de mayo de 2025, contra la misma semana de 2024",
+  "supuestos": [
+   "La semana es de lunes a domingo, del 12 al 18 de mayo de 2025, y se compara con la semana del 13 al 19 de mayo de 2024. Se usa calendario comercial, no el fiscal.",
+   "La tasa de quiebre se toma de la foto de stock del lunes de cada semana: lunes 12 de mayo de 2025 contra lunes 13 de mayo de 2024.",
+   "Una caída se toma como normal si está dentro de lo que varían las sucursales y los productos de una semana a otra: se mira en pesos contra el total y contra la semana anterior, no solo el porcentaje."
+  ],
+  "encargos": [
+   {
+    "objetivo": "Saber si el quiebre de stock de la semana es general o se concentra en alguna región o proveedor.",
+    "pregunta": "¿Cuál fue la tasa de quiebre de stock en la semana del lunes 12 al domingo 18 de mayo de 2025, por región y por proveedor, comparada con la misma semana del año anterior (lunes 13 al domingo 19 de mayo de 2024)?",
+    "consultas": [
+     "tasa_quiebre_pct, semana del 12-05-2025 (foto del lunes 12-05-2025), comparada con la semana del 13-05-2024 (foto del lunes 13-05-2024), agrupada por región",
+     "tasa_quiebre_pct, misma semana y misma comparación, agrupada por proveedor y nombre_proveedor"
+    ],
+    "devolver": "Hallazgo con la tasa de quiebre total de la semana y su variación contra 2024, y los casos de región y proveedor que más suben o bajan. Indicar si el quiebre se concentra en pocas regiones o proveedores, o si es general. Si una tasa sube de forma marcada, comparar también con las semanas cercanas de 2025 para ver si es un cambio sostenido o puntual.",
+    "limites": "Solo quiebre de stock. No analizar ventas ni margen en este encargo, y no abrir por sucursal ni por producto."
+   },
+   {
+    "objetivo": "Identificar qué sucursales tuvieron la mayor caída de ventas netas en la semana y si la caída se debe a días sin ventas o a menos demanda.",
+    "pregunta": "¿Qué sucursales tuvieron la mayor caída de ventas netas en la semana del lunes 12 al domingo 18 de mayo de 2025, comparada con la misma semana del año anterior (lunes 13 al domingo 19 de mayo de 2024)? Para las principales, ¿faltaron días con ventas?",
+    "consultas": [
+     "ventas_netas, semana del 12-05-2025 al 18-05-2025, comparada con la semana del 13-05-2024 al 19-05-2024, agrupada por sucursal y nombre_sucursal, ordenada por caída en pesos",
+     "dias_con_ventas, misma semana y misma comparación, agrupada por sucursal y nombre_sucursal, para las sucursales con mayor caída"
+    ],
+    "devolver": "Las sucursales con mayor caída en pesos y en porcentaje, con sus ventas netas de la semana y del año anterior. Para cada una, indicar si la caída viene de días sin ventas (días con ventas menores que en 2024) o de menos ventas en días con actividad. Señalar las sucursales sin dato de 2024.",
+    "limites": "Solo ventas netas por sucursal y días con ventas. No abrir por producto ni por categoría, y no buscar causas de stock o promociones en este encargo."
+   },
+   {
+    "objetivo": "Identificar qué productos tuvieron la caída más fuerte de ventas netas en la semana y si hubo promociones en su subcategoría que pudieran explicarla.",
+    "pregunta": "¿Qué productos tuvieron la caída más fuerte de ventas netas en la semana del lunes 12 al domingo 18 de mayo de 2025, comparada con la misma semana del año anterior (lunes 13 al domingo 19 de mayo de 2024)? ¿Hubo promociones en la misma subcategoría esa semana?",
+    "consultas": [
+     "ventas_netas, semana del 12-05-2025 al 18-05-2025, comparada con la semana del 13-05-2024 al 19-05-2024, agrupada por producto, descripción, marca y subcategoría, ordenada por caída en pesos",
+     "ventas_netas, misma semana y misma comparación, agrupada por subcategoría, para ver si la caída del producto se repite en su subcategoría"
+    ],
+    "devolver": "Los productos con mayor caída en pesos y en porcentaje, con su subcategoría. Indicar si la caída es propia del producto o si la subcategoría entera cayó. Si hubo promociones en la subcategoría esa semana, nombrarlas con su descuento y fechas. Mencionar cuántos de los productos con caída son de marca propia Del Sur.",
+    "limites": "Solo ventas netas por producto y subcategoría, y las promociones de la semana. No abrir por sucursal ni analizar stock o quiebre."
+   },
+   {
+    "objetivo": "Dar el contexto de ventas netas y margen del total de la cadena para la semana, sin desglose.",
+    "pregunta": "¿Cuánto fueron las ventas netas y el margen bruto % de toda la cadena en la semana del lunes 12 al domingo 18 de mayo de 2025, comparado con la misma semana del año anterior (lunes 13 al domingo 19 de mayo de 2024)?",
+    "consultas": [
+     "ventas_netas, total de la cadena, semana del 12-05-2025 al 18-05-2025, comparada con la semana del 13-05-2024 al 19-05-2024",
+     "margen_pct, total de la cadena, misma semana y misma comparación"
+    ],
+    "devolver": "Las ventas netas de la semana y su variación contra 2024, y el margen bruto % de la semana con su variación en puntos porcentuales. Un solo párrafo, como contexto.",
+    "limites": "Solo totales de la cadena. No abrir por sucursal, región, categoría ni producto, porque eso lo cubren los otros encargos."
+   }
+  ]
+ },
+ "hallazgos": [
+  {
+   "objetivo": "Saber si el quiebre de stock de la semana es general o se concentra en alguna región o proveedor.",
+   "pregunta": "¿Cuál fue la tasa de quiebre de stock en la semana del lunes 12 al domingo 18 de mayo de 2025, por región y por proveedor, comparada con la misma semana del año anterior (lunes 13 al domingo 19 de mayo de 2024)?",
+   "hallazgo": "La tasa de quiebre de la semana del 12 al 18 de mayo de 2025 fue de 0,99 %, frente a 1,13 % en la misma semana de 2024: una baja de 0,14 pp, y el quiebre es bajo y general, sin concentrarse en pocas regiones (Norte es la única que sube, +0,10 pp, a 1,05 %; Centro baja de 1,34 % a 1,01 % y Sur de 1,25 % a 0,99 %). Por proveedor, las mayores subas son Aguas de la Sierra S.A. (PR06, de 0,29 % a 1,16 %) y Bebidas Andina S.A. (PR05, de 0,69 % a 1,38 %), pero en las semanas cercanas de 2025 sus tasas oscilan entre 0,87 % y 1,45 % (PR06) y entre 0,92 % y 1,38 % (PR05), así que el salto parece puntual y no un cambio sostenido; las bajas más marcadas son Aceitera del Litoral S.A. (PR03, de 2,69 % a 1,08 %), Lácteos La Pradera S.A. (PR09, de 1,44 % a 0,54 %) y Cervecería Patagónica S.A. (PR08, de 1,24 % a 0,41 %). Como las tasas por proveedor salen de muy pocas combinaciones producto-sucursal, cada caso se mueve con pocas unidades y conviene leerlas con cautela.",
+   "consultas": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7"
+   ]
+  },
+  {
+   "objetivo": "Identificar qué sucursales tuvieron la mayor caída de ventas netas en la semana y si la caída se debe a días sin ventas o a menos demanda.",
+   "pregunta": "¿Qué sucursales tuvieron la mayor caída de ventas netas en la semana del lunes 12 al domingo 18 de mayo de 2025, comparada con la misma semana del año anterior (lunes 13 al domingo 19 de mayo de 2024)? Para las principales, ¿faltaron días con ventas?",
+   "hallazgo": "Valle Hermoso (S32) tuvo la mayor caída en pesos: vendió $3.791.121,5 contra $4.272.599 en la semana de 2024, una baja de $481.477,5 (−11,27 %), seguida por Bahía Serena (S17, −$244.076, −5,93 %) y Las Toscas (S12, −$219.925, −5,97 %). En porcentaje, la mayor caída fue El Mirador (S30), con −16,59 % (de $909.590 a $758.724). No faltaron días con ventas: en ambas semanas se registraron 266 sucursal-días con venta, y cada sucursal de la lista vendió 7 días en 2025 y 7 en 2024, así que la caída viene de menos ventas en días con actividad y no de días sin ventas. No aparece ninguna sucursal sin dato de 2024, y a nivel cadena las ventas netas subieron 2,15 % (de $177.450.724 a $181.271.870), con la misma variación en comparables.",
+   "consultas": [
+    "C8",
+    "C9",
+    "C10"
+   ]
+  },
+  {
+   "objetivo": "Identificar qué productos tuvieron la caída más fuerte de ventas netas en la semana y si hubo promociones en su subcategoría que pudieran explicarla.",
+   "pregunta": "¿Qué productos tuvieron la caída más fuerte de ventas netas en la semana del lunes 12 al domingo 18 de mayo de 2025, comparada con la misma semana del año anterior (lunes 13 al domingo 19 de mayo de 2024)? ¿Hubo promociones en la misma subcategoría esa semana?",
+   "hallazgo": "La mayor caída en pesos fue Espuma Clara (P0185, Jabón para ropa, marca de proveedor), con 763.390 ARS menos (−9,1 %, de 8.413.030 a 7.649.640 ARS). Su subcategoría entera bajó solo −0,6 %, así que la caída es propia del producto. Le siguen Mar Azul P0291 (Congelados, −385.810 ARS, −5,3 %) y Total Care P0210 (Shampoo y acondicionador, −343.100 ARS, −5,9 %; la subcategoría subió +3,7 %). En porcentaje, la mayor caída entre los 15 productos con más caída en pesos es Mar Azul P0285 (Congelados, −30,2 %, −187.340 ARS). En Jabón para ropa no hubo promociones esa semana; sí hubo en las subcategorías de otros caídos: Promo Merluza 04/2025 (Las Lomas P0288, Congelados, 10 %, 25/04 al 15/05), Promo Salame 05/2025 (Las Lomas P0260, Fiambres, 20 %, 11 al 17/05), Promo Acondicionador 05/2025 (Total Care P0216, Shampoo y acondicionador, 20 %, 06 al 19/05) y Promo Vino rosado 05/2025 (Viñas del Sol P0115, Vinos, 15 %, 07 al 20/05). Ninguno de los 15 productos con mayor caída es de marca propia Del Sur; de los productos Del Sur, 6 de 15 vendieron menos, con caídas chicas salvo Del Sur P0302 (Yogures, −18 %). Las ventas netas totales de la semana subieron +2,2 %.",
+   "consultas": [
+    "C11",
+    "C12",
+    "C13",
+    "C14"
+   ]
+  },
+  {
+   "objetivo": "Dar el contexto de ventas netas y margen del total de la cadena para la semana, sin desglose.",
+   "pregunta": "¿Cuánto fueron las ventas netas y el margen bruto % de toda la cadena en la semana del lunes 12 al domingo 18 de mayo de 2025, comparado con la misma semana del año anterior (lunes 13 al domingo 19 de mayo de 2024)?",
+   "hallazgo": "En la semana del 12 al 18 de mayo de 2025, la cadena vendió ventas netas por $181.271.870, un 2,2 % más que la misma semana de 2024 ($177.450.724); con comparables (mismas sucursales) la variación es igual, +2,2 %, porque no hubo aperturas en el período. El margen bruto % fue de 26,86 %, prácticamente igual al 26,94 % de 2024: una caída de 0,09 pp, sin cambio relevante.",
+   "consultas": [
+    "C15",
+    "C16",
+    "C17"
+   ]
+  }
+ ],
+ "redaccion": {
+  "titulo": "Semana sin novedades: nada requiere la atención de la gerencia",
+  "bajada": "Las ventas netas subieron 2,2 % contra la misma semana de 2024 [C15] y los faltantes bajaron a 1,0 % [C1].",
+  "indicadores": [
+   {
+    "nombre": "Quiebre de stock",
+    "consulta": "C1",
+    "dato": "actual",
+    "variacion": "variacion",
+    "contra": "vs misma semana de 2024"
+   },
+   {
+    "nombre": "Ventas netas",
+    "consulta": "C15",
+    "dato": "actual",
+    "variacion": "variacion",
+    "contra": "vs misma semana de 2024"
+   }
+  ],
+  "puntos": [
+   {
+    "texto": "Los faltantes están entre 0,9 % y 1,1 % en las cuatro regiones [C2], y el proveedor con más faltantes tiene 2,1 % [C3].",
+    "grafico": null
+   },
+   {
+    "texto": "Las ventas por sucursal fueron de −16,6 % a +20,0 %, sin ninguna aislada del resto [C8]; la mayor baja en pesos, Valle Hermoso ($ 0,48 M), había subido 3,3 % la semana anterior [C18].",
+    "grafico": {
+     "consulta": "C8",
+     "destacar": [
+      "Valle Hermoso"
+     ]
+    }
+   },
+   {
+    "texto": "Tampoco hay un producto para mirar: la mayor baja en pesos es de un producto grande que varió 9,1 % (el jabón en polvo Espuma Clara) [C12], y las mayores en porcentaje, de productos que venden menos de $ 0,5 M por semana [C19].",
+    "grafico": null
+   }
+  ]
+ },
+ "revisiones": [
+  [
+   "forma: el punto «Espuma Clara bajó 9,1 % [C12], mientras su subcate…» da números que no se ven en su gráfico: el gráfico muestra el cambio de ventas netas, en pesos y sus etiquetas dicen P0185 · Espuma Clara · Jabón para ropa · Otras marcas −$ 763.390, P0291 · Mar Azul · Congelados · Otras marcas −$ 385.810, P0210 · Total Care · Shampoo y acondicionador · Otras marcas −$ 343.100, P0284 · Las Lomas · Congelados · Otras marcas −$ 231.248, P0265 · Campo Viejo · Fiambres · Otras marcas −$ 225.160, P0285 · Mar Azul · Congelados · Otras marcas −$ 187.340. Usá esos números tal como se ven (redondeados igual), o elegí la consulta que muestra lo que dice el punto",
+   "forma: la bajada tiene 3 cifras: van como máximo 2",
+   "editor: Punto 1: dice que el quiebre \"no se concentra\", pero a continuación dice que solo sube Norte, lo que sí es una concentración. La razón se contradice. Propuesta: «El quiebre de stock es bajo: solo Norte sube, 0,10 pp, a 1,05 % [C2]; el resto de las sucursales no subió.»",
+   "editor: Punto 2: \"no faltaron días con venta\" no queda claro qué descarta ni cómo se relaciona con la caída de Valle Hermoso. Propuesta: «La caída de sucursales se explica por Valle Hermoso, que cayó 11,27 % [C8]; no fue por días sin venta, porque la sucursal vendió todos los días [C9].»"
+  ],
+  [
+   "forma: el punto «La caída de sucursales se explica por Valle Hermos…» da números que no se ven en su gráfico: el gráfico muestra el cambio de ventas netas, en % y sus etiquetas dicen Valle Hermoso −11,3 %, Bahía Serena −5,9 %, Las Toscas −6,0 %, Monte Chico −5,7 %, El Mirador −16,6 %, Puerto Norte −3,5 %. Usá esos números tal como se ven (redondeados igual), o elegí la consulta que muestra lo que dice el punto",
+   "forma: la bajada tiene 3 cifras: van como máximo 2"
+  ]
+ ],
+ "consultas": [
+  {
+   "id": "C1",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "tasa_quiebre_pct",
+    "filtros": {
+     "semana": "2025-05-12"
+    },
+    "comparar_con": {
+     "semana": "2024-05-13"
+    }
+   },
+   "resultado": {
+    "medida": "tasa_quiebre_pct",
+    "unidad": "%",
+    "actual": {
+     "medida": "tasa_quiebre_pct",
+     "filtros": {
+      "semana": "2025-05-12"
+     },
+     "periodo": {
+      "desde": "2025-05-12",
+      "hasta": "2025-05-18"
+     },
+     "valor": 0.9859340081503878,
+     "unidad": "%",
+     "sql": "SELECT AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?",
+     "parametros": [
+      "2025-05-12"
+     ]
+    },
+    "anterior": {
+     "medida": "tasa_quiebre_pct",
+     "filtros": {
+      "semana": "2024-05-13"
+     },
+     "periodo": {
+      "desde": "2024-05-13",
+      "hasta": "2024-05-19"
+     },
+     "valor": 1.1305376626791113,
+     "unidad": "%",
+     "sql": "SELECT AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?",
+     "parametros": [
+      "2024-05-13"
+     ]
+    },
+    "variacion": -0.14460365452872348,
+    "unidad_variacion": "pp",
+    "comparables": false,
+    "abiertas_hasta": null
+   }
+  },
+  {
+   "id": "C2",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "tasa_quiebre_pct",
+    "filtros": {
+     "semana": "2025-05-12"
+    },
+    "comparar_con": {
+     "semana": "2024-05-13"
+    },
+    "agrupar_por": [
+     "region"
+    ]
+   },
+   "resultado": {
+    "medida": "tasa_quiebre_pct",
+    "unidad": "%",
+    "actual": {
+     "medida": "tasa_quiebre_pct",
+     "filtros": {
+      "semana": "2025-05-12"
+     },
+     "periodo": {
+      "desde": "2025-05-12",
+      "hasta": "2025-05-18"
+     },
+     "valor": 0.9859340081503878,
+     "unidad": "%",
+     "sql": "SELECT AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?",
+     "parametros": [
+      "2025-05-12"
+     ]
+    },
+    "anterior": {
+     "medida": "tasa_quiebre_pct",
+     "filtros": {
+      "semana": "2024-05-13"
+     },
+     "periodo": {
+      "desde": "2024-05-13",
+      "hasta": "2024-05-19"
+     },
+     "valor": 1.1305376626791113,
+     "unidad": "%",
+     "sql": "SELECT AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?",
+     "parametros": [
+      "2024-05-13"
+     ]
+    },
+    "variacion": -0.14460365452872348,
+    "unidad_variacion": "pp",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "filas": [
+     {
+      "region": "Norte",
+      "actual": 1.045816733067729,
+      "anterior": 0.9462151394422311,
+      "variacion": 0.09960159362549792
+     },
+     {
+      "region": "Oeste",
+      "actual": 0.8793969849246231,
+      "anterior": 0.9422110552763818,
+      "variacion": -0.06281407035175868
+     },
+     {
+      "region": "Sur",
+      "actual": 0.9900990099009901,
+      "anterior": 1.2506513809275663,
+      "variacion": -0.26055237102657625
+     },
+     {
+      "region": "Centro",
+      "actual": 1.0057471264367817,
+      "anterior": 1.3409961685823755,
+      "variacion": -0.3352490421455938
+     }
+    ],
+    "ordenado_por": "variacion",
+    "sql": {
+     "actual": "SELECT s.region AS region, AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?\nGROUP BY s.region\nORDER BY valor DESC",
+     "anterior": "SELECT s.region AS region, AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?\nGROUP BY s.region\nORDER BY valor DESC"
+    },
+    "parametros": {
+     "actual": [
+      "2025-05-12"
+     ],
+     "anterior": [
+      "2024-05-13"
+     ]
+    }
+   }
+  },
+  {
+   "id": "C3",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "tasa_quiebre_pct",
+    "filtros": {
+     "semana": "2025-05-12"
+    },
+    "comparar_con": {
+     "semana": "2024-05-13"
+    },
+    "agrupar_por": [
+     "proveedor",
+     "nombre_proveedor"
+    ]
+   },
+   "resultado": {
+    "medida": "tasa_quiebre_pct",
+    "unidad": "%",
+    "actual": {
+     "medida": "tasa_quiebre_pct",
+     "filtros": {
+      "semana": "2025-05-12"
+     },
+     "periodo": {
+      "desde": "2025-05-12",
+      "hasta": "2025-05-18"
+     },
+     "valor": 0.9859340081503878,
+     "unidad": "%",
+     "sql": "SELECT AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?",
+     "parametros": [
+      "2025-05-12"
+     ]
+    },
+    "anterior": {
+     "medida": "tasa_quiebre_pct",
+     "filtros": {
+      "semana": "2024-05-13"
+     },
+     "periodo": {
+      "desde": "2024-05-13",
+      "hasta": "2024-05-19"
+     },
+     "valor": 1.1305376626791113,
+     "unidad": "%",
+     "sql": "SELECT AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?",
+     "parametros": [
+      "2024-05-13"
+     ]
+    },
+    "variacion": -0.14460365452872348,
+    "unidad_variacion": "pp",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "filas": [
+     {
+      "proveedor": "PR06",
+      "nombre_proveedor": "Aguas de la Sierra S.A.",
+      "actual": 1.1560693641618496,
+      "anterior": 0.2890173410404624,
+      "variacion": 0.8670520231213872
+     },
+     {
+      "proveedor": "PR05",
+      "nombre_proveedor": "Bebidas Andina S.A.",
+      "actual": 1.3824884792626728,
+      "anterior": 0.6912442396313364,
+      "variacion": 0.6912442396313364
+     },
+     {
+      "proveedor": "PR12",
+      "nombre_proveedor": "Papelera Austral S.A.",
+      "actual": 1.0,
+      "anterior": 0.33333333333333337,
+      "variacion": 0.6666666666666666
+     },
+     {
+      "proveedor": "PR11",
+      "nombre_proveedor": "Química Hogar S.A.",
+      "actual": 1.3440860215053763,
+      "anterior": 0.9408602150537635,
+      "variacion": 0.40322580645161277
+     },
+     {
+      "proveedor": "PR07",
+      "nombre_proveedor": "Bodegas Valle Alto S.A.",
+      "actual": 1.1764705882352942,
+      "anterior": 1.1764705882352942,
+      "variacion": 0.0
+     },
+     {
+      "proveedor": "PR04",
+      "nombre_proveedor": "Conservas Atlántico S.R.L.",
+      "actual": 0.9823182711198428,
+      "anterior": 0.9823182711198428,
+      "variacion": 0.0
+     },
+     {
+      "proveedor": "PR10",
+      "nombre_proveedor": "Usina Láctea del Oeste S.A.",
+      "actual": 0.9057971014492754,
+      "anterior": 0.9057971014492754,
+      "variacion": 0.0
+     },
+     {
+      "proveedor": "PR13",
+      "nombre_proveedor": "Cosmética Nativa S.A.",
+      "actual": 0.7104795737122558,
+      "anterior": 0.7104795737122558,
+      "variacion": 0.0
+     },
+     {
+      "proveedor": "PR02",
+      "nombre_proveedor": "Alimentos Cordilleranos S.A.",
+      "actual": 0.84985835694051,
+      "anterior": 0.9442870632672332,
+      "variacion": -0.09442870632672318
+     },
+     {
+      "proveedor": "PR16",
+      "nombre_proveedor": "Industrias Del Sur S.A. (marca propia)",
+      "actual": 0.8130081300813009,
+      "anterior": 1.084010840108401,
+      "variacion": -0.2710027100271001
+     },
+     {
+      "proveedor": "PR14",
+      "nombre_proveedor": "Higiene Total S.A.",
+      "actual": 0.8605851979345954,
+      "anterior": 1.376936316695353,
+      "variacion": -0.5163511187607576
+     },
+     {
+      "proveedor": "PR01",
+      "nombre_proveedor": "Molinos del Plata S.A.",
+      "actual": 2.1226415094339623,
+      "anterior": 2.8301886792452833,
+      "variacion": -0.7075471698113209
+     },
+     {
+      "proveedor": "PR15",
+      "nombre_proveedor": "Frigorífico Las Lomas S.A.",
+      "actual": 0.6160164271047228,
+      "anterior": 1.4373716632443532,
+      "variacion": -0.8213552361396304
+     },
+     {
+      "proveedor": "PR08",
+      "nombre_proveedor": "Cervecería Patagónica S.A.",
+      "actual": 0.4132231404958678,
+      "anterior": 1.2396694214876034,
+      "variacion": -0.8264462809917357
+     },
+     {
+      "proveedor": "PR09",
+      "nombre_proveedor": "Lácteos La Pradera S.A.",
+      "actual": 0.539568345323741,
+      "anterior": 1.4388489208633095,
+      "variacion": -0.8992805755395685
+     },
+     {
+      "proveedor": "PR03",
+      "nombre_proveedor": "Aceitera del Litoral S.A.",
+      "actual": 1.0752688172043012,
+      "anterior": 2.6881720430107525,
+      "variacion": -1.6129032258064513
+     }
+    ],
+    "ordenado_por": "variacion",
+    "sql": {
+     "actual": "SELECT pr.proveedor_id AS proveedor, pr.nombre AS nombre_proveedor, AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?\nGROUP BY pr.proveedor_id, pr.nombre\nORDER BY valor DESC",
+     "anterior": "SELECT pr.proveedor_id AS proveedor, pr.nombre AS nombre_proveedor, AVG(CASE WHEN st.stock_unidades = 0 THEN 1.0 ELSE 0.0 END) * 100 AS valor\nFROM stock_semanal st JOIN fechas f ON st.semana = f.fecha JOIN productos p ON st.sku = p.sku JOIN sucursales s ON st.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.semana_inicio = ?\nGROUP BY pr.proveedor_id, pr.nombre\nORDER BY valor DESC"
+    },
+    "parametros": {
+     "actual": [
+      "2025-05-12"
+     ],
+     "anterior": [
+      "2024-05-13"
+     ]
+    }
+   }
+  },
+  {
+   "id": "C8",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "fecha": {
+      "desde": "2025-05-12",
+      "hasta": "2025-05-18"
+     }
+    },
+    "comparar_con": {
+     "fecha": {
+      "desde": "2024-05-13",
+      "hasta": "2024-05-19"
+     }
+    },
+    "agrupar_por": [
+     "sucursal",
+     "nombre_sucursal"
+    ],
+    "orden": "asc"
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "unidad": "ARS",
+    "actual": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "fecha": {
+       "desde": "2025-05-12",
+       "hasta": "2025-05-18"
+      }
+     },
+     "periodo": {
+      "desde": "2025-05-12",
+      "hasta": "2025-05-18"
+     },
+     "valor": 181271870.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?",
+     "parametros": [
+      "2025-05-12",
+      "2025-05-18"
+     ]
+    },
+    "anterior": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "fecha": {
+       "desde": "2024-05-13",
+       "hasta": "2024-05-19"
+      }
+     },
+     "periodo": {
+      "desde": "2024-05-13",
+      "hasta": "2024-05-19"
+     },
+     "valor": 177450724.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?",
+     "parametros": [
+      "2024-05-13",
+      "2024-05-19"
+     ]
+    },
+    "variacion": 2.153356105777286,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": 3821146.0,
+    "filas": [
+     {
+      "sucursal": "S32",
+      "nombre_sucursal": "Almacenes del Sur Valle Hermoso",
+      "actual": 3791121.5,
+      "anterior": 4272599.0,
+      "variacion": -11.268960649010122,
+      "diferencia": -481477.5,
+      "aporte_pct": -12.600342933769085
+     },
+     {
+      "sucursal": "S17",
+      "nombre_sucursal": "Almacenes del Sur Bahía Serena",
+      "actual": 3872094.0,
+      "anterior": 4116170.0,
+      "variacion": -5.929687063459478,
+      "diferencia": -244076.0,
+      "aporte_pct": -6.387507831420207
+     },
+     {
+      "sucursal": "S12",
+      "nombre_sucursal": "Almacenes del Sur Las Toscas",
+      "actual": 3466839.0,
+      "anterior": 3686764.0,
+      "variacion": -5.96525842174872,
+      "diferencia": -219925.0,
+      "aporte_pct": -5.755472311186225
+     },
+     {
+      "sucursal": "S07",
+      "nombre_sucursal": "Almacenes del Sur Monte Chico",
+      "actual": 3159181.0,
+      "anterior": 3351841.0,
+      "variacion": -5.7478860124928355,
+      "diferencia": -192660.0,
+      "aporte_pct": -5.041942914507846
+     },
+     {
+      "sucursal": "S30",
+      "nombre_sucursal": "Almacenes del Sur El Mirador",
+      "actual": 758724.0,
+      "anterior": 909590.0,
+      "variacion": -16.58615420134346,
+      "diferencia": -150866.0,
+      "aporte_pct": -3.948187271567221
+     },
+     {
+      "sucursal": "S03",
+      "nombre_sucursal": "Almacenes del Sur Puerto Norte",
+      "actual": 4070667.5,
+      "anterior": 4217096.0,
+      "variacion": -3.4722591091120525,
+      "diferencia": -146428.5,
+      "aporte_pct": -3.832057189125985
+     },
+     {
+      "sucursal": "S38",
+      "nombre_sucursal": "Almacenes del Sur El Molino",
+      "actual": 892898.0,
+      "anterior": 1009560.0,
+      "variacion": -11.555727247513769,
+      "diferencia": -116662.0,
+      "aporte_pct": -3.0530631386500278
+     },
+     {
+      "sucursal": "S08",
+      "nombre_sucursal": "Almacenes del Sur Las Acacias",
+      "actual": 746015.5,
+      "anterior": 832450.0,
+      "variacion": -10.383146134902997,
+      "diferencia": -86434.5,
+      "aporte_pct": -2.2620046446798945
+     },
+     {
+      "sucursal": "S15",
+      "nombre_sucursal": "Almacenes del Sur Punta Brava",
+      "actual": 3502857.5,
+      "anterior": 3584373.0,
+      "variacion": -2.274191329975982,
+      "diferencia": -81515.5,
+      "aporte_pct": -2.1332736304763023
+     },
+     {
+      "sucursal": "S02",
+      "nombre_sucursal": "Almacenes del Sur Los Ceibos",
+      "actual": 16922291.0,
+      "anterior": 16993356.0,
+      "variacion": -0.4181928513708534,
+      "diferencia": -71065.0,
+      "aporte_pct": -1.859782379422299
+     },
+     {
+      "sucursal": "S10",
+      "nombre_sucursal": "Almacenes del Sur Bajo Hondo",
+      "actual": 746941.0,
+      "anterior": 813841.0,
+      "variacion": -8.220278899686793,
+      "diferencia": -66900.0,
+      "aporte_pct": -1.7507836654239333
+     },
+     {
+      "sucursal": "S13",
+      "nombre_sucursal": "Almacenes del Sur Villa Marina",
+      "actual": 2564064.0,
+      "anterior": 2625214.0,
+      "variacion": -2.32933391334954,
+      "diferencia": -61150.0,
+      "aporte_pct": -1.6003052487395142
+     },
+     {
+      "sucursal": "S34",
+      "nombre_sucursal": "Almacenes del Sur Cerro Azul",
+      "actual": 4722298.0,
+      "anterior": 4776378.0,
+      "variacion": -1.1322386963510844,
+      "diferencia": -54080.0,
+      "aporte_pct": -1.4152822216162377
+     },
+     {
+      "sucursal": "S20",
+      "nombre_sucursal": "Almacenes del Sur Cabo Alto",
+      "actual": 1502610.0,
+      "anterior": 1547688.0,
+      "variacion": -2.912602540046831,
+      "diferencia": -45078.0,
+      "aporte_pct": -1.1796984464869964
+     },
+     {
+      "sucursal": "S06",
+      "nombre_sucursal": "Almacenes del Sur La Calera",
+      "actual": 3898411.0,
+      "anterior": 3906459.0,
+      "variacion": -0.20601777722484738,
+      "diferencia": -8048.0,
+      "aporte_pct": -0.21061744303933952
+     },
+     {
+      "sucursal": "S09",
+      "nombre_sucursal": "Almacenes del Sur Río Claro",
+      "actual": 927978.0,
+      "anterior": 898850.0,
+      "variacion": 3.2405851921900206,
+      "diferencia": 29128.0,
+      "aporte_pct": 0.7622844036841303
+     },
+     {
+      "sucursal": "S36",
+      "nombre_sucursal": "Almacenes del Sur Las Lomas",
+      "actual": 3140007.0,
+      "anterior": 3107360.0,
+      "variacion": 1.0506346223160496,
+      "diferencia": 32647.0,
+      "aporte_pct": 0.8543771946949946
+     },
+     {
+      "sucursal": "S04",
+      "nombre_sucursal": "Almacenes del Sur Alto Verde",
+      "actual": 4497142.0,
+      "anterior": 4450034.0,
+      "variacion": 1.058598653403547,
+      "diferencia": 47108.0,
+      "aporte_pct": 1.232823870116452
+     },
+     {
+      "sucursal": "S27",
+      "nombre_sucursal": "Almacenes del Sur Villa Rosa",
+      "actual": 3478944.0,
+      "anterior": 3417868.0,
+      "variacion": 1.786961930653846,
+      "diferencia": 61076.0,
+      "aporte_pct": 1.5983686569421844
+     },
+     {
+      "sucursal": "S33",
+      "nombre_sucursal": "Almacenes del Sur Los Olmos",
+      "actual": 3369918.0,
+      "anterior": 3308462.0,
+      "variacion": 1.857539847820528,
+      "diferencia": 61456.0,
+      "aporte_pct": 1.6083133175230677
+     },
+     {
+      "sucursal": "S18",
+      "nombre_sucursal": "Almacenes del Sur San Telmo Sur",
+      "actual": 1099608.0,
+      "anterior": 1016510.0,
+      "variacion": 8.174833498932623,
+      "diferencia": 83098.0,
+      "aporte_pct": 2.1746879077637966
+     },
+     {
+      "sucursal": "S19",
+      "nombre_sucursal": "Almacenes del Sur La Ribera",
+      "actual": 1223780.0,
+      "anterior": 1130468.0,
+      "variacion": 8.254280528064482,
+      "diferencia": 93312.0,
+      "aporte_pct": 2.441989916114171
+     },
+     {
+      "sucursal": "S37",
+      "nombre_sucursal": "Almacenes del Sur Pampa Linda",
+      "actual": 954381.5,
+      "anterior": 856650.0,
+      "variacion": 11.40856826008288,
+      "diferencia": 97731.5,
+      "aporte_pct": 2.5576489356857866
+     },
+     {
+      "sucursal": "S05",
+      "nombre_sucursal": "Almacenes del Sur San Isidro Labrador",
+      "actual": 6099600.5,
+      "anterior": 5951718.0,
+      "variacion": 2.4847027362519527,
+      "diferencia": 147882.5,
+      "aporte_pct": 3.870108600927575
+     },
+     {
+      "sucursal": "S29",
+      "nombre_sucursal": "Almacenes del Sur Barrio Obrero",
+      "actual": 1126759.0,
+      "anterior": 963280.0,
+      "variacion": 16.97107798355618,
+      "diferencia": 163479.0,
+      "aporte_pct": 4.278271492374277
+     },
+     {
+      "sucursal": "S16",
+      "nombre_sucursal": "Almacenes del Sur Los Médanos",
+      "actual": 4164390.0,
+      "anterior": 3983381.0,
+      "variacion": 4.544104618664395,
+      "diferencia": 181009.0,
+      "aporte_pct": 4.737034387066079
+     },
+     {
+      "sucursal": "S28",
+      "nombre_sucursal": "Almacenes del Sur Los Andes",
+      "actual": 3254758.5,
+      "anterior": 3037346.0,
+      "variacion": 7.157976075165622,
+      "diferencia": 217412.5,
+      "aporte_pct": 5.68971978563499
+     },
+     {
+      "sucursal": "S35",
+      "nombre_sucursal": "Almacenes del Sur La Quebrada",
+      "actual": 3766794.0,
+      "anterior": 3507736.0,
+      "variacion": 7.385333445846552,
+      "diferencia": 259058.0,
+      "aporte_pct": 6.779589159901245
+     },
+     {
+      "sucursal": "S26",
+      "nombre_sucursal": "Almacenes del Sur La Estación",
+      "actual": 2760777.0,
+      "anterior": 2484496.0,
+      "variacion": 11.120203051242585,
+      "diferencia": 276281.0,
+      "aporte_pct": 7.23031781565007
+     },
+     {
+      "sucursal": "S21",
+      "nombre_sucursal": "Almacenes del Sur Plaza Mayor",
+      "actual": 13820150.5,
+      "anterior": 13507730.0,
+      "variacion": 2.312901575616332,
+      "diferencia": 312420.5,
+      "aporte_pct": 8.176094292131209
+     },
+     {
+      "sucursal": "S01",
+      "nombre_sucursal": "Almacenes del Sur Villa Arenal",
+      "actual": 12932603.5,
+      "anterior": 12556334.0,
+      "variacion": 2.9966509333058515,
+      "diferencia": 376269.5,
+      "aporte_pct": 9.847032801154418
+     },
+     {
+      "sucursal": "S14",
+      "nombre_sucursal": "Almacenes del Sur El Faro",
+      "actual": 5171676.0,
+      "anterior": 4774826.0,
+      "variacion": 8.311297626342824,
+      "diferencia": 396850.0,
+      "aporte_pct": 10.385627767167232
+     },
+     {
+      "sucursal": "S11",
+      "nombre_sucursal": "Almacenes del Sur Costa Sur",
+      "actual": 15016867.0,
+      "anterior": 14616207.0,
+      "variacion": 2.7412036515355864,
+      "diferencia": 400660.0,
+      "aporte_pct": 10.485336074570299
+     },
+     {
+      "sucursal": "S31",
+      "nombre_sucursal": "Almacenes del Sur Sierra Chica",
+      "actual": 12903885.0,
+      "anterior": 12465314.0,
+      "variacion": 3.5183309461759245,
+      "diferencia": 438571.0,
+      "aporte_pct": 11.477472988469952
+     },
+     {
+      "sucursal": "S24",
+      "nombre_sucursal": "Almacenes del Sur Centro Cívico",
+      "actual": 5600085.5,
+      "anterior": 5133314.0,
+      "variacion": 9.092985545010494,
+      "diferencia": 466771.5,
+      "aporte_pct": 12.215484569288899
+     },
+     {
+      "sucursal": "S25",
+      "nombre_sucursal": "Almacenes del Sur Parque Norte",
+      "actual": 5320724.0,
+      "anterior": 4848164.0,
+      "variacion": 9.74719502063049,
+      "diferencia": 472560.0,
+      "aporte_pct": 12.366970537111117
+     },
+     {
+      "sucursal": "S22",
+      "nombre_sucursal": "Almacenes del Sur Barrio Jardín",
+      "actual": 11962267.0,
+      "anterior": 11406288.0,
+      "variacion": 4.874320199525034,
+      "diferencia": 555979.0,
+      "aporte_pct": 14.550059066049819
+     },
+     {
+      "sucursal": "S23",
+      "nombre_sucursal": "Almacenes del Sur Las Palmas",
+      "actual": 4061761.0,
+      "anterior": 3385009.0,
+      "variacion": 19.992620403668056,
+      "diferencia": 676752.0,
+      "aporte_pct": 17.71070773008935
+     }
+    ],
+    "ordenado_por": "diferencia",
+    "sql": {
+     "actual": "SELECT s.sucursal_id AS sucursal, s.nombre AS nombre_sucursal, SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?\nGROUP BY s.sucursal_id, s.nombre\nORDER BY valor DESC",
+     "anterior": "SELECT s.sucursal_id AS sucursal, s.nombre AS nombre_sucursal, SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?\nGROUP BY s.sucursal_id, s.nombre\nORDER BY valor DESC"
+    },
+    "parametros": {
+     "actual": [
+      "2025-05-12",
+      "2025-05-18"
+     ],
+     "anterior": [
+      "2024-05-13",
+      "2024-05-19"
+     ]
+    }
+   }
+  },
+  {
+   "id": "C12",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "fecha": {
+      "desde": "2025-05-12",
+      "hasta": "2025-05-18"
+     }
+    },
+    "comparar_con": {
+     "fecha": {
+      "desde": "2024-05-13",
+      "hasta": "2024-05-19"
+     }
+    },
+    "agrupar_por": [
+     "producto",
+     "marca",
+     "subcategoria",
+     "es_marca_propia"
+    ],
+    "orden": "asc",
+    "limite": 15
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "unidad": "ARS",
+    "actual": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "fecha": {
+       "desde": "2025-05-12",
+       "hasta": "2025-05-18"
+      }
+     },
+     "periodo": {
+      "desde": "2025-05-12",
+      "hasta": "2025-05-18"
+     },
+     "valor": 181271870.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?",
+     "parametros": [
+      "2025-05-12",
+      "2025-05-18"
+     ]
+    },
+    "anterior": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "fecha": {
+       "desde": "2024-05-13",
+       "hasta": "2024-05-19"
+      }
+     },
+     "periodo": {
+      "desde": "2024-05-13",
+      "hasta": "2024-05-19"
+     },
+     "valor": 177450724.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?",
+     "parametros": [
+      "2024-05-13",
+      "2024-05-19"
+     ]
+    },
+    "variacion": 2.153356105777286,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": 3821146.0,
+    "filas": [
+     {
+      "producto": "P0185",
+      "marca": "Espuma Clara",
+      "subcategoria": "Jabón para ropa",
+      "es_marca_propia": false,
+      "actual": 7649640.0,
+      "anterior": 8413030.0,
+      "variacion": -9.073900841908324,
+      "diferencia": -763390.0,
+      "aporte_pct": -19.9780380022119
+     },
+     {
+      "producto": "P0291",
+      "marca": "Mar Azul",
+      "subcategoria": "Congelados",
+      "es_marca_propia": false,
+      "actual": 6859890.0,
+      "anterior": 7245700.0,
+      "variacion": -5.324675324675324,
+      "diferencia": -385810.0,
+      "aporte_pct": -10.096709207133149
+     },
+     {
+      "producto": "P0210",
+      "marca": "Total Care",
+      "subcategoria": "Shampoo y acondicionador",
+      "es_marca_propia": false,
+      "actual": 5482300.0,
+      "anterior": 5825400.0,
+      "variacion": -5.889724310776942,
+      "diferencia": -343100.0,
+      "aporte_pct": -8.978981698160709
+     },
+     {
+      "producto": "P0284",
+      "marca": "Las Lomas",
+      "subcategoria": "Congelados",
+      "es_marca_propia": false,
+      "actual": 1138360.0,
+      "anterior": 1369608.0,
+      "variacion": -16.88424717145344,
+      "diferencia": -231248.0,
+      "aporte_pct": -6.051797026337125
+     },
+     {
+      "producto": "P0265",
+      "marca": "Campo Viejo",
+      "subcategoria": "Fiambres",
+      "es_marca_propia": false,
+      "actual": 1775300.0,
+      "anterior": 2000460.0,
+      "variacion": -11.255411255411255,
+      "diferencia": -225160.0,
+      "aporte_pct": -5.892473095767605
+     },
+     {
+      "producto": "P0285",
+      "marca": "Mar Azul",
+      "subcategoria": "Congelados",
+      "es_marca_propia": false,
+      "actual": 432820.0,
+      "anterior": 620160.0,
+      "variacion": -30.208333333333332,
+      "diferencia": -187340.0,
+      "aporte_pct": -4.90271766637548
+     },
+     {
+      "producto": "P0286",
+      "marca": "Las Lomas",
+      "subcategoria": "Congelados",
+      "es_marca_propia": false,
+      "actual": 688160.0,
+      "anterior": 855140.0,
+      "variacion": -19.526627218934912,
+      "diferencia": -166980.0,
+      "aporte_pct": -4.369893220515521
+     },
+     {
+      "producto": "P0120",
+      "marca": "Valle Alto",
+      "subcategoria": "Vinos",
+      "es_marca_propia": false,
+      "actual": 1648460.0,
+      "anterior": 1810710.0,
+      "variacion": -8.960573476702509,
+      "diferencia": -162250.0,
+      "aporte_pct": -4.246108366442947
+     },
+     {
+      "producto": "P0256",
+      "marca": "Las Lomas",
+      "subcategoria": "Fiambres",
+      "es_marca_propia": false,
+      "actual": 952020.0,
+      "anterior": 1099620.0,
+      "variacion": -13.422818791946309,
+      "diferencia": -147600.0,
+      "aporte_pct": -3.8627155308904713
+     },
+     {
+      "producto": "P0114",
+      "marca": "Valle Alto",
+      "subcategoria": "Vinos",
+      "es_marca_propia": false,
+      "actual": 919020.0,
+      "anterior": 1057740.0,
+      "variacion": -13.114754098360656,
+      "diferencia": -138720.0,
+      "aporte_pct": -3.630324515210882
+     },
+     {
+      "producto": "P0147",
+      "marca": "Usina del Oeste",
+      "subcategoria": "Quesos",
+      "es_marca_propia": false,
+      "actual": 1782000.0,
+      "anterior": 1920600.0,
+      "variacion": -7.216494845360824,
+      "diferencia": -138600.0,
+      "aporte_pct": -3.6271840960800765
+     },
+     {
+      "producto": "P0157",
+      "marca": "Usina del Oeste",
+      "subcategoria": "Quesos",
+      "es_marca_propia": false,
+      "actual": 4678580.0,
+      "anterior": 4803620.0,
+      "variacion": -2.6030368763557483,
+      "diferencia": -125040.0,
+      "aporte_pct": -3.272316734299082
+     },
+     {
+      "producto": "P0203",
+      "marca": "Austral",
+      "subcategoria": "Papeles",
+      "es_marca_propia": false,
+      "actual": 585130.0,
+      "anterior": 707300.0,
+      "variacion": -17.272727272727273,
+      "diferencia": -122170.0,
+      "aporte_pct": -3.1972083767539896
+     },
+     {
+      "producto": "P0218",
+      "marca": "Total Care",
+      "subcategoria": "Shampoo y acondicionador",
+      "es_marca_propia": false,
+      "actual": 481900.0,
+      "anterior": 597800.0,
+      "variacion": -19.387755102040817,
+      "diferencia": -115900.0,
+      "aporte_pct": -3.0331214771694146
+     },
+     {
+      "producto": "P0070",
+      "marca": "Hoja Verde",
+      "subcategoria": "Yerba e infusiones",
+      "es_marca_propia": false,
+      "actual": 804960.0,
+      "anterior": 918480.0,
+      "variacion": -12.359550561797752,
+      "diferencia": -113520.0,
+      "aporte_pct": -2.970836497741777
+     }
+    ],
+    "ordenado_por": "diferencia",
+    "sql": {
+     "actual": "SELECT p.sku AS producto, p.marca AS marca, p.subcategoria AS subcategoria, p.es_marca_propia AS es_marca_propia, SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?\nGROUP BY p.sku, p.marca, p.subcategoria, p.es_marca_propia\nORDER BY valor DESC",
+     "anterior": "SELECT p.sku AS producto, p.marca AS marca, p.subcategoria AS subcategoria, p.es_marca_propia AS es_marca_propia, SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?\nGROUP BY p.sku, p.marca, p.subcategoria, p.es_marca_propia\nORDER BY valor DESC"
+    },
+    "parametros": {
+     "actual": [
+      "2025-05-12",
+      "2025-05-18"
+     ],
+     "anterior": [
+      "2024-05-13",
+      "2024-05-19"
+     ]
+    }
+   }
+  },
+  {
+   "id": "C15",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "fecha": {
+      "desde": "2025-05-12",
+      "hasta": "2025-05-18"
+     }
+    },
+    "comparar_con": {
+     "fecha": {
+      "desde": "2024-05-13",
+      "hasta": "2024-05-19"
+     }
+    }
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "unidad": "ARS",
+    "actual": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "fecha": {
+       "desde": "2025-05-12",
+       "hasta": "2025-05-18"
+      }
+     },
+     "periodo": {
+      "desde": "2025-05-12",
+      "hasta": "2025-05-18"
+     },
+     "valor": 181271870.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?",
+     "parametros": [
+      "2025-05-12",
+      "2025-05-18"
+     ]
+    },
+    "anterior": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "fecha": {
+       "desde": "2024-05-13",
+       "hasta": "2024-05-19"
+      }
+     },
+     "periodo": {
+      "desde": "2024-05-13",
+      "hasta": "2024-05-19"
+     },
+     "valor": 177450724.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ?",
+     "parametros": [
+      "2024-05-13",
+      "2024-05-19"
+     ]
+    },
+    "variacion": 2.153356105777286,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": 3821146.0
+   }
+  },
+  {
+   "id": "C18",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "fecha": {
+      "desde": "2025-05-05",
+      "hasta": "2025-05-11"
+     },
+     "sucursal": "S32"
+    },
+    "comparar_con": {
+     "fecha": {
+      "desde": "2024-05-06",
+      "hasta": "2024-05-12"
+     }
+    }
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "unidad": "ARS",
+    "actual": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "fecha": {
+       "desde": "2025-05-05",
+       "hasta": "2025-05-11"
+      },
+      "sucursal": "S32"
+     },
+     "periodo": {
+      "desde": "2025-05-05",
+      "hasta": "2025-05-11"
+     },
+     "valor": 4307426.5,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ? AND s.sucursal_id = ?",
+     "parametros": [
+      "2025-05-05",
+      "2025-05-11",
+      "S32"
+     ]
+    },
+    "anterior": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "fecha": {
+       "desde": "2024-05-06",
+       "hasta": "2024-05-12"
+      },
+      "sucursal": "S32"
+     },
+     "periodo": {
+      "desde": "2024-05-06",
+      "hasta": "2024-05-12"
+     },
+     "valor": 4170380.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.fecha BETWEEN ? AND ? AND s.sucursal_id = ?",
+     "parametros": [
+      "2024-05-06",
+      "2024-05-12",
+      "S32"
+     ]
+    },
+    "variacion": 3.286187349833828,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": 137046.5
+   }
+  },
+  {
+   "id": "C19",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Los cinco productos que más cayeron en porcentaje en la semana del 12 al 18-05-2025 contra la del 13 al 19-05-2024,\n-- con sus ventas netas de cada semana en millones de pesos\nwith a as (select sku, sum(importe_neto) vn from ventas where fecha between date '2025-05-12' and date '2025-05-18' group by 1),\n     b as (select sku, sum(importe_neto) vn from ventas where fecha between date '2024-05-13' and date '2024-05-19' group by 1)\nselect p.sku, p.descripcion, round(b.vn / 1e6, 2) ventas_2024_millones, round(a.vn / 1e6, 2) ventas_2025_millones,\n       round(100 * (a.vn / b.vn - 1), 1) variacion_pct\nfrom b join a using (sku) join productos p using (sku) order by 5 limit 5"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "sku": "P0195",
+      "descripcion": "Jabón líquido Espuma Clara 800 g",
+      "ventas_2024_millones": 0.16,
+      "ventas_2025_millones": 0.11,
+      "variacion_pct": -31.0
+     },
+     {
+      "sku": "P0150",
+      "descripcion": "Queso azul La Pradera 300 g",
+      "ventas_2024_millones": 0.34,
+      "ventas_2025_millones": 0.23,
+      "variacion_pct": -30.6
+     },
+     {
+      "sku": "P0201",
+      "descripcion": "Rollo de cocina Austral 6 rollos",
+      "ventas_2024_millones": 0.11,
+      "ventas_2025_millones": 0.08,
+      "variacion_pct": -30.6
+     },
+     {
+      "sku": "P0285",
+      "descripcion": "Hamburguesas Mar Azul 500 g",
+      "ventas_2024_millones": 0.62,
+      "ventas_2025_millones": 0.43,
+      "variacion_pct": -30.2
+     },
+     {
+      "sku": "P0034",
+      "descripcion": "Aceite mezcla Girasol Dorado 1,5 L",
+      "ventas_2024_millones": 0.19,
+      "ventas_2025_millones": 0.14,
+      "variacion_pct": -30.0
+     }
+    ]
+   }
+  }
+ ]
+}

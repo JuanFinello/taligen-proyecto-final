@@ -26,6 +26,14 @@ def numeros_del_texto(texto):
         if (not millones and siguiente and siguiente.group(2) and not re.fullmatch(r"(?:19|20)\d\d", escrito)  # un año, no
                 and re.fullmatch(r"\s*(?:y|a|al|-|–)\s*", texto[coincidencia.end():siguiente.start()])):
             millones = siguiente.group(2)
+        # Y hacia adelante: en «1.722,1 millones frente a 1.825,6 del año anterior», el 1.825,6 también son millones
+        # (decisión 105: el control lo leía como 1.825,6 pesos y el informe no salía). Solo si el número tiene la
+        # forma del anterior (con decimales o con miles), para no tomar «millones contra 3 sucursales»
+        anterior = coincidencias[i - 1] if i > 0 else None
+        if (not millones and anterior and anterior.group(2) and ("," in escrito or "." in escrito)
+                and not re.match(r"\s*(?:%|pp|puntos)", texto[coincidencia.end():])
+                and re.fullmatch(r"\s*(?:frente a|contra|vs\.?|y|a|al|-|–|,)\s*", texto[anterior.end():coincidencia.start()])):
+            millones = anterior.group(2)
         if re.fullmatch(r"\d{1,3}(?:\.\d{3})+(?:,\d+)?", escrito):  # 1.247 o 663.149.556,5: puntos de miles
             entero, _, decimales = escrito.replace(".", "").partition(",")
         else:  # 25,9 (coma decimal) o 25.9 (por si escribe con punto)

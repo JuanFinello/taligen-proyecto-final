@@ -1,0 +1,1253 @@
+{
+ "pedido": "Armame un informe del margen del AF2026: ¿cayó todo el año o en algunos meses?",
+ "nombre": "Informe",
+ "corrida": "20261120-104335-5a14",
+ "version": "52c77c",
+ "plan": {
+  "tipo": "informe",
+  "titulo": "Margen del AF2026: ¿cayó todo el año o en algunos meses?",
+  "supuestos": [
+   "Se usa el año fiscal de Almacenes del Sur, que va de mayo a abril y se nombra por el año en que termina: AF2026 es de mayo de 2025 a abril de 2026, y se compara contra AF2025 (mayo de 2024 a abril de 2025). Ambos años están completos en la base.",
+   "«El margen» se toma como margen bruto en porcentaje sobre ventas netas. Las variaciones se informan en puntos porcentuales.",
+   "Se analiza cada mes del año fiscal por separado, para distinguir una caída sostenida de una concentrada en algunos meses.",
+   "El aporte de cada categoría al cambio del margen total pesa su cambio por cuánto vende: una categoría que vende el doble mueve el total el doble."
+  ],
+  "encargos": [
+   {
+    "objetivo": "Determinar en qué meses del AF2026 bajó el margen frente al mismo mes del AF2025 y si la caída fue sostenida durante el año.",
+    "pregunta": "¿En qué meses del AF2026 (mayo de 2025 a abril de 2026) bajó el margen bruto % frente al mismo mes del AF2025 (mayo de 2024 a abril de 2025), en todas las sucursales y en las sucursales comparables? Indicar la variación en puntos porcentuales para cada mes fiscal.",
+    "consultas": [
+     "margen_pct del AF2026 contra el AF2025, agrupado por mes fiscal, todas las sucursales",
+     "margen_pct del AF2026 contra el AF2025, agrupado por mes fiscal, solo sucursales comparables (comparables=True)"
+    ],
+    "devolver": "Indicar cuántos meses del AF2026 quedaron por debajo del AF2025, cuáles fueron, y cuánto bajó el margen en los meses más afectados, en puntos porcentuales. Decir si la caída aparece en todo el año o se concentra en algunos meses, y si el resultado es el mismo con las sucursales comparables.",
+    "limites": "No explicar la causa de la variación (precio o costo) ni analizar categorías, productos o proveedores; eso corresponde a otro encargo."
+   },
+   {
+    "objetivo": "Explicar, mes por mes, si la variación del margen se debe al precio de venta o al costo de reposición.",
+    "pregunta": "Para el AF2026 (mayo de 2025 a abril de 2026) contra el AF2025 (mayo de 2024 a abril de 2025), en todas las sucursales, ¿cuánto de la variación del margen bruto % de cada mes fiscal se explica por el efecto precio y cuánto por el efecto costo?",
+    "consultas": [
+     "efectos_margen del AF2026 contra el AF2025, agrupado por mes fiscal, todas las sucursales"
+    ],
+    "devolver": "Indicar, para los meses que bajaron, si la caída viene principalmente del efecto precio o del efecto costo, con los puntos porcentuales de cada uno. Señalar si un mismo efecto explica la caída de varios meses o si cambia de un mes a otro.",
+    "limites": "No medir el margen en pesos ni las ventas; no abrir por producto, marca ni proveedor, porque eso excede esta pregunta."
+   }
+  ]
+ },
+ "hallazgos": [
+  {
+   "objetivo": "Determinar en qué meses del AF2026 bajó el margen frente al mismo mes del AF2025 y si la caída fue sostenida durante el año.",
+   "pregunta": "¿En qué meses del AF2026 (mayo de 2025 a abril de 2026) bajó el margen bruto % frente al mismo mes del AF2025 (mayo de 2024 a abril de 2025), en todas las sucursales y en las sucursales comparables? Indicar la variación en puntos porcentuales para cada mes fiscal.",
+   "hallazgo": "En 8 de los 12 meses del AF2026 el margen bruto % quedó por debajo del mismo mes del AF2025, tanto en todas las sucursales como en las comparables: diciembre (mes fiscal 8) fue el más afectado, con −0,84 pp en todas las sucursales (−0,83 pp en comparables), seguido por abril (−0,49 pp) y enero (−0,37 pp). La caída no se concentra en un solo tramo sino que aparece repartida a lo largo del año, con mayo prácticamente sin cambio (−0,01 pp) y julio, agosto... no, julio, septiembre y noviembre subiendo; el margen anual pasó de 26,94 % a 26,72 % (−0,22 pp en todas las sucursales) y de 26,94 % a 26,73 % (−0,21 pp) en comparables, así que el resultado es el mismo con ambas bases.",
+   "consultas": [
+    "C1",
+    "C2"
+   ]
+  },
+  {
+   "objetivo": "Explicar, mes por mes, si la variación del margen se debe al precio de venta o al costo de reposición.",
+   "pregunta": "Para el AF2026 (mayo de 2025 a abril de 2026) contra el AF2025 (mayo de 2024 a abril de 2025), en todas las sucursales, ¿cuánto de la variación del margen bruto % de cada mes fiscal se explica por el efecto precio y cuánto por el efecto costo?",
+   "hallazgo": "En el AF2026 contra el AF2025, el margen bruto % de la cadena bajó 0,22 pp (de 26,94 % a 26,72 %): el efecto precio explica -0,09 pp y el efecto costo -0,12 pp. Ocho de los doce meses fiscales bajaron, y no hay un único efecto dominante: en el mes 8 (-0,84 pp) la caída viene sobre todo del precio (-0,64 pp frente a -0,21 pp de costo), y lo mismo pasa en el mes 11 (-0,34 pp de precio frente a -0,01 pp de costo) y, con menos diferencia, en los meses 6 y 12. En cambio, en el mes 9 (-0,37 pp) el costo explica una caída de -0,70 pp y el precio la compensa con +0,33 pp, y en el mes 4 (-0,39 pp) predomina el costo (-0,27 pp), igual que en el mes 10 (-0,17 pp de costo frente a -0,14 pp de precio). El mes 1 casi no se movió (-0,01 pp).",
+   "consultas": [
+    "C3"
+   ]
+  }
+ ],
+ "redaccion": {
+  "titulo": "El margen cae desde agosto por el costo de Almacén; desde diciembre cae más, por las promociones de Bebidas",
+  "bajada": "El margen del año fue 26,7 %, 0,2 pp menos que en el AF2025 [C1].",
+  "indicadores": [
+   {
+    "nombre": "Margen bruto % del año",
+    "consulta": "C1",
+    "dato": "actual",
+    "variacion": "variacion",
+    "contra": "vs AF2025"
+   }
+  ],
+  "puntos": [
+   {
+    "texto": "De mayo a julio estuvo 0,1 pp arriba del año anterior [C2]; de agosto a noviembre, 0,1 pp abajo [C3]; desde diciembre, 0,5 pp abajo [C4].",
+    "grafico": {
+     "consulta": "C1",
+     "destacar": []
+    }
+   },
+   {
+    "texto": "Almacén resta entre 0,1 y 0,3 pp todos los meses desde agosto [C6], cuando Molinos del Plata subió su costo 11,4 % y el precio de venta no cambió [C15]; explica tres cuartas partes de la caída del año [C11].",
+    "grafico": {
+     "consulta": "C6",
+     "destacar": []
+    }
+   },
+   {
+    "texto": "Bebidas compensó la mitad hasta noviembre [C7]; desde diciembre tuvo más promociones [C8], y la mayor, la Cola Andina al 25 % [C9], se vendió bajo el costo [C13].",
+    "grafico": {
+     "consulta": "C6",
+     "destacar": []
+    }
+   }
+  ]
+ },
+ "revisiones": [
+  [
+   "forma: el punto «La caída no fue un tramo: se repite de agosto a ab…» da números que no se ven en su gráfico: el gráfico muestra margen bruto % y sus etiquetas dicen jul +27,0 %, nov +26,7 %, jun +27,1 %, sep +26,9 %, may +27,0 %, feb +26,5 %. Usá esos números tal como se ven (redondeados igual), o elegí la consulta que muestra lo que dice el punto",
+   "forma: el punto «En diciembre pesó sobre todo el precio, con −0,64 …» da números que no se ven en su gráfico: el gráfico muestra el cambio del margen %, en pp y sus etiquetas dicen jul +0,3 pp, nov +0,3 pp, jun +0,1 pp, sep 0,0 pp, may 0,0 pp, feb −0,3 pp. Usá esos números tal como se ven (redondeados igual), o elegí la consulta que muestra lo que dice el punto",
+   "editor: El título dice qué pasó pero no por qué. Los dos motivos (precio en diciembre, costo en enero) están en el punto 2, así que el título queda incompleto. Propuesta: «El margen cayó en 8 de los 12 meses: en diciembre pesó el precio y en enero, el costo»",
+   "editor: El título dice que el margen cayó en 8 de 12 meses, pero el punto 1 dice que la caída se repite de agosto a abril, que son 9 meses. Los números no coinciden y hay que revisar la cuenta antes de publicar. Propuesta: «La caída no fue un tramo: se repite en varios meses, y diciembre fue el peor, con 0,84 pp menos [C1].»",
+   "editor: En la bajada, 'casi igual' no dice a qué se compara. El gerente no sabe si las sucursales comparables cayeron lo mismo que el total. Propuesta: «...y en las sucursales comparables la caída fue casi la misma [C2].»",
+   "editor: El punto 1 bajo 'Por qué' describe cuándo cayó el margen, no por qué. Y su idea de que diciembre fue el peor repite lo que ya dice el título. Propuesta: «Mover el punto 1 fuera de 'Por qué' o reducirlo a: diciembre fue el mes con más caída, con 0,84 pp menos [C1].»"
+  ],
+  []
+ ],
+ "consultas": [
+  {
+   "id": "C1",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "margen_pct",
+    "filtros": {
+     "anio_fiscal": 2026
+    },
+    "comparar_con": {
+     "anio_fiscal": 2025
+    },
+    "agrupar_por": [
+     "mes_fiscal"
+    ]
+   },
+   "resultado": {
+    "medida": "margen_pct",
+    "unidad": "%",
+    "actual": {
+     "medida": "margen_pct",
+     "filtros": {
+      "anio_fiscal": 2026
+     },
+     "periodo": {
+      "desde": "2025-05-01",
+      "hasta": "2026-04-30"
+     },
+     "valor": 26.72001338231043,
+     "unidad": "%",
+     "sql": "SELECT (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ?",
+     "parametros": [
+      2026
+     ]
+    },
+    "anterior": {
+     "medida": "margen_pct",
+     "filtros": {
+      "anio_fiscal": 2025
+     },
+     "periodo": {
+      "desde": "2024-05-01",
+      "hasta": "2025-04-30"
+     },
+     "valor": 26.936838829744207,
+     "unidad": "%",
+     "sql": "SELECT (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ?",
+     "parametros": [
+      2025
+     ]
+    },
+    "variacion": -0.21682544743377719,
+    "unidad_variacion": "pp",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "filas": [
+     {
+      "mes_fiscal": 3,
+      "actual": 26.995084838815526,
+      "anterior": 26.690429166895864,
+      "variacion": 0.3046556719196616
+     },
+     {
+      "mes_fiscal": 7,
+      "actual": 26.719493884657336,
+      "anterior": 26.44979480549803,
+      "variacion": 0.2696990791593059
+     },
+     {
+      "mes_fiscal": 2,
+      "actual": 27.095735895069506,
+      "anterior": 27.000244198810098,
+      "variacion": 0.09549169625940834
+     },
+     {
+      "mes_fiscal": 5,
+      "actual": 26.924389991138053,
+      "anterior": 26.90676321712854,
+      "variacion": 0.01762677400951418
+     },
+     {
+      "mes_fiscal": 1,
+      "actual": 26.968622097406538,
+      "anterior": 26.981553906940224,
+      "variacion": -0.012931809533686334
+     },
+     {
+      "mes_fiscal": 10,
+      "actual": 26.50761899136937,
+      "anterior": 26.80894867299927,
+      "variacion": -0.3013296816299018
+     },
+     {
+      "mes_fiscal": 6,
+      "actual": 26.613738447181685,
+      "anterior": 26.954816301993663,
+      "variacion": -0.34107785481197794
+     },
+     {
+      "mes_fiscal": 11,
+      "actual": 26.751348776375256,
+      "anterior": 27.10554150009208,
+      "variacion": -0.35419272371682453
+     },
+     {
+      "mes_fiscal": 9,
+      "actual": 26.54448278159942,
+      "anterior": 26.917194953699493,
+      "variacion": -0.3727121721000728
+     },
+     {
+      "mes_fiscal": 4,
+      "actual": 26.82596320379912,
+      "anterior": 27.213727335740078,
+      "variacion": -0.3877641319409584
+     },
+     {
+      "mes_fiscal": 12,
+      "actual": 26.642161819379524,
+      "anterior": 27.13588989238462,
+      "variacion": -0.49372807300509436
+     },
+     {
+      "mes_fiscal": 8,
+      "actual": 26.210508686941953,
+      "anterior": 27.055230163661985,
+      "variacion": -0.8447214767200322
+     }
+    ],
+    "ordenado_por": "variacion",
+    "sql": {
+     "actual": "SELECT f.mes_fiscal AS mes_fiscal, (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ?\nGROUP BY f.mes_fiscal\nORDER BY valor DESC",
+     "anterior": "SELECT f.mes_fiscal AS mes_fiscal, (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ?\nGROUP BY f.mes_fiscal\nORDER BY valor DESC"
+    },
+    "parametros": {
+     "actual": [
+      2026
+     ],
+     "anterior": [
+      2025
+     ]
+    }
+   }
+  },
+  {
+   "id": "C2",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "margen_pct",
+    "filtros": {
+     "anio_fiscal": 2026,
+     "mes": [
+      5,
+      6,
+      7
+     ]
+    },
+    "comparar_con": {
+     "anio_fiscal": 2025
+    }
+   },
+   "resultado": {
+    "medida": "margen_pct",
+    "unidad": "%",
+    "actual": {
+     "medida": "margen_pct",
+     "filtros": {
+      "anio_fiscal": 2026,
+      "mes": [
+       5,
+       6,
+       7
+      ]
+     },
+     "periodo": {
+      "desde": "2025-05-01",
+      "hasta": "2025-07-31"
+     },
+     "valor": 27.0185558481288,
+     "unidad": "%",
+     "sql": "SELECT (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND f.mes IN (?, ?, ?)",
+     "parametros": [
+      2026,
+      5,
+      6,
+      7
+     ]
+    },
+    "anterior": {
+     "medida": "margen_pct",
+     "filtros": {
+      "anio_fiscal": 2025,
+      "mes": [
+       5,
+       6,
+       7
+      ]
+     },
+     "periodo": {
+      "desde": "2024-05-01",
+      "hasta": "2024-07-31"
+     },
+     "valor": 26.890721739717065,
+     "unidad": "%",
+     "sql": "SELECT (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND f.mes IN (?, ?, ?)",
+     "parametros": [
+      2025,
+      5,
+      6,
+      7
+     ]
+    },
+    "variacion": 0.12783410841173293,
+    "unidad_variacion": "pp",
+    "comparables": false,
+    "abiertas_hasta": null
+   }
+  },
+  {
+   "id": "C3",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "margen_pct",
+    "filtros": {
+     "anio_fiscal": 2026,
+     "mes": [
+      8,
+      9,
+      10,
+      11
+     ]
+    },
+    "comparar_con": {
+     "anio_fiscal": 2025
+    }
+   },
+   "resultado": {
+    "medida": "margen_pct",
+    "unidad": "%",
+    "actual": {
+     "medida": "margen_pct",
+     "filtros": {
+      "anio_fiscal": 2026,
+      "mes": [
+       8,
+       9,
+       10,
+       11
+      ]
+     },
+     "periodo": {
+      "desde": "2025-08-01",
+      "hasta": "2025-11-30"
+     },
+     "valor": 26.76747440101494,
+     "unidad": "%",
+     "sql": "SELECT (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND f.mes IN (?, ?, ?, ?)",
+     "parametros": [
+      2026,
+      8,
+      9,
+      10,
+      11
+     ]
+    },
+    "anterior": {
+     "medida": "margen_pct",
+     "filtros": {
+      "anio_fiscal": 2025,
+      "mes": [
+       8,
+       9,
+       10,
+       11
+      ]
+     },
+     "periodo": {
+      "desde": "2024-08-01",
+      "hasta": "2024-11-30"
+     },
+     "valor": 26.87772511316987,
+     "unidad": "%",
+     "sql": "SELECT (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND f.mes IN (?, ?, ?, ?)",
+     "parametros": [
+      2025,
+      8,
+      9,
+      10,
+      11
+     ]
+    },
+    "variacion": -0.11025071215492943,
+    "unidad_variacion": "pp",
+    "comparables": false,
+    "abiertas_hasta": null
+   }
+  },
+  {
+   "id": "C4",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "margen_pct",
+    "filtros": {
+     "anio_fiscal": 2026,
+     "mes": [
+      12,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "comparar_con": {
+     "anio_fiscal": 2025
+    }
+   },
+   "resultado": {
+    "medida": "margen_pct",
+    "unidad": "%",
+    "actual": {
+     "medida": "margen_pct",
+     "filtros": {
+      "anio_fiscal": 2026,
+      "mes": [
+       12,
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "periodo": {
+      "desde": "2025-12-01",
+      "hasta": "2026-04-30"
+     },
+     "valor": 26.52281676498433,
+     "unidad": "%",
+     "sql": "SELECT (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND f.mes IN (?, ?, ?, ?, ?)",
+     "parametros": [
+      2026,
+      12,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "anterior": {
+     "medida": "margen_pct",
+     "filtros": {
+      "anio_fiscal": 2025,
+      "mes": [
+       12,
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "periodo": {
+      "desde": "2024-12-01",
+      "hasta": "2025-04-30"
+     },
+     "valor": 27.00616398599805,
+     "unidad": "%",
+     "sql": "SELECT (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND f.mes IN (?, ?, ?, ?, ?)",
+     "parametros": [
+      2025,
+      12,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "variacion": -0.4833472210137195,
+    "unidad_variacion": "pp",
+    "comparables": false,
+    "abiertas_hasta": null
+   }
+  },
+  {
+   "id": "C6",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Cuánto movió cada categoría (Almacén, Bebidas y el resto) el margen bruto % total, por mes, AF2026 contra AF2025:\n-- su cambio de margen, pesado por cuánto vende. Las categorías suman el cambio total.\nwith b as (\n  select f.anio_fiscal af, f.mes_fiscal as periodo,\n         case when p.categoria in ('Bebidas', 'Almacén') then p.categoria else 'Resto' end grupo,\n         p.categoria, sum(v.importe_neto) vn, sum(v.importe_neto) - sum(v.costo) mb\n  from ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\n  where f.anio_fiscal in (2025, 2026) group by all),\nt as (select af, periodo, sum(vn) vt, sum(mb) mbt from b group by all),\nx as (select b.*, vn / vt w, mb / vn m, mbt / vt mt from b join t using (af, periodo))\nselect a.periodo, a.grupo, round(sum(100 * (a.w * (a.m - p.m) + (a.w - p.w) * (p.m - p.mt))), 2) as aporte_pp\nfrom x a join x p on a.categoria = p.categoria and a.periodo = p.periodo and a.af = 2026 and p.af = 2025\ngroup by all order by 1, 2"
+   },
+   "resultado": {
+    "medida": "aporte_margen",
+    "unidad": "pp",
+    "unidad_variacion": "pp",
+    "filas": [
+     {
+      "mes_fiscal": 1,
+      "grupo": "Almacén",
+      "variacion": -0.03
+     },
+     {
+      "mes_fiscal": 2,
+      "grupo": "Almacén",
+      "variacion": -0.12
+     },
+     {
+      "mes_fiscal": 3,
+      "grupo": "Almacén",
+      "variacion": -0.0
+     },
+     {
+      "mes_fiscal": 4,
+      "grupo": "Almacén",
+      "variacion": -0.2
+     },
+     {
+      "mes_fiscal": 5,
+      "grupo": "Almacén",
+      "variacion": -0.15
+     },
+     {
+      "mes_fiscal": 6,
+      "grupo": "Almacén",
+      "variacion": -0.17
+     },
+     {
+      "mes_fiscal": 7,
+      "grupo": "Almacén",
+      "variacion": -0.21
+     },
+     {
+      "mes_fiscal": 8,
+      "grupo": "Almacén",
+      "variacion": -0.28
+     },
+     {
+      "mes_fiscal": 9,
+      "grupo": "Almacén",
+      "variacion": -0.21
+     },
+     {
+      "mes_fiscal": 10,
+      "grupo": "Almacén",
+      "variacion": -0.12
+     },
+     {
+      "mes_fiscal": 11,
+      "grupo": "Almacén",
+      "variacion": -0.19
+     },
+     {
+      "mes_fiscal": 12,
+      "grupo": "Almacén",
+      "variacion": -0.25
+     },
+     {
+      "mes_fiscal": 1,
+      "grupo": "Bebidas",
+      "variacion": -0.01
+     },
+     {
+      "mes_fiscal": 2,
+      "grupo": "Bebidas",
+      "variacion": 0.22
+     },
+     {
+      "mes_fiscal": 3,
+      "grupo": "Bebidas",
+      "variacion": 0.07
+     },
+     {
+      "mes_fiscal": 4,
+      "grupo": "Bebidas",
+      "variacion": -0.06
+     },
+     {
+      "mes_fiscal": 5,
+      "grupo": "Bebidas",
+      "variacion": 0.07
+     },
+     {
+      "mes_fiscal": 6,
+      "grupo": "Bebidas",
+      "variacion": -0.01
+     },
+     {
+      "mes_fiscal": 7,
+      "grupo": "Bebidas",
+      "variacion": 0.34
+     },
+     {
+      "mes_fiscal": 8,
+      "grupo": "Bebidas",
+      "variacion": -0.57
+     },
+     {
+      "mes_fiscal": 9,
+      "grupo": "Bebidas",
+      "variacion": -0.11
+     },
+     {
+      "mes_fiscal": 10,
+      "grupo": "Bebidas",
+      "variacion": -0.29
+     },
+     {
+      "mes_fiscal": 11,
+      "grupo": "Bebidas",
+      "variacion": -0.24
+     },
+     {
+      "mes_fiscal": 12,
+      "grupo": "Bebidas",
+      "variacion": -0.08
+     }
+    ]
+   }
+  },
+  {
+   "id": "C7",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Cuánto movió cada categoría (Almacén, Bebidas y el resto) el margen bruto % total, de mayo a julio, de agosto a noviembre y de diciembre a abril, AF2026 contra AF2025:\n-- su cambio de margen, pesado por cuánto vende. Las categorías suman el cambio total.\nwith b as (\n  select f.anio_fiscal af, case when f.mes_fiscal <= 3 then 'mayo a julio' when f.mes_fiscal <= 7 then 'agosto a noviembre' else 'diciembre a abril' end as periodo,\n         case when p.categoria in ('Bebidas', 'Almacén') then p.categoria else 'Resto' end grupo,\n         p.categoria, sum(v.importe_neto) vn, sum(v.importe_neto) - sum(v.costo) mb\n  from ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\n  where f.anio_fiscal in (2025, 2026) group by all),\nt as (select af, periodo, sum(vn) vt, sum(mb) mbt from b group by all),\nx as (select b.*, vn / vt w, mb / vn m, mbt / vt mt from b join t using (af, periodo))\nselect a.periodo, a.grupo, round(sum(100 * (a.w * (a.m - p.m) + (a.w - p.w) * (p.m - p.mt))), 2) as aporte_pp\nfrom x a join x p on a.categoria = p.categoria and a.periodo = p.periodo and a.af = 2026 and p.af = 2025\ngroup by all order by 1, 2"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "periodo": "agosto a noviembre",
+      "grupo": "Almacén",
+      "aporte_pp": -0.18
+     },
+     {
+      "periodo": "agosto a noviembre",
+      "grupo": "Bebidas",
+      "aporte_pp": 0.09
+     },
+     {
+      "periodo": "agosto a noviembre",
+      "grupo": "Resto",
+      "aporte_pp": -0.02
+     },
+     {
+      "periodo": "diciembre a abril",
+      "grupo": "Almacén",
+      "aporte_pp": -0.21
+     },
+     {
+      "periodo": "diciembre a abril",
+      "grupo": "Bebidas",
+      "aporte_pp": -0.27
+     },
+     {
+      "periodo": "diciembre a abril",
+      "grupo": "Resto",
+      "aporte_pp": -0.01
+     },
+     {
+      "periodo": "mayo a julio",
+      "grupo": "Almacén",
+      "aporte_pp": -0.05
+     },
+     {
+      "periodo": "mayo a julio",
+      "grupo": "Bebidas",
+      "aporte_pp": 0.09
+     },
+     {
+      "periodo": "mayo a julio",
+      "grupo": "Resto",
+      "aporte_pp": 0.09
+     }
+    ]
+   }
+  },
+  {
+   "id": "C8",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Descuento sobre la venta bruta de Bebidas, por mitad del año fiscal\nselect f.anio_fiscal, case when f.mes_fiscal <= 7 then 'mayo a noviembre' else 'diciembre a abril' end periodo,\n       round(100 * sum(v.descuento) / sum(v.importe_bruto), 2) descuento_pct\nfrom ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\nwhere p.categoria = 'Bebidas' and f.anio_fiscal in (2025, 2026) group by all order by 2, 1"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "anio_fiscal": 2025,
+      "periodo": "diciembre a abril",
+      "descuento_pct": 0.03
+     },
+     {
+      "anio_fiscal": 2026,
+      "periodo": "diciembre a abril",
+      "descuento_pct": 1.0
+     },
+     {
+      "anio_fiscal": 2025,
+      "periodo": "mayo a noviembre",
+      "descuento_pct": 0.71
+     },
+     {
+      "anio_fiscal": 2026,
+      "periodo": "mayo a noviembre",
+      "descuento_pct": 0.14
+     }
+    ]
+   }
+  },
+  {
+   "id": "C9",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Promociones de Bebidas de diciembre de 2025 a abril de 2026, de mayor a menor descuento\nselect pr.nombre, pr.descuento_pct, pr.fecha_desde, pr.fecha_hasta, p.descripcion\nfrom promociones pr join productos p on pr.sku = p.sku\nwhere p.categoria = 'Bebidas' and pr.fecha_desde between date '2025-12-01' and date '2026-04-30'\norder by pr.descuento_pct desc, pr.fecha_desde"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "nombre": "Verano Cola Andina",
+      "descuento_pct": 25.0,
+      "fecha_desde": "2025-12-01 00:00:00",
+      "fecha_hasta": "2025-12-31 00:00:00",
+      "descripcion": "Gaseosa cola Cola Andina 2,25 L"
+     },
+     {
+      "nombre": "Promo Vino 02/2026",
+      "descuento_pct": 20.0,
+      "fecha_desde": "2026-02-09 00:00:00",
+      "fecha_hasta": "2026-03-01 00:00:00",
+      "descripcion": "Vino tinto malbec Viñas del Sol 1 L"
+     },
+     {
+      "nombre": "Promo Jugo 02/2026",
+      "descuento_pct": 20.0,
+      "fecha_desde": "2026-02-16 00:00:00",
+      "fecha_hasta": "2026-02-22 00:00:00",
+      "descripcion": "Jugo de naranja Andina Frutal 1 L"
+     },
+     {
+      "nombre": "Promo Jugo 03/2026",
+      "descuento_pct": 20.0,
+      "fecha_desde": "2026-03-17 00:00:00",
+      "fecha_hasta": "2026-04-06 00:00:00",
+      "descripcion": "Jugo de naranja Sierra Frutas 1,5 L"
+     },
+     {
+      "nombre": "Promo Cerveza 12/2025",
+      "descuento_pct": 15.0,
+      "fecha_desde": "2025-12-01 00:00:00",
+      "fecha_hasta": "2025-12-21 00:00:00",
+      "descripcion": "Cerveza roja Patagónica 1 L"
+     },
+     {
+      "nombre": "Promo Agua 12/2025",
+      "descuento_pct": 15.0,
+      "fecha_desde": "2025-12-03 00:00:00",
+      "fecha_hasta": "2025-12-09 00:00:00",
+      "descripcion": "Agua saborizada limón Sierra Pura 2 L"
+     },
+     {
+      "nombre": "Promo Vino 12/2025",
+      "descuento_pct": 15.0,
+      "fecha_desde": "2025-12-28 00:00:00",
+      "fecha_hasta": "2026-01-03 00:00:00",
+      "descripcion": "Vino tinto malbec Viñas del Sol 1 L"
+     },
+     {
+      "nombre": "Promo Jugo 02/2026",
+      "descuento_pct": 15.0,
+      "fecha_desde": "2026-02-03 00:00:00",
+      "fecha_hasta": "2026-02-09 00:00:00",
+      "descripcion": "Jugo de manzana Sierra Frutas 1,5 L"
+     },
+     {
+      "nombre": "Promo Gaseosa 03/2026",
+      "descuento_pct": 10.0,
+      "fecha_desde": "2026-03-12 00:00:00",
+      "fecha_hasta": "2026-03-25 00:00:00",
+      "descripcion": "Gaseosa pomelo Citrus Andina 2,25 L"
+     }
+    ]
+   }
+  },
+  {
+   "id": "C11",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Cuánto movió cada una de las seis categorías el margen bruto % total en el año, AF2026 contra AF2025:\n-- su cambio de margen, pesado por cuánto vende. Las categorías suman el cambio total.\nwith b as (\n  select f.anio_fiscal af, p.categoria, sum(v.importe_neto) vn, sum(v.importe_neto) - sum(v.costo) mb\n  from ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\n  where f.anio_fiscal in (2025, 2026) group by all),\nt as (select af, sum(vn) vt, sum(mb) mbt from b group by all),\nx as (select b.*, vn / vt w, mb / vn m, mbt / vt mt from b join t using (af))\nselect a.categoria, round(100 * (a.w * (a.m - p.m) + (a.w - p.w) * (p.m - p.mt)), 2) as aporte_pp\nfrom x a join x p on a.categoria = p.categoria and a.af = 2026 and p.af = 2025 order by 2"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "categoria": "Almacén",
+      "aporte_pp": -0.16
+     },
+     {
+      "categoria": "Bebidas",
+      "aporte_pp": -0.07
+     },
+     {
+      "categoria": "Frescos",
+      "aporte_pp": -0.03
+     },
+     {
+      "categoria": "Perfumería",
+      "aporte_pp": 0.0
+     },
+     {
+      "categoria": "Lácteos",
+      "aporte_pp": 0.02
+     },
+     {
+      "categoria": "Limpieza",
+      "aporte_pp": 0.02
+     }
+    ]
+   }
+  },
+  {
+   "id": "C12",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "efectos_margen",
+    "filtros": {
+     "anio_fiscal": 2026,
+     "categoria": "Almacén",
+     "mes": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "comparar_con": {
+     "anio_fiscal": 2025
+    }
+   },
+   "resultado": {
+    "medida": "efectos_margen",
+    "unidad": "pp",
+    "filtros": {
+     "anio_fiscal": 2026,
+     "categoria": "Almacén",
+     "mes": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "comparar_con": {
+     "anio_fiscal": 2025
+    },
+    "comparables": false,
+    "abiertas_hasta": null,
+    "periodo": {
+     "desde": "2025-08-01",
+     "hasta": "2026-04-30"
+    },
+    "periodo_anterior": {
+     "desde": "2024-08-01",
+     "hasta": "2025-04-30"
+    },
+    "nota": "Los dos efectos suman la variación. Usan promedios: un cambio de mix (qué se vende) queda dentro de ellos.",
+    "sql": {
+     "precio_promedio actual": "SELECT SUM(v.importe_neto) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND p.categoria = ? AND f.mes IN (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+     "precio_promedio anterior": "SELECT SUM(v.importe_neto) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND p.categoria = ? AND f.mes IN (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+     "costo_unitario actual": "SELECT SUM(v.costo) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND p.categoria = ? AND f.mes IN (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+     "costo_unitario anterior": "SELECT SUM(v.costo) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND p.categoria = ? AND f.mes IN (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    "parametros": {
+     "precio_promedio actual": [
+      2026,
+      "Almacén",
+      8,
+      9,
+      10,
+      11,
+      12,
+      1,
+      2,
+      3,
+      4
+     ],
+     "precio_promedio anterior": [
+      2025,
+      "Almacén",
+      8,
+      9,
+      10,
+      11,
+      12,
+      1,
+      2,
+      3,
+      4
+     ],
+     "costo_unitario actual": [
+      2026,
+      "Almacén",
+      8,
+      9,
+      10,
+      11,
+      12,
+      1,
+      2,
+      3,
+      4
+     ],
+     "costo_unitario anterior": [
+      2025,
+      "Almacén",
+      8,
+      9,
+      10,
+      11,
+      12,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "margen_pct_anterior": 25.90211547326373,
+    "margen_pct_actual": 24.387979926250868,
+    "variacion_pp": -1.514135547012863,
+    "efecto_precio_pp": -0.07520822444381237,
+    "efecto_costo_pp": -1.438927322569057,
+    "precio_anterior": 2186.001212958664,
+    "precio_actual": 2183.784704737682,
+    "costo_unitario_anterior": 1619.780654531165,
+    "costo_unitario_actual": 1651.2037293137196,
+    "variacion_precio_pct": -0.10139556226420599,
+    "variacion_costo_unitario_pct": 1.9399586416007475
+   }
+  },
+  {
+   "id": "C13",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- La Cola Andina 2,25 L en diciembre de 2025, con la promoción «Verano Cola Andina» (25 %): precio y costo por unidad\nselect p.descripcion, round(sum(v.importe_neto) / sum(v.unidades)) precio_por_unidad,\n       round(sum(v.costo) / sum(v.unidades)) costo_por_unidad,\n       round(sum(v.importe_neto - v.costo) / sum(v.unidades)) margen_por_unidad\nfrom ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\nwhere v.sku = 'P0071' and f.anio_fiscal = 2026 and f.mes_fiscal = 8 group by 1"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "descripcion": "Gaseosa cola Cola Andina 2,25 L",
+      "precio_por_unidad": 2235.0,
+      "costo_por_unidad": 2349.0,
+      "margen_por_unidad": -115.0
+     }
+    ]
+   }
+  },
+  {
+   "id": "C14",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "efectos_margen",
+    "filtros": {
+     "anio_fiscal": 2026,
+     "categoria": "Almacén"
+    },
+    "agrupar_por": [
+     "mes_fiscal"
+    ],
+    "comparar_con": {
+     "anio_fiscal": 2025
+    }
+   },
+   "resultado": {
+    "medida": "efectos_margen",
+    "unidad": "pp",
+    "filtros": {
+     "anio_fiscal": 2026,
+     "categoria": "Almacén"
+    },
+    "comparar_con": {
+     "anio_fiscal": 2025
+    },
+    "comparables": false,
+    "abiertas_hasta": null,
+    "periodo": {
+     "desde": "2025-05-01",
+     "hasta": "2026-04-30"
+    },
+    "periodo_anterior": {
+     "desde": "2024-05-01",
+     "hasta": "2025-04-30"
+    },
+    "nota": "Los dos efectos suman la variación. Usan promedios: un cambio de mix (qué se vende) queda dentro de ellos.",
+    "sql": {
+     "precio_promedio actual": "SELECT f.mes_fiscal AS mes_fiscal, SUM(v.importe_neto) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND p.categoria = ?\nGROUP BY f.mes_fiscal\nORDER BY valor DESC",
+     "precio_promedio anterior": "SELECT f.mes_fiscal AS mes_fiscal, SUM(v.importe_neto) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND p.categoria = ?\nGROUP BY f.mes_fiscal\nORDER BY valor DESC",
+     "costo_unitario actual": "SELECT f.mes_fiscal AS mes_fiscal, SUM(v.costo) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND p.categoria = ?\nGROUP BY f.mes_fiscal\nORDER BY valor DESC",
+     "costo_unitario anterior": "SELECT f.mes_fiscal AS mes_fiscal, SUM(v.costo) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND p.categoria = ?\nGROUP BY f.mes_fiscal\nORDER BY valor DESC"
+    },
+    "parametros": {
+     "precio_promedio actual": [
+      2026,
+      "Almacén"
+     ],
+     "precio_promedio anterior": [
+      2025,
+      "Almacén"
+     ],
+     "costo_unitario actual": [
+      2026,
+      "Almacén"
+     ],
+     "costo_unitario anterior": [
+      2025,
+      "Almacén"
+     ]
+    },
+    "filas": [
+     {
+      "mes_fiscal": 3,
+      "margen_pct_anterior": 25.860916411172173,
+      "margen_pct_actual": 25.84879674495796,
+      "variacion_pp": -0.012119666214214675,
+      "efecto_precio_pp": -0.524895144923232,
+      "efecto_costo_pp": 0.5127754787090161,
+      "precio_anterior": 2198.8433249187296,
+      "precio_actual": 2183.3852391688074,
+      "costo_unitario_anterior": 1630.202290648858,
+      "costo_unitario_actual": 1619.0064265366482,
+      "variacion_precio_pct": -0.7030098768175619,
+      "variacion_costo_unitario_pct": -0.6867775966474476
+     },
+     {
+      "mes_fiscal": 1,
+      "margen_pct_anterior": 25.690718650294876,
+      "margen_pct_actual": 25.501215361627594,
+      "variacion_pp": -0.18950328866728228,
+      "efecto_precio_pp": -0.1326631618724039,
+      "efecto_costo_pp": -0.05684012679488468,
+      "precio_anterior": 2182.5433547898524,
+      "precio_actual": 2178.6538392180905,
+      "costo_unitario_anterior": 1621.8322820900844,
+      "costo_unitario_actual": 1623.0706316947176,
+      "variacion_precio_pct": -0.1782102318025336,
+      "variacion_costo_unitario_pct": 0.07635497321814011
+     },
+     {
+      "mes_fiscal": 2,
+      "margen_pct_anterior": 26.284010964689852,
+      "margen_pct_actual": 25.485291285840972,
+      "variacion_pp": -0.7987196788488795,
+      "efecto_precio_pp": -0.6664451449358122,
+      "efecto_costo_pp": -0.1322745339130681,
+      "precio_anterior": 2193.954658556815,
+      "precio_actual": 2174.297457948653,
+      "costo_unitario_anterior": 1617.295375541418,
+      "costo_unitario_actual": 1620.1714173698033,
+      "variacion_precio_pct": -0.8959711419511462,
+      "variacion_costo_unitario_pct": 0.17783033772804657
+     },
+     {
+      "mes_fiscal": 10,
+      "margen_pct_anterior": 25.511736231043415,
+      "margen_pct_actual": 24.52243322959585,
+      "variacion_pp": -0.9893030014475634,
+      "efecto_precio_pp": 0.12922473036107718,
+      "efecto_costo_pp": -1.1185277318086322,
+      "precio_anterior": 2183.696513827583,
+      "precio_actual": 2187.4914471247084,
+      "costo_unitario_anterior": 1626.5976191333998,
+      "costo_unitario_actual": 1651.0653176004316,
+      "variacion_precio_pct": 0.17378483104657505,
+      "variacion_costo_unitario_pct": 1.504225641254009
+     },
+     {
+      "mes_fiscal": 5,
+      "margen_pct_anterior": 25.321533191835698,
+      "margen_pct_actual": 24.282980312412793,
+      "variacion_pp": -1.0385528794229053,
+      "efecto_precio_pp": 0.013684454256901457,
+      "efecto_costo_pp": -1.0522373336798072,
+      "precio_anterior": 2192.9542761410535,
+      "precio_actual": 2193.356197656569,
+      "costo_unitario_anterior": 1637.6646312262162,
+      "costo_unitario_actual": 1660.7439439985385,
+      "variacion_precio_pct": 0.01832785662192471,
+      "variacion_costo_unitario_pct": 1.4092819941431634
+     },
+     {
+      "mes_fiscal": 6,
+      "margen_pct_anterior": 25.880598291749422,
+      "margen_pct_actual": 24.674211025272196,
+      "variacion_pp": -1.2063872664772255,
+      "efecto_precio_pp": 0.4187557872857073,
+      "efecto_costo_pp": -1.6251430537629383,
+      "precio_anterior": 2182.56307576983,
+      "precio_actual": 2194.964065037615,
+      "costo_unitario_anterior": 1617.7026936657896,
+      "costo_unitario_actual": 1653.373999701341,
+      "variacion_precio_pct": 0.5681846909927568,
+      "variacion_costo_unitario_pct": 2.205059444805557
+     },
+     {
+      "mes_fiscal": 4,
+      "margen_pct_anterior": 25.77881798652748,
+      "margen_pct_actual": 24.42371906700924,
+      "variacion_pp": -1.3550989195182375,
+      "efecto_precio_pp": -0.4232301276379635,
+      "efecto_costo_pp": -0.9318687918802689,
+      "precio_anterior": 2194.349419670128,
+      "precio_actual": 2181.9075669134395,
+      "costo_unitario_anterior": 1628.6720767849438,
+      "costo_unitario_actual": 1649.0045924686842,
+      "variacion_precio_pct": -0.5669950576312033,
+      "variacion_costo_unitario_pct": 1.2484106514478732
+     },
+     {
+      "mes_fiscal": 11,
+      "margen_pct_anterior": 25.876749076333905,
+      "margen_pct_actual": 24.507623968032743,
+      "variacion_pp": -1.3691251083011622,
+      "efecto_precio_pp": -0.13814599994683707,
+      "efecto_costo_pp": -1.2309791083543233,
+      "precio_anterior": 2183.95117291548,
+      "precio_actual": 2179.888441387176,
+      "costo_unitario_anterior": 1618.8156079504902,
+      "costo_unitario_actual": 1645.649579249397,
+      "variacion_precio_pct": -0.18602666482147034,
+      "variacion_costo_unitario_pct": 1.657629884905809
+     },
+     {
+      "mes_fiscal": 7,
+      "margen_pct_anterior": 26.15516195185026,
+      "margen_pct_actual": 24.493099753252835,
+      "variacion_pp": -1.6620621985974253,
+      "efecto_precio_pp": -0.02821420058788382,
+      "efecto_costo_pp": -1.6338479980095415,
+      "precio_anterior": 2184.8863872820343,
+      "precio_actual": 2184.05191759497,
+      "costo_unitario_anterior": 1613.425814224488,
+      "costo_unitario_actual": 1649.1099027556024,
+      "variacion_precio_pct": -0.03819281825919729,
+      "variacion_costo_unitario_pct": 2.2116968884786647
+     },
+     {
+      "mes_fiscal": 9,
+      "margen_pct_anterior": 25.79228210339184,
+      "margen_pct_actual": 24.02793513897713,
+      "variacion_pp": -1.7643469644147096,
+      "efecto_precio_pp": -0.31133953222448607,
+      "efecto_costo_pp": -1.4530074321902273,
+      "precio_anterior": 2187.0020789173323,
+      "precio_actual": 2177.8648162127633,
+      "costo_unitario_anterior": 1622.9243331159296,
+      "costo_unitario_actual": 1654.568870758557,
+      "variacion_precio_pct": -0.41779853767182074,
+      "variacion_costo_unitario_pct": 1.9498467671546837
+     },
+     {
+      "mes_fiscal": 12,
+      "margen_pct_anterior": 26.01911710883592,
+      "margen_pct_actual": 24.178424686745224,
+      "variacion_pp": -1.8406924220906973,
+      "efecto_precio_pp": -0.431185001372536,
+      "efecto_costo_pp": -1.409507420718154,
+      "precio_anterior": 2186.018611771341,
+      "precio_actual": 2173.351601368159,
+      "costo_unitario_anterior": 1617.2358691536065,
+      "costo_unitario_actual": 1647.8694212531875,
+      "variacion_precio_pct": -0.5794557436506809,
+      "variacion_costo_unitario_pct": 1.8941919780454342
+     },
+     {
+      "mes_fiscal": 8,
+      "margen_pct_anterior": 26.73874246056469,
+      "margen_pct_actual": 24.372991477479722,
+      "variacion_pp": -2.3657509830849683,
+      "efecto_precio_pp": 0.12067176979496663,
+      "efecto_costo_pp": -2.4864227528799314,
+      "precio_anterior": 2178.148417534893,
+      "precio_actual": 2181.742058762321,
+      "costo_unitario_anterior": 1595.7389217613725,
+      "costo_unitario_actual": 1649.9862527195899,
+      "variacion_precio_pct": 0.16498605873218608,
+      "variacion_costo_unitario_pct": 3.399511675653022
+     }
+    ],
+    "total": {
+     "margen_pct_anterior": 25.914135654127392,
+     "margen_pct_actual": 24.71114178553896,
+     "variacion_pp": -1.2029938685884325,
+     "efecto_precio_pp": -0.17262845982470854,
+     "efecto_costo_pp": -1.030365408763727,
+     "precio_anterior": 2187.562590134857,
+     "precio_actual": 2182.477170993733,
+     "costo_unitario_anterior": 1620.6746530083676,
+     "costo_unitario_actual": 1643.1621428324522,
+     "variacion_precio_pct": -0.23246965202539105,
+     "variacion_costo_unitario_pct": 1.3875388118363086
+    }
+   }
+  },
+  {
+   "id": "C15",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Costo y precio de lista por unidad de cada proveedor de Almacén en el AF2026: de mayo a julio contra de agosto a abril\nselect pr.nombre proveedor,\n       round(sum(v.costo) filter (where f.mes_fiscal <= 3) / sum(v.unidades) filter (where f.mes_fiscal <= 3)) costo_mayo_a_julio,\n       round(sum(v.costo) filter (where f.mes_fiscal >= 4) / sum(v.unidades) filter (where f.mes_fiscal >= 4)) costo_agosto_a_abril,\n       round(100 * ((sum(v.costo) filter (where f.mes_fiscal >= 4) / sum(v.unidades) filter (where f.mes_fiscal >= 4))\n                    / (sum(v.costo) filter (where f.mes_fiscal <= 3) / sum(v.unidades) filter (where f.mes_fiscal <= 3)) - 1), 1) variacion_costo_pct,\n       round(100 * ((sum(v.importe_bruto) filter (where f.mes_fiscal >= 4) / sum(v.unidades) filter (where f.mes_fiscal >= 4))\n                    / (sum(v.importe_bruto) filter (where f.mes_fiscal <= 3) / sum(v.unidades) filter (where f.mes_fiscal <= 3)) - 1), 1) variacion_precio_pct\nfrom ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\n     join proveedores pr on p.proveedor_id = pr.proveedor_id\nwhere p.categoria = 'Almacén' and f.anio_fiscal = 2026 group by 1 order by 4 desc"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "proveedor": "Molinos del Plata S.A.",
+      "costo_mayo_a_julio": 1254.0,
+      "costo_agosto_a_abril": 1397.0,
+      "variacion_costo_pct": 11.4,
+      "variacion_precio_pct": -0.1
+     },
+     {
+      "proveedor": "Industrias Del Sur S.A. (marca propia)",
+      "costo_mayo_a_julio": 522.0,
+      "costo_agosto_a_abril": 526.0,
+      "variacion_costo_pct": 0.7,
+      "variacion_precio_pct": 0.8
+     },
+     {
+      "proveedor": "Alimentos Cordilleranos S.A.",
+      "costo_mayo_a_julio": 1735.0,
+      "costo_agosto_a_abril": 1739.0,
+      "variacion_costo_pct": 0.2,
+      "variacion_precio_pct": 0.3
+     },
+     {
+      "proveedor": "Aceitera del Litoral S.A.",
+      "costo_mayo_a_julio": 3307.0,
+      "costo_agosto_a_abril": 3300.0,
+      "variacion_costo_pct": -0.2,
+      "variacion_precio_pct": 0.3
+     },
+     {
+      "proveedor": "Conservas Atlántico S.R.L.",
+      "costo_mayo_a_julio": 1848.0,
+      "costo_agosto_a_abril": 1834.0,
+      "variacion_costo_pct": -0.8,
+      "variacion_precio_pct": -0.1
+     }
+    ]
+   }
+  }
+ ]
+}

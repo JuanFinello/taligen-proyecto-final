@@ -1,0 +1,179 @@
+# Ejemplos de informes aprobados por el usuario (tarea del 20-11-2026, decisión 106).
+# Salen de casos que NO se miden: I1, I2, I3 y el semanal quedan para medir (mismo principio que la reserva,
+# decisión 80). Van a reemplazar a los 3 ejemplos inventados de EJEMPLOS_REDACCION (informes.py, decisión 105).
+# Cada ejemplo dice qué escribió Haiku, qué se corrigió y por qué: la corrección es lo que enseña.
+
+titulos_aprobados:
+  # Títulos que escribió Haiku y le gustaron al usuario tal cual (20-11-2026)
+  - texto: "Todas las categorías y regiones quedaron debajo del presupuesto de marzo"
+    pedido: "Informe de cumplimiento de presupuesto de marzo de 2026, por categoría y por región"
+  - texto: "Las ventas crecieron, pero el margen bajó por el costo de Almacén"
+    pedido: "Informe ejecutivo de la semana del 13 al 19 de abril de 2026"
+  - texto: "Subió la ganancia en pesos, pero bajó el margen bruto % por costos de Almacén"
+    pedido: "Informe ejecutivo del T3 del AF2026 con foco en margen"
+
+informes:
+  - id: margen_af2026
+    aprobado_por: usuario
+    fecha: 2026-11-20
+    pedido: "Armame un informe del margen del AF2026: ¿cayó todo el año o en algunos meses?"
+    archivos: margen_af2026/   # PDF, informe.json (consultas y resultados) y consultas.sql
+    graficos: [lineas, lineas_por_grupo]
+    final:
+      titulo: "El margen cae desde agosto por el costo de Almacén; desde diciembre cae más, por las promociones de Bebidas"
+      bajada: "El margen del año fue 26,7 %, 0,2 pp menos que en el AF2025."
+      razones:
+        - texto: "De mayo a julio estuvo 0,1 pp arriba del año anterior; de agosto a noviembre, 0,1 pp abajo; desde diciembre, 0,5 pp abajo."
+          grafico: "Margen bruto % por mes fiscal: el AF2026 contra el AF2025 (dos líneas)"
+        - texto: "Almacén resta entre 0,1 y 0,3 pp todos los meses desde agosto, cuando Molinos del Plata subió su costo 11,4 % y el precio de venta no cambió; explica tres cuartas partes de la caída del año."
+          grafico: "Aporte de Almacén y Bebidas al cambio del margen bruto % total, por mes (una línea por categoría)"
+        - texto: "Bebidas compensó la mitad hasta noviembre; desde diciembre tuvo más promociones, y la mayor, la Cola Andina al 25 %, se vendió bajo el costo."
+          grafico: "el mismo que la razón 2"
+    correcciones:
+      # mal: lo que escribió Haiku (o una versión intermedia); bien: lo aprobado; por_que: la lección
+      - mal: "El margen cayó en 8 de 12 meses: diciembre por precio, enero por costo"
+        bien: "El margen cae desde agosto por el costo de Almacén; desde diciembre cae más, por las promociones de Bebidas"
+        por_que: >-
+          Contar meses y explicar meses sueltos esconde el patrón. Cuando las líneas muestran un quiebre, la historia es
+          el quiebre: desde cuándo y qué cambió en ese momento.
+      - mal: "Almacén explica la caída: perdió 1,7 pp desde diciembre"
+        bien: "Almacén resta todo el año y es la categoría que más bajó el margen"
+        por_que: >-
+          El cambio de margen de una categoría en pp no dice cuánto movió el total: hay que pesarlo por cuánto vende.
+          Bebidas vende el doble que Almacén, y lo que pareció secundario (Bebidas) hacía el quiebre.
+      - mal: "Almacén pierde por costo desde agosto y Bebidas dejó de compensarlo"
+        bien: "desde diciembre, además, por promociones de Bebidas"
+        por_que: >-
+          Un quiebre se explica con lo que cambió en ese momento, no con lo que más cayó en el año. Almacén ya caía
+          desde agosto; lo de diciembre fueron las promociones de Bebidas.
+      - mal: "El margen cayó desde diciembre por las promociones de Bebidas; Almacén resta todo el año por costo"
+        bien: "El margen cae desde agosto por el costo de Almacén; desde diciembre cae más, por las promociones de Bebidas"
+        por_que: >-
+          Lo grave primero: en el año Almacén pesa más, y un costo que sube todo el año sigue el año que viene;
+          las promociones cambiaron de mes.
+      - mal: "En el año bajó 0,2 pp, a 26,7 %."
+        bien: "El margen del año fue 26,7 %, 0,2 pp menos que en el AF2025."
+        por_que: "Primero el valor, después el cambio y contra qué se compara."
+      - mal: "la grande de fin de año, la Cola Andina con 25 %, pasó de noviembre a diciembre"
+        bien: "sus promociones de fin de año pasaron de noviembre a diciembre; la mayor, la Cola Andina con 25 %"
+        por_que: "No fue la misma promoción la que cambió de mes: verificar cada afirmación contra su consulta."
+      - mal: "un tercer gráfico (descuento de Bebidas por mes) en lugar del margen total"
+        bien: "dos gráficos (margen total y aporte por categoría); las promociones, bien explicadas en su razón"
+        por_que: "El gráfico principal muestra lo que se pregunta (la caída del margen); la causa puede ir en el texto."
+      # Segunda revisión (20-11-2026): la versión aprobada antes decía «todo el año»
+      - mal: "El margen bajó por el costo de Almacén, todo el año"
+        bien: "El margen cae desde agosto por el costo de Almacén"
+        por_que: >-
+          El costo de Almacén empezó a restar en agosto, no en mayo: decir desde cuándo. Una fecha de arranque apunta
+          a una causa (un aumento) y avisa que el año que viene pesa los doce meses.
+      - mal: "Hasta noviembre quedó, en conjunto, igual que el año anterior; desde diciembre, 0,5 pp abajo"
+        bien: "De mayo a julio estuvo 0,1 pp arriba; de agosto a noviembre, 0,1 pp abajo; desde diciembre, 0,5 pp abajo"
+        por_que: >-
+          Los tramos siguen a los hechos (cuándo subió el costo, cuándo cambiaron las promociones), no a un corte
+          elegido: el promedio hasta noviembre escondía que el margen ya caía desde agosto.
+      - mal: "su margen cayó 1,2 pp, casi todo por costo (al lado de un gráfico de aportes de −0,2 pp)"
+        bien: "Almacén resta entre 0,1 y 0,3 pp todos los meses desde agosto, … y explica tres cuartas partes de la caída del año"
+        por_que: >-
+          La razón habla en la unidad de su gráfico, y dice cuánto de la caída explica. Lo que explica es Almacén
+          entero; el costo es casi todo, no todo: el sujeto de la oración tiene que ser exacto.
+      - mal: "es la categoría que más bajó el margen (con una consulta que juntaba cuatro categorías en «resto»)"
+        bien: "la misma afirmación, con la consulta abierta por las seis categorías"
+        por_que: "Una afirmación cierta también necesita una consulta que la pruebe."
+      - mal: "Bebidas lo compensó hasta noviembre"
+        bien: "Bebidas compensó la mitad hasta noviembre"
+        por_que: "«Compensó» sin cantidad se lee como todo: de agosto a noviembre fue +0,09 contra −0,18."
+      - mal: "la mayor, la Cola Andina con 25 %"
+        bien: "la mayor, la Cola Andina al 25 %, se vendió bajo el costo"
+        por_que: "De una promoción, decir lo que le sirve al gerente para decidir: esta perdía plata en cada unidad."
+      - mal: "desde agosto, cuando subió su costo"
+        bien: "desde agosto, cuando Molinos del Plata subió su costo 11,4 % y el precio de venta no cambió"
+        por_que: >-
+          Si sube el costo de una categoría, llegar hasta el proveedor: quién, desde cuándo, cuánto y si se trasladó al
+          precio. Es lo que el gerente necesita para actuar (renegociar o subir el precio).
+    # OJO, no llevar este ejemplo tal cual al prompt del coordinador: Molinos del Plata es el hallazgo de casos que se
+    # miden (P13, C2 y, casi seguro, I1). Al prompt va la lección, sin el nombre.
+
+  - id: marca_propia_af2026
+    aprobado_por: usuario
+    fecha: 2026-11-20
+    pedido: "Armame un informe de la marca propia en el AF2026: ¿conviene empujarla?"
+    archivos: marca_propia_af2026/
+    graficos: [pesas, pesas]
+    final:
+      titulo: "La marca propia tiene mejor margen %, pero cada unidad deja menos pesos: conviene si trae ventas nuevas, no si reemplaza a otras marcas"
+      bajada: "Es el 2,2 % de las ventas del AF2026."
+      razones:
+        - texto: "Su margen % es entre 7,9 y 9,6 pp mayor que el de las otras marcas, en las seis categorías."
+          grafico: "Margen bruto % por categoría: marca propia contra otras marcas (pesas)"
+        - texto: "Cada unidad deja menos pesos en 12 de las 14 subcategorías donde compite, porque es más barata."
+          grafico: "Margen bruto en pesos por unidad vendida, por subcategoría: marca propia contra otras marcas (pesas)"
+        - texto: "El caso más claro son las dos colas de 2,25 L: fuera del mes en que la Cola Andina estuvo en promoción, la de marca propia dejó $ 511 por unidad y la Cola Andina, $ 629."
+          grafico: "sin gráfico"
+    correcciones:
+      - mal: "La marca propia deja más margen, pero pesa poco y crece menos que la cadena"
+        bien: "La marca propia tiene mejor margen %, pero cada unidad deja menos pesos: conviene si trae ventas nuevas, no si reemplaza a otras marcas"
+        por_que: >-
+          El pedido preguntaba si conviene: el título lo contesta. Y un margen % más alto no alcanza para recomendar:
+          hay que mirarlo también en pesos por unidad. La marca propia es más barata, y por unidad deja menos.
+      - mal: "pero crece poco: creció 0,4 % contra 2,1 % de las otras marcas"
+        bien: "(el crecimiento salió del informe)"
+        por_que: >-
+          El promedio del año escondía un solo mes (diciembre, −12,1 %); sin él creció 1,8 %, casi como el resto.
+          Antes de decir que algo anda mal todo el año, mirarlo mes a mes. Y un dato que no contesta la pregunta, sobra.
+      - mal: "un gráfico de las ventas de marca propia contra su año anterior, para una razón que la compara con las otras marcas"
+        bien: "cada gráfico muestra los dos lados que compara su razón"
+        por_que: "Si la razón compara dos grupos, el gráfico tiene que mostrar los dos."
+      - mal: "una tercera razón sobre la promoción de Cola Andina, vendida bajo el costo en diciembre"
+        bien: "El caso más claro son las dos colas de 2,25 L: … $ 511 por unidad y la Cola Andina, $ 629"
+        por_que: >-
+          Cada razón sostiene el título. Un hallazgo interesante que no lo prueba (aquí, de promociones) va a otro informe.
+      - mal: "la Cola Andina deja $ 493 por unidad en el año (promedio con el mes de la promoción adentro)"
+        bien: "fuera del mes en que la Cola Andina estuvo en promoción, … $ 511 por unidad y la Cola Andina, $ 629"
+        por_que: "Comparar productos comparables (mismo tamaño) y en condiciones comparables (sin el mes de la promoción), y decirlo."
+      - mal: "La marca propia deja más margen por peso vendido, pero menos por unidad: conviene solo si suma ventas"
+        bien: "La marca propia tiene mejor margen %, pero cada unidad deja menos pesos: conviene si trae ventas nuevas, no si reemplaza a otras marcas"
+        por_que: "El título se tiene que entender solo: palabras del lector («margen %», «ventas nuevas») y la alternativa dicha."
+
+  - id: semana_tranquila_2025_05_12
+    aprobado_por: usuario
+    fecha: 2026-11-20
+    # El pedido es el del informe semanal programado (informe_programado.py), para una semana anterior a los cuatro
+    # eventos de la base: no toca ningún hallazgo que se mida.
+    pedido: "Informe ejecutivo de la semana del 12 al 18 de mayo de 2025: qué requiere la atención de la gerencia (quiebre de stock por región y proveedor, sucursales con mayor caída, productos con caída fuerte), contra la misma semana del año anterior"
+    archivos: semana_tranquila_2025_05_12/
+    graficos: [distribucion]   # columnas ordenadas, una por sucursal
+    final:
+      titulo: "Semana sin novedades: nada requiere la atención de la gerencia"
+      bajada: "Las ventas netas subieron 2,2 % contra la misma semana de 2024 y los faltantes bajaron a 1,0 %."
+      razones:
+        - texto: "Los faltantes están entre 0,9 % y 1,1 % en las cuatro regiones, y el proveedor con más faltantes tiene 2,1 %."
+          grafico: "sin gráfico"
+        - texto: "Las ventas por sucursal fueron de −16,6 % a +20,0 %, sin ninguna aislada del resto; la mayor baja en pesos, Valle Hermoso ($ 0,48 M), había subido 3,3 % la semana anterior."
+          grafico: "Cambio de ventas netas por sucursal, en %: una columna por sucursal, de la que más bajó a la que más subió"
+        - texto: "Tampoco hay un producto para mirar: la mayor baja en pesos es de un producto grande que varió 9,1 % (el jabón en polvo Espuma Clara), y las mayores en porcentaje, de productos que venden menos de $ 0,5 M por semana."
+          grafico: "sin gráfico"
+    correcciones:
+      - mal: "No hay alarma general: la caída es puntual en Espuma Clara y Valle Hermoso"
+        bien: "Semana sin novedades: nada requiere la atención de la gerencia"
+        por_que: >-
+          Si no pasa nada, se dice. En cualquier semana alguna sucursal y algún producto caen: el que más cayó no es
+          un culpable. Un informe que siempre señala a alguien deja de servir el día que hay un problema de verdad.
+      - mal: "La caída de sucursales se explica por Valle Hermoso, que perdió $481.477"
+        bien: "Las ventas por sucursal fueron de −16,6 % a +20,0 %, sin ninguna aislada del resto; … Valle Hermoso ($ 0,48 M), había subido 3,3 % la semana anterior"
+        por_que: >-
+          Antes de señalar una caída, compararla con lo que varían todas (el rango de la semana) y con su propia
+          semana anterior. Una baja dentro del rango, de una sucursal que venía subiendo, es ruido.
+      - mal: "Espuma Clara perdió $763.390, mientras su subcategoría apenas bajó 0,6 %: la caída es del producto"
+        bien: "la mayor baja en pesos es de un producto grande que varió 9,1 % …, y las mayores en porcentaje, de productos que venden menos de $ 0,5 M por semana"
+        por_que: >-
+          Una caída se mira en pesos y en porcentaje a la vez: la mayor en pesos suele ser del producto que más
+          vende, y la mayor en porcentaje, de uno chico. Ninguna de las dos sola es una señal.
+      - mal: "ningún proveedor pasa de 2,1 % (el más alto tenía 2,12 %)"
+        bien: "el proveedor con más faltantes tiene 2,1 %"
+        por_que: "Un límite («no pasa de») tiene que valer con el número sin redondear."
+      - mal: "decir «no hay nada» sin cifras («productos grandes», «productos chicos»)"
+        bien: "cada «sin novedad» con su prueba: un rango, una cifra en pesos, la semana anterior"
+        por_que: "«No pasa nada» también se prueba; es más corto, no menos respaldado."
+      - mal: "un gráfico de puntos, uno por sucursal, apilados"
+        bien: "columnas ordenadas, una por sucursal: una escalera sin saltos"
+        por_que: "El gráfico se tiene que leer sin explicación: en el de puntos la altura no significaba nada."

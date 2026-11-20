@@ -1,0 +1,683 @@
+{
+ "pedido": "Armame un informe de la marca propia en el AF2026: ¿conviene empujarla?",
+ "nombre": "Informe",
+ "corrida": "20261120-142835-cab8",
+ "version": "c9eb9e",
+ "plan": {
+  "tipo": "informe",
+  "titulo": "Marca propia Del Sur en el AF2026: ¿conviene empujarla?",
+  "supuestos": [
+   "El AF2026 va de mayo de 2025 a abril de 2026.",
+   "Marca propia son los productos Del Sur (Industrias Del Sur S.A.).",
+   "El margen por unidad promedia productos distintos (tamaños y calidades): es una referencia. La comparación exacta es la de las dos colas de 2,25 L, sin diciembre de 2025, cuando la Cola Andina estuvo al 25 % de descuento.",
+   "Que conviene si trae ventas nuevas y no si reemplaza a otras marcas es una lectura de los datos: la base no registra qué habría comprado cada cliente."
+  ],
+  "encargos": [
+   {
+    "objetivo": "Mostrar cuánto pesa la marca propia en las ventas de cada categoría y si está creciendo más o menos que el año anterior.",
+    "pregunta": "¿Cuánto vendió la marca propia Del Sur en el AF2026 (mayo de 2025 a abril de 2026) por categoría, y cómo se compara con el AF2025 en sucursales comparables?",
+    "consultas": [
+     "ventas_netas en AF2026 con es_marca_propia = sí, agrupado por categoría",
+     "ventas_netas en AF2026 con es_marca_propia = sí, comparado con AF2025 en comparables, por categoría"
+    ],
+    "devolver": "Señalar la participación de la marca propia en las ventas netas del AF2026 y en qué categorías pesa más, y si su crecimiento frente al AF2025 supera al del total de la cadena o queda por debajo. Incluir los pesos netos totales de la marca propia.",
+    "limites": "No analizar el margen ni los descuentos; eso va en los otros encargos. No abrir por producto ni proveedor."
+   },
+   {
+    "objetivo": "Comparar cuánto margen deja la marca propia frente a las demás marcas, en cada categoría.",
+    "pregunta": "¿Cuál fue el margen bruto % de la marca propia Del Sur frente al de las otras marcas en el AF2026 (mayo de 2025 a abril de 2026), por categoría?",
+    "consultas": [
+     "margen_pct en AF2026 con es_marca_propia = sí, agrupado por categoría",
+     "margen_pct en AF2026 con es_marca_propia = no, agrupado por categoría"
+    ],
+    "devolver": "Dar el margen % de la marca propia y de las otras marcas en el AF2026, señalando en qué categorías la ventaja de margen es mayor y en cuáles no existe. Mencionar los pesos de margen de la marca propia en el total.",
+    "limites": "No explicar por qué cambió el margen en el tiempo; eso se ve en el encargo de efectos. No mirar stock."
+   },
+   {
+    "objetivo": "Saber si el margen de la marca propia mejoró o empeoró frente al año anterior, y si los descuentos son la causa.",
+    "pregunta": "¿Qué explica el cambio del margen bruto % de la marca propia Del Sur en el AF2026 (mayo de 2025 a abril de 2026) frente al AF2025, y cuánto descuento se resignó en promociones sobre sus ventas?",
+    "consultas": [
+     "efectos_margen de la marca propia en AF2026 comparado con AF2025 en comparables, con es_marca_propia = sí",
+     "descuentos en AF2026 con es_marca_propia = sí, comparado con AF2025 en comparables"
+    ],
+    "devolver": "Explicar en puntos porcentuales cuánto de la variación del margen de la marca propia se debe al precio y cuánto al costo, y si los descuentos crecieron o bajaron. Dar el descuento total resignado en pesos en el AF2026.",
+    "limites": "No analizar las ventas por categoría ni el margen de otras marcas. No revisar promociones producto por producto."
+   },
+   {
+    "objetivo": "Verificar si la marca propia tiene stock para vender más, antes de decidir empujarla.",
+    "pregunta": "¿Cuál fue la tasa de quiebre de stock de la marca propia Del Sur en el AF2026 (mayo de 2025 a abril de 2026), por categoría, y cómo se compara con la de las otras marcas?",
+    "consultas": [
+     "tasa_quiebre_pct en AF2026 con es_marca_propia = sí, agrupado por categoría",
+     "tasa_quiebre_pct en AF2026 con es_marca_propia = no, agrupado por categoría"
+    ],
+    "devolver": "Dar la tasa de quiebre de la marca propia y de las otras marcas en el AF2026, señalando las categorías donde la marca propia tiene más faltantes. Indicar si la tasa es alta frente al año anterior en las mismas semanas.",
+    "limites": "No analizar ventas ni margen. No buscar causas de los quiebres, solo medir su tamaño."
+   }
+  ]
+ },
+ "hallazgos": [
+  {
+   "objetivo": "Mostrar cuánto pesa la marca propia en las ventas de cada categoría y si está creciendo más o menos que el año anterior.",
+   "pregunta": "¿Cuánto vendió la marca propia Del Sur en el AF2026 (mayo de 2025 a abril de 2026) por categoría, y cómo se compara con el AF2025 en sucursales comparables?",
+   "hallazgo": "La marca propia Del Sur vendió $219.699.750 netos en el AF2026, el 2,16 % de las ventas netas de la cadena ($10.166.198.308). Pesa más en Bebidas ($69.979.000, 31,9 % de la marca propia), Almacén ($56.671.150, 25,8 %) y Limpieza ($49.288.700, 22,4 %). En sucursales comparables creció un 0,41 % frente al AF2025 ($215.352.800 contra $214.482.100), muy por debajo del 2,05 % del total de la cadena en comparables: Bebidas cayó un 2,6 % y Almacén y Limpieza crecieron, pero Frescos también cayó.",
+   "consultas": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5"
+   ]
+  },
+  {
+   "objetivo": "Comparar cuánto margen deja la marca propia frente a las demás marcas, en cada categoría.",
+   "pregunta": "¿Cuál fue el margen bruto % de la marca propia Del Sur frente al de las otras marcas en el AF2026 (mayo de 2025 a abril de 2026), por categoría?",
+   "hallazgo": "En el AF2026 (mayo de 2025 a abril de 2026) la marca propia Del Sur tuvo un margen bruto de 34,53 %, frente a 26,55 % de las otras marcas. Por categoría, Del Sur supera a las otras marcas en las seis: Perfumería 42,96 % frente a 35,08 %, Limpieza 37,96 % frente a 29,55 %, Frescos 35,95 % frente a 27,91 %, Almacén 33,96 % frente a 24,32 %, Bebidas 31,93 % frente a 23,60 % y Lácteos 27,95 % frente a 19,21 %; no hay ninguna categoría donde la ventaja desaparezca. Del Sur pesa poco en el total: vendió 219.699.750 pesos, el 2,16 % de las ventas netas (10.166.198.308), y aportó 75.865.032,89 pesos de margen bruto, el 2,79 % del total (2.716.409.548,37).",
+   "consultas": [
+    "C6",
+    "C7",
+    "C8",
+    "C9",
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "C14",
+    "C15"
+   ]
+  },
+  {
+   "objetivo": "Saber si el margen de la marca propia mejoró o empeoró frente al año anterior, y si los descuentos son la causa.",
+   "pregunta": "¿Qué explica el cambio del margen bruto % de la marca propia Del Sur en el AF2026 (mayo de 2025 a abril de 2026) frente al AF2025, y cuánto descuento se resignó en promociones sobre sus ventas?",
+   "hallazgo": "En comparables (mismas sucursales), el margen bruto % de Del Sur bajó de 34,61 % en AF2025 a 34,55 % en AF2026, es decir −0,05 pp. El efecto precio explica −0,31 pp (el precio promedio bajó 0,47 %, de 1.169,99 a 1.164,48 ARS por unidad) y el efecto costo suma +0,25 pp (el costo por unidad bajó 0,39 %, de 765,11 a 762,14 ARS), así que la caída de precio casi se compensó con la baja del costo. Los descuentos de Del Sur fueron 0 ARS tanto en AF2025 como en AF2026, por lo que no hubo descuento resignado ni cambio en ese frente; todo el descuento de la cadena en AF2026 (25.014.032 ARS) corresponde a otras marcas.",
+   "consultas": [
+    "C16",
+    "C17",
+    "C18",
+    "C19"
+   ]
+  },
+  {
+   "objetivo": "Verificar si la marca propia tiene stock para vender más, antes de decidir empujarla.",
+   "pregunta": "¿Cuál fue la tasa de quiebre de stock de la marca propia Del Sur en el AF2026 (mayo de 2025 a abril de 2026), por categoría, y cómo se compara con la de las otras marcas?",
+   "hallazgo": "En el AF2026 la tasa de quiebre de la marca propia Del Sur fue de 1,14 %, frente a 1,46 % de las otras marcas, así que Del Sur tuvo menos faltantes en conjunto. Por categoría, la marca propia tuvo más quiebres en Lácteos (1,26 %), Perfumería (1,21 %) y Frescos (1,21 %), y menos en Limpieza (1,06 %) y Almacén (1,08 %); en Lácteos y Frescos las otras marcas tuvieron tasas de 2,05 % y 1,16 %, respectivamente. Frente al AF2025, la tasa de Del Sur subió 0,04 pp (de 1,10 % a 1,14 %), menos que la de las otras marcas (+0,14 pp, de 1,32 % a 1,46 %), por lo que no es una tasa alta respecto del año anterior; las mayores subas fueron en Almacén (+0,23 pp) y Perfumería (+0,17 pp), y Limpieza bajó 0,22 pp.",
+   "consultas": [
+    "C20",
+    "C21",
+    "C22",
+    "C23",
+    "C24"
+   ]
+  }
+ ],
+ "redaccion": {
+  "titulo": "La marca propia tiene mejor margen %, pero cada unidad deja menos pesos: conviene si trae ventas nuevas, no si reemplaza a otras marcas",
+  "bajada": "Es el 2,2 % de las ventas del AF2026 [C1].",
+  "indicadores": [
+   {
+    "nombre": "Ventas netas",
+    "consulta": "C1",
+    "dato": "valor",
+    "variacion": null,
+    "contra": ""
+   }
+  ],
+  "puntos": [
+   {
+    "texto": "Su margen % es entre 7,9 y 9,6 pp mayor que el de las otras marcas, en las seis categorías [C3].",
+    "grafico": {
+     "consulta": "C2",
+     "destacar": []
+    }
+   },
+   {
+    "texto": "Cada unidad deja menos pesos en 12 de las 14 subcategorías donde compite [C5], porque es más barata [C4].",
+    "grafico": {
+     "consulta": "C4",
+     "destacar": []
+    }
+   },
+   {
+    "texto": "El caso más claro son las dos colas de 2,25 L: fuera del mes en que la Cola Andina estuvo en promoción, la de marca propia dejó $ 511 por unidad y la Cola Andina, $ 629 [C6].",
+    "grafico": null
+   }
+  ]
+ },
+ "revisiones": [
+  [
+   "forma: el punto «En mismas sucursales, Bebidas cayó 2,6 % y Frescos…» da números que no se ven en su gráfico: el gráfico muestra el cambio de ventas netas, en pesos y sus etiquetas dicen Almacén +$ 1.637.200, Limpieza +$ 633.300, Perfumería +$ 525.600, Lácteos +$ 16.500, Frescos −$ 123.000, Bebidas −$ 1.818.900. Usá esos números tal como se ven (redondeados igual), o elegí la consulta que muestra lo que dice el punto",
+   "editor: Por qué 1: no se entiende qué mide el 27,95 % frente al 19,21 %. El título habla de margen, pero el punto no lo dice. Propuesta: «En las seis categorías, Del Sur tiene más margen que las demás marcas: en Lácteos, 27,95 % contra 19,21 % [C8][C9].»",
+   "editor: Por qué 2: los faltantes no sostienen el título, que habla de margen, peso y crecimiento. Sobra. Propuesta: «Quitar este punto. Si se mantiene, debe explicar por qué la marca propia gana margen o crece menos.»",
+   "editor: Por qué 3: \"y Frescos también\" es ambiguo, porque no queda claro qué cayó. Propuesta: «En mismas sucursales, las ventas de Bebidas cayeron 2,6 % y las de Frescos también [C4].»"
+  ],
+  []
+ ],
+ "consultas": [
+  {
+   "id": "C1",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "anio_fiscal": 2026
+    },
+    "agrupar_por": [
+     "es_marca_propia"
+    ]
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "anio_fiscal": 2026
+    },
+    "periodo": {
+     "desde": "2025-05-01",
+     "hasta": "2026-04-30"
+    },
+    "filas": [
+     {
+      "es_marca_propia": false,
+      "valor": 9946498558.0,
+      "participacion_pct": 97.83891929565142
+     },
+     {
+      "es_marca_propia": true,
+      "valor": 219699750.0,
+      "participacion_pct": 2.161080704348582
+     }
+    ],
+    "unidad": "ARS",
+    "sql": "SELECT p.es_marca_propia AS es_marca_propia, SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ?\nGROUP BY p.es_marca_propia\nORDER BY valor DESC",
+    "parametros": [
+     2026
+    ],
+    "total": 10166198308.0,
+    "sql_total": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ?"
+   }
+  },
+  {
+   "id": "C2",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "margen_pct",
+    "filtros": {
+     "anio_fiscal": 2026
+    },
+    "agrupar_por": [
+     "categoria",
+     "es_marca_propia"
+    ]
+   },
+   "resultado": {
+    "medida": "margen_pct",
+    "filtros": {
+     "anio_fiscal": 2026
+    },
+    "periodo": {
+     "desde": "2025-05-01",
+     "hasta": "2026-04-30"
+    },
+    "filas": [
+     {
+      "categoria": "Perfumería",
+      "es_marca_propia": true,
+      "valor": 42.95601688780422
+     },
+     {
+      "categoria": "Limpieza",
+      "es_marca_propia": true,
+      "valor": 37.956057067847475
+     },
+     {
+      "categoria": "Frescos",
+      "es_marca_propia": true,
+      "valor": 35.94736124116401
+     },
+     {
+      "categoria": "Perfumería",
+      "es_marca_propia": false,
+      "valor": 35.08003082639668
+     },
+     {
+      "categoria": "Almacén",
+      "es_marca_propia": true,
+      "valor": 33.95665247661322
+     },
+     {
+      "categoria": "Bebidas",
+      "es_marca_propia": true,
+      "valor": 31.92949609168506
+     },
+     {
+      "categoria": "Limpieza",
+      "es_marca_propia": false,
+      "valor": 29.55034494271323
+     },
+     {
+      "categoria": "Lácteos",
+      "es_marca_propia": true,
+      "valor": 27.953145191041024
+     },
+     {
+      "categoria": "Frescos",
+      "es_marca_propia": false,
+      "valor": 27.906894347572447
+     },
+     {
+      "categoria": "Almacén",
+      "es_marca_propia": false,
+      "valor": 24.31804585950024
+     },
+     {
+      "categoria": "Bebidas",
+      "es_marca_propia": false,
+      "valor": 23.60444712157559
+     },
+     {
+      "categoria": "Lácteos",
+      "es_marca_propia": false,
+      "valor": 19.207679979734294
+     }
+    ],
+    "unidad": "%",
+    "sql": "SELECT p.categoria AS categoria, p.es_marca_propia AS es_marca_propia, (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.importe_neto), 0) * 100 AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ?\nGROUP BY p.categoria, p.es_marca_propia\nORDER BY valor DESC",
+    "parametros": [
+     2026
+    ]
+   }
+  },
+  {
+   "id": "C3",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Cuántos pp más de margen bruto % deja la marca propia que las otras marcas, por categoría, AF2026\nselect p.categoria,\n       round(100 * (sum(v.importe_neto - v.costo) filter (where p.es_marca_propia) / sum(v.importe_neto) filter (where p.es_marca_propia)\n             - sum(v.importe_neto - v.costo) filter (where not p.es_marca_propia) / sum(v.importe_neto) filter (where not p.es_marca_propia)), 2) diferencia_pp\nfrom ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\nwhere f.anio_fiscal = 2026 group by 1 order by 2"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "categoria": "Perfumería",
+      "diferencia_pp": 7.88
+     },
+     {
+      "categoria": "Frescos",
+      "diferencia_pp": 8.04
+     },
+     {
+      "categoria": "Bebidas",
+      "diferencia_pp": 8.33
+     },
+     {
+      "categoria": "Limpieza",
+      "diferencia_pp": 8.41
+     },
+     {
+      "categoria": "Lácteos",
+      "diferencia_pp": 8.75
+     },
+     {
+      "categoria": "Almacén",
+      "diferencia_pp": 9.64
+     }
+    ]
+   }
+  },
+  {
+   "id": "C4",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Margen bruto en pesos por unidad vendida, marca propia y otras marcas, en las subcategorías donde hay marca\n-- propia, AF2026. Promedia productos distintos (tamaños y calidades): es una referencia, no una comparación exacta\nwith s as (select distinct subcategoria from productos where es_marca_propia)\nselect p.subcategoria, p.es_marca_propia,\n       round(sum(v.importe_neto - v.costo) / sum(v.unidades)) margen_por_unidad,\n       round(sum(v.importe_neto) / sum(v.unidades)) precio_por_unidad\nfrom ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku join s using (subcategoria)\nwhere f.anio_fiscal = 2026 group by all order by 1, 2"
+   },
+   "resultado": {
+    "medida": "margen_por_unidad",
+    "unidad": "ARS por unidad",
+    "con_precio": [
+     {
+      "subcategoria": "Aceites",
+      "es_marca_propia": false,
+      "margen_por_unidad": 1157.0,
+      "precio_por_unidad": 4459.0
+     },
+     {
+      "subcategoria": "Aceites",
+      "es_marca_propia": true,
+      "margen_por_unidad": 985.0,
+      "precio_por_unidad": 2900.0
+     },
+     {
+      "subcategoria": "Aguas",
+      "es_marca_propia": false,
+      "margen_por_unidad": 379.0,
+      "precio_por_unidad": 1549.0
+     },
+     {
+      "subcategoria": "Aguas",
+      "es_marca_propia": true,
+      "margen_por_unidad": 239.0,
+      "precio_por_unidad": 750.0
+     },
+     {
+      "subcategoria": "Arroz",
+      "es_marca_propia": false,
+      "margen_por_unidad": 544.0,
+      "precio_por_unidad": 2096.0
+     },
+     {
+      "subcategoria": "Arroz",
+      "es_marca_propia": true,
+      "margen_por_unidad": 373.0,
+      "precio_por_unidad": 1100.0
+     },
+     {
+      "subcategoria": "Detergentes",
+      "es_marca_propia": false,
+      "margen_por_unidad": 646.0,
+      "precio_por_unidad": 2097.0
+     },
+     {
+      "subcategoria": "Detergentes",
+      "es_marca_propia": true,
+      "margen_por_unidad": 417.0,
+      "precio_por_unidad": 1100.0
+     },
+     {
+      "subcategoria": "Fideos",
+      "es_marca_propia": false,
+      "margen_por_unidad": 351.0,
+      "precio_por_unidad": 1542.0
+     },
+     {
+      "subcategoria": "Fideos",
+      "es_marca_propia": true,
+      "margen_por_unidad": 255.0,
+      "precio_por_unidad": 750.0
+     },
+     {
+      "subcategoria": "Galletitas",
+      "es_marca_propia": false,
+      "margen_por_unidad": 416.0,
+      "precio_por_unidad": 1815.0
+     },
+     {
+      "subcategoria": "Galletitas",
+      "es_marca_propia": true,
+      "margen_por_unidad": 221.0,
+      "precio_por_unidad": 650.0
+     },
+     {
+      "subcategoria": "Gaseosas",
+      "es_marca_propia": false,
+      "margen_por_unidad": 558.0,
+      "precio_por_unidad": 2533.0
+     },
+     {
+      "subcategoria": "Gaseosas",
+      "es_marca_propia": true,
+      "margen_por_unidad": 507.0,
+      "precio_por_unidad": 1588.0
+     },
+     {
+      "subcategoria": "Jabón de tocador",
+      "es_marca_propia": false,
+      "margen_por_unidad": 439.0,
+      "precio_por_unidad": 1232.0
+     },
+     {
+      "subcategoria": "Jabón de tocador",
+      "es_marca_propia": true,
+      "margen_por_unidad": 515.0,
+      "precio_por_unidad": 1200.0
+     },
+     {
+      "subcategoria": "Lavandinas",
+      "es_marca_propia": false,
+      "margen_por_unidad": 524.0,
+      "precio_por_unidad": 1713.0
+     },
+     {
+      "subcategoria": "Lavandinas",
+      "es_marca_propia": true,
+      "margen_por_unidad": 342.0,
+      "precio_por_unidad": 900.0
+     },
+     {
+      "subcategoria": "Leches",
+      "es_marca_propia": false,
+      "margen_por_unidad": 294.0,
+      "precio_por_unidad": 1572.0
+     },
+     {
+      "subcategoria": "Leches",
+      "es_marca_propia": true,
+      "margen_por_unidad": 280.0,
+      "precio_por_unidad": 1000.0
+     },
+     {
+      "subcategoria": "Panificados",
+      "es_marca_propia": false,
+      "margen_por_unidad": 598.0,
+      "precio_por_unidad": 2151.0
+     },
+     {
+      "subcategoria": "Panificados",
+      "es_marca_propia": true,
+      "margen_por_unidad": 539.0,
+      "precio_por_unidad": 1500.0
+     },
+     {
+      "subcategoria": "Papeles",
+      "es_marca_propia": false,
+      "margen_por_unidad": 1025.0,
+      "precio_por_unidad": 3412.0
+     },
+     {
+      "subcategoria": "Papeles",
+      "es_marca_propia": true,
+      "margen_por_unidad": 911.0,
+      "precio_por_unidad": 2400.0
+     },
+     {
+      "subcategoria": "Shampoo y acondicionador",
+      "es_marca_propia": false,
+      "margen_por_unidad": 1905.0,
+      "precio_por_unidad": 5504.0
+     },
+     {
+      "subcategoria": "Shampoo y acondicionador",
+      "es_marca_propia": true,
+      "margen_por_unidad": 1117.0,
+      "precio_por_unidad": 2600.0
+     },
+     {
+      "subcategoria": "Yogures",
+      "es_marca_propia": false,
+      "margen_por_unidad": 340.0,
+      "precio_por_unidad": 1644.0
+     },
+     {
+      "subcategoria": "Yogures",
+      "es_marca_propia": true,
+      "margen_por_unidad": 419.0,
+      "precio_por_unidad": 1500.0
+     }
+    ],
+    "filas": [
+     {
+      "subcategoria": "Aceites",
+      "es_marca_propia": false,
+      "valor": 1157.0
+     },
+     {
+      "subcategoria": "Aceites",
+      "es_marca_propia": true,
+      "valor": 985.0
+     },
+     {
+      "subcategoria": "Aguas",
+      "es_marca_propia": false,
+      "valor": 379.0
+     },
+     {
+      "subcategoria": "Aguas",
+      "es_marca_propia": true,
+      "valor": 239.0
+     },
+     {
+      "subcategoria": "Arroz",
+      "es_marca_propia": false,
+      "valor": 544.0
+     },
+     {
+      "subcategoria": "Arroz",
+      "es_marca_propia": true,
+      "valor": 373.0
+     },
+     {
+      "subcategoria": "Detergentes",
+      "es_marca_propia": false,
+      "valor": 646.0
+     },
+     {
+      "subcategoria": "Detergentes",
+      "es_marca_propia": true,
+      "valor": 417.0
+     },
+     {
+      "subcategoria": "Fideos",
+      "es_marca_propia": false,
+      "valor": 351.0
+     },
+     {
+      "subcategoria": "Fideos",
+      "es_marca_propia": true,
+      "valor": 255.0
+     },
+     {
+      "subcategoria": "Galletitas",
+      "es_marca_propia": false,
+      "valor": 416.0
+     },
+     {
+      "subcategoria": "Galletitas",
+      "es_marca_propia": true,
+      "valor": 221.0
+     },
+     {
+      "subcategoria": "Gaseosas",
+      "es_marca_propia": false,
+      "valor": 558.0
+     },
+     {
+      "subcategoria": "Gaseosas",
+      "es_marca_propia": true,
+      "valor": 507.0
+     },
+     {
+      "subcategoria": "Jabón de tocador",
+      "es_marca_propia": false,
+      "valor": 439.0
+     },
+     {
+      "subcategoria": "Jabón de tocador",
+      "es_marca_propia": true,
+      "valor": 515.0
+     },
+     {
+      "subcategoria": "Lavandinas",
+      "es_marca_propia": false,
+      "valor": 524.0
+     },
+     {
+      "subcategoria": "Lavandinas",
+      "es_marca_propia": true,
+      "valor": 342.0
+     },
+     {
+      "subcategoria": "Leches",
+      "es_marca_propia": false,
+      "valor": 294.0
+     },
+     {
+      "subcategoria": "Leches",
+      "es_marca_propia": true,
+      "valor": 280.0
+     },
+     {
+      "subcategoria": "Panificados",
+      "es_marca_propia": false,
+      "valor": 598.0
+     },
+     {
+      "subcategoria": "Panificados",
+      "es_marca_propia": true,
+      "valor": 539.0
+     },
+     {
+      "subcategoria": "Papeles",
+      "es_marca_propia": false,
+      "valor": 1025.0
+     },
+     {
+      "subcategoria": "Papeles",
+      "es_marca_propia": true,
+      "valor": 911.0
+     },
+     {
+      "subcategoria": "Shampoo y acondicionador",
+      "es_marca_propia": false,
+      "valor": 1905.0
+     },
+     {
+      "subcategoria": "Shampoo y acondicionador",
+      "es_marca_propia": true,
+      "valor": 1117.0
+     },
+     {
+      "subcategoria": "Yogures",
+      "es_marca_propia": false,
+      "valor": 340.0
+     },
+     {
+      "subcategoria": "Yogures",
+      "es_marca_propia": true,
+      "valor": 419.0
+     }
+    ]
+   }
+  },
+  {
+   "id": "C5",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- En cuántas subcategorías con marca propia la marca propia deja menos pesos de margen por unidad que las otras, AF2026\nwith s as (select distinct subcategoria from productos where es_marca_propia),\nm as (select p.subcategoria,\n             sum(v.importe_neto - v.costo) filter (where p.es_marca_propia) / sum(v.unidades) filter (where p.es_marca_propia) propia,\n             sum(v.importe_neto - v.costo) filter (where not p.es_marca_propia) / sum(v.unidades) filter (where not p.es_marca_propia) otras\n      from ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku join s using (subcategoria)\n      where f.anio_fiscal = 2026 group by 1)\nselect count(*) subcategorias_con_marca_propia, count(*) filter (where propia < otras) deja_menos_por_unidad from m"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "subcategorias_con_marca_propia": 14,
+      "deja_menos_por_unidad": 12
+     }
+    ]
+   }
+  },
+  {
+   "id": "C6",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Las dos gaseosas cola de 2,25 L (Cola Andina y Del Sur, la de marca propia), AF2026 sin diciembre de 2025\n-- (ese mes la Cola Andina estuvo al 25 % de descuento): precio y margen bruto por unidad vendida\nselect p.descripcion producto, round(sum(v.importe_neto) / sum(v.unidades)) precio_por_unidad,\n       round(sum(v.importe_neto - v.costo) / sum(v.unidades)) margen_por_unidad\nfrom ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\nwhere p.descripcion in ('Gaseosa cola Cola Andina 2,25 L', 'Gaseosa cola Del Sur 2,25 L')\n  and f.anio_fiscal = 2026 and f.mes_fiscal <> 8\ngroup by 1 order by 1"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "producto": "Gaseosa cola Cola Andina 2,25 L",
+      "precio_por_unidad": 2980.0,
+      "margen_por_unidad": 629.0
+     },
+     {
+      "producto": "Gaseosa cola Del Sur 2,25 L",
+      "precio_por_unidad": 1600.0,
+      "margen_por_unidad": 511.0
+     }
+    ]
+   }
+  }
+ ]
+}

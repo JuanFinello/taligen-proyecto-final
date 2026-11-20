@@ -15,13 +15,29 @@ MAXIMO = 3
 # Bajar un nivel: el que sigue a lo que ya se filtró; si no se filtró nada, el primero que la medida admita
 SIGUIENTE = {"region": "sucursal", "categoria": "subcategoria", "subcategoria": "producto", "producto": "region",
              "sucursal": "categoria", "proveedor": "categoria"}
-# Mirar al primero de un ranking por otra dimensión: dónde se vende un producto, qué vende una sucursal
-DEL_PRIMERO = {"producto": "region", "sucursal": "categoria", "region": "sucursal", "categoria": "subcategoria",
-               "subcategoria": "producto", "proveedor": "categoria", "marca": "region", "formato": "region"}
+# Mirar al primero de un ranking por otra dimensión: dónde se vende un producto, qué vende una sucursal. En orden: si la
+# primera ya está filtrada (el producto que más vende en el Sur), la siguiente (por sucursal del Sur)
+DEL_PRIMERO = {"producto": ["region", "sucursal"], "sucursal": ["categoria", "subcategoria"],
+               "region": ["sucursal", "categoria"], "categoria": ["subcategoria", "region"],
+               "subcategoria": ["producto", "region"], "proveedor": ["categoria", "region"], "marca": ["region", "sucursal"],
+               "formato": ["region", "sucursal"]}
+# Cruzar con otra medida, el paso que sigue a «cuánto vendió»: con qué margen (y al revés)
+CRUCE = {"ventas_netas": "margen_pct", "unidades": "ventas_netas", "margen_pct": "ventas_netas",
+         "margen_bruto": "ventas_netas", "tasa_quiebre_pct": "ventas_netas", "stock_promedio": "ventas_netas",
+         "descuentos": "ventas_netas", "precio_promedio": "unidades", "presupuesto": "ventas_netas"}
+# El nombre de cada medida en una frase (con su artículo). Una medida que no está acá no recibe sugerencias
+NOMBRE_MEDIDA = {"ventas_netas": "las ventas", "ventas_brutas": "las ventas brutas", "descuentos": "los descuentos",
+                 "devoluciones": "las devoluciones", "unidades": "las unidades", "costo": "el costo",
+                 "margen_bruto": "el margen bruto", "margen_pct": "el margen", "precio_promedio": "el precio promedio",
+                 "costo_unitario": "el costo por unidad", "presupuesto": "el presupuesto",
+                 "stock_promedio": "el stock promedio", "tasa_quiebre_pct": "la tasa de quiebre",
+                 "desvio_presupuesto_pct": "el desvío contra presupuesto", "dias_con_ventas": "los días con ventas"}
+PERIODO = ("anio", "mes", "anio_fiscal", "trimestre_fiscal", "mes_fiscal", "fecha", "semana")
 DE_ENTRADA = ["categoria", "region"]
 NOMBRE = {"region": "región", "sucursal": "sucursal", "categoria": "categoría", "subcategoria": "subcategoría",
           "producto": "producto", "proveedor": "proveedor", "marca": "marca", "formato": "formato"}
 DESDE = date.fromisoformat(COBERTURA["ventas_desde"])
+HASTA = date.fromisoformat(COBERTURA["ventas_hasta"])
 with duckdb.connect(BASE, read_only=True) as _con:
     PRODUCTOS = dict(_con.execute("SELECT sku, descripcion FROM productos").fetchall())
 
@@ -36,6 +52,8 @@ def corto(filtros):
     """El período de los filtros, en corto: «el AF2026», «el T2 del AF2026», «marzo de 2026», «2025»."""
     af, anio, mes = filtros.get("anio_fiscal"), filtros.get("anio"), filtros.get("mes")
     if isinstance(af, int):
+        if isinstance(mes, list) and len(mes) > 1:  # unos meses del año fiscal: «de diciembre a abril del AF2026»
+            return f"de {MESES[mes[0] - 1]} a {MESES[mes[-1] - 1]} del AF{af}"
         if isinstance(filtros.get("trimestre_fiscal"), int):
             return f"el T{filtros['trimestre_fiscal']} del AF{af}"
         return f"el AF{af}"
@@ -58,11 +76,37 @@ def anterior(filtros):
     return None
 
 
+def anio_parejo(filtros):
+    """Para un año calendario que la base no tiene entero (2026: enero a abril; 2024: mayo a diciembre), los mismos
+    meses de los dos años, si el anterior los tiene: («enero a abril de 2026», «enero a abril de 2025»). Comparar un
+    año incompleto contra uno entero daría una caída falsa."""
+    anio = filtros.get("anio")
+    if not isinstance(anio, int) or "mes" in filtros:
+        return None
+    desde, hasta = max(date(anio, 1, 1), DESDE), min(date(anio, 12, 31), HASTA)
+    if (desde, hasta) == (date(anio, 1, 1), date(anio, 12, 31)):
+        return None  # el año está entero: la comparación de siempre
+    if date(anio - 1, desde.month, 1) < DESDE or desde > hasta:
+        return None
+    meses = f"{MESES[desde.month - 1]} a {MESES[hasta.month - 1]}"
+    return f"{meses} de {anio}", f"{meses} de {anio - 1}"
+
+
 def de(filtros):
     """« de Perfumería en el Sur»: los filtros que no son de período, para el texto."""
-    partes = [con_nombre(filtros[d]) for d in ("producto", "categoria", "subcategoria", "region", "sucursal", "proveedor")
+    partes = [("el " if d == "region" else "") + con_nombre(filtros[d])
+              for d in ("producto", "categoria", "subcategoria", "region", "sucursal", "proveedor")
               if isinstance(filtros.get(d), (str, int))]
-    return f" de {' en '.join(partes)}" if partes else ""
+    return f" de {' en '.join(partes)}".replace(" de el ", " del ") if partes else ""
+
+
+def en(filtros):
+    """« en el Sur», « en S02 (Los Ceibos)»: dónde, si se filtró, para nombrar al primero de un ranking."""
+    if isinstance(filtros.get("sucursal"), str):
+        return f" en {con_nombre(filtros['sucursal'])}"
+    if isinstance(filtros.get("region"), str):
+        return f" en el {filtros['region']}"
+    return ""
 
 
 def grupo_que_mas_cayo(resultado, dimension):
@@ -98,12 +142,13 @@ def sugerencias(respuesta):
     cayo = next((c for c in reversed(consultas) if c["argumentos"].get("comparar_con")
                  and not c["argumentos"].get("agrupar_por") and isinstance(c["resultado"].get("variacion"), (int, float))
                  and c["resultado"]["variacion"] < 0), None)
-    periodo, validas = corto(filtros), dimensiones_validas(medida)
-    nombre = {"ventas_netas": "las ventas", "unidades": "las unidades", "margen_bruto": "el margen bruto",
-              "margen_pct": "el margen", "desvio_presupuesto_pct": "el desvío contra presupuesto"}.get(medida)
+    validas = dimensiones_validas(medida)
+    sin_periodo = not any(k in filtros for k in PERIODO)
+    periodo = corto(filtros) or ("todo el período de la base" if sin_periodo else None)
+    nombre = NOMBRE_MEDIDA.get(medida)
     if not periodo or not nombre:
         return []
-    plural = nombre.startswith("las")
+    plural = nombre.startswith(("las", "los"))
     abre, vino = ("se abren", "vinieron") if plural else ("se abre", "vino")
     salida = []
 
@@ -117,10 +162,11 @@ def sugerencias(respuesta):
         en_comparables = " en sucursales comparables" if cayo["argumentos"].get("comparables") else ""
         salida.append(f"¿Qué explica la caída de {nombre}{de(filtros)}{en_comparables} en {periodo}?")
     # 1b. Un ranking (abierto y sin comparar): mirar al primero por otra dimensión
-    if agrupar and not a.get("comparar_con") and r.get("filas"):
-        primero, otra = r["filas"][0].get(agrupar[0]), DEL_PRIMERO.get(agrupar[0])
-        if primero is not None and otra in validas and otra not in filtros:
-            salida.append(f"¿Cómo {abre} {nombre} de {con_nombre(primero)} por {NOMBRE[otra]} en {periodo}?")
+    primero = r["filas"][0].get(agrupar[0]) if agrupar and r.get("filas") else None
+    if agrupar and not a.get("comparar_con") and primero is not None:
+        otra = next((d for d in DEL_PRIMERO.get(agrupar[0], []) if d in validas and not isinstance(filtros.get(d), (str, int))), None)
+        if otra:
+            salida.append(f"¿Cómo {abre} {nombre} de {con_nombre(primero)}{en(filtros)} por {NOMBRE[otra]} en {periodo}?")
     # 2. El desvío con presupuesto sospechoso (decisión 84): mirar los meses vecinos
     if medida == "desvio_presupuesto_pct" and r.get("aviso") and isinstance(filtros.get("mes"), int):
         mes, anio = filtros["mes"], filtros.get("anio")
@@ -128,7 +174,10 @@ def sugerencias(respuesta):
         despues = (MESES[mes % 12], anio + 1 if mes == 12 else anio)
         salida.append(f"¿Cuál fue {nombre}{de(filtros)} en {antes[0]} de {antes[1]} y en {despues[0]} de {despues[1]}?")
     # 3. Comparar con el año anterior
-    if not comparo and medida != "desvio_presupuesto_pct" and (previo := anterior(filtros)):
+    parejo = anio_parejo(filtros)
+    if not comparo and medida != "desvio_presupuesto_pct" and parejo:
+        salida.append(f"¿Cómo {vino} {nombre}{de(filtros)} de {parejo[0]} contra {parejo[1]}?")
+    elif not comparo and medida != "desvio_presupuesto_pct" and (previo := anterior(filtros)):
         salida.append(f"¿Cómo {vino} {nombre}{de(filtros)} en {periodo} "
                       f"contra {corto({**filtros, **previo})}?")
     # 4. Comparables: las ventas de dos períodos con todas las sucursales (S39 y S40 abrieron en el medio)
@@ -140,7 +189,26 @@ def sugerencias(respuesta):
     # 6. Bajar un nivel
     if not agrupar:
         ya = [SIGUIENTE[d] for d in SIGUIENTE if d in filtros and isinstance(filtros[d], str)]
-        hijo = next((d for d in ya + DE_ENTRADA if d in validas and d not in filtros), None)
-        if hijo:
+        hijos = list(dict.fromkeys(d for d in ya + DE_ENTRADA if d in validas and d not in filtros))
+        # El nivel siguiente; y si no hay nada más que sugerir (no hay período anterior en la base), otro corte
+        for hijo in hijos[:1 if salida else 2]:
             salida.append(f"¿Cómo {abre} {nombre}{de(filtros)} por {NOMBRE[hijo]} en {periodo}?")
+    # 7. Cruzar con otra medida: del primero de un ranking, o de lo que se filtró
+    otra_medida = CRUCE.get(medida)
+    if otra_medida and not any(c["argumentos"].get("medida") == otra_medida for c in consultas):
+        nombrado = ("el " if agrupar and agrupar[0] == "region" else "") + con_nombre(primero) if primero is not None else ""
+        sujeto = (nombrado + en(filtros)) if primero is not None else \
+            (de(filtros).removeprefix(" del ").removeprefix(" de ") if de(filtros) else "la cadena")
+        if primero is None and de(filtros).startswith(" del "):
+            sujeto = "el " + sujeto
+        if otra_medida == "margen_pct":
+            salida.append(f"¿Qué margen tuvo {sujeto} en {periodo}?")
+        elif otra_medida == "unidades":
+            salida.append(f"¿Cuántas unidades vendió {sujeto} en {periodo}?")
+        else:
+            salida.append(f"¿Cuánto vendió {sujeto} en {periodo}?")
+    # 8. Sin período (toda la base): lo mismo en el último año fiscal completo, que es lo que suele importar
+    if sin_periodo and len(salida) < MAXIMO:
+        ultimo_af = HASTA.year if HASTA.month == 4 and HASTA.day == 30 else HASTA.year - (HASTA.month < 5)
+        salida.append(f"¿Y en el AF{ultimo_af}?")
     return list(dict.fromkeys(salida))[:MAXIMO]

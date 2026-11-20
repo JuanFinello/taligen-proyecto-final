@@ -16,6 +16,8 @@ El año fiscal empieza el 1 de mayo y se nombra por el año en que termina: el A
 
 Finanzas habla en trimestres y años fiscales; las áreas comerciales, en calendario («el primer trimestre» es enero a marzo). Cuando un pedido dice «el último trimestre» o «el año pasado» sin aclarar cuál, la respuesta cambia: hay que preguntar o, como mínimo, declarar qué calendario se usó.
 
+Un año escrito solo («en 2025», «las ventas de 2024») se responde con las dos lecturas: el año calendario y el año fiscal de ese número. Si una de las dos no está completa en la base, se dice junto a su número (por ejemplo, del calendario 2026 la base tiene solo enero a abril).
+
 Qué período cubre la base lo dice ver_modelo (cobertura). «El último mes», «el último trimestre» o «este año» se cuentan desde el último dato de la base, no desde la fecha de hoy.
 
 ## Ventas
@@ -25,6 +27,8 @@ Qué período cubre la base lo dice ver_modelo (cobertura). «El último mes», 
 - **Ante una caída de ventas, primero ver si faltan días**: comparar los días con ventas (`dias_con_ventas`: una sucursal en un día cuenta 1) contra el período anterior. Si son menos, parte de la caída son días sin ventas (un corte, un cierre o una carga incompleta) y no menos demanda: hay que decirlo antes de buscar otra causa.
 
 ## Margen
+
+«Rinde» o «rinde más», sin aclarar en qué, se responde con las ventas netas y el margen bruto %: las dos son lecturas válidas, y una sola puede no ser lo que se quiere saber.
 
 **«Margen bruto» es en pesos. «El margen», sin más, es el margen %**, y junto al % se muestran también los pesos.
 

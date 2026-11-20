@@ -1,0 +1,9 @@
+# Tema de la interfaz (decisión 101), según la guía de tema oscuro de Material Design: fondo gris muy oscuro (#121212,
+# no negro puro), superficies más claras cuanto más arriba están (los recuadros #1E1E1E) y el color principal
+# desaturado (verde #81C995), que contrasta 9,6:1 con el fondo. Todos los textos pasan el 4,5:1 de WCAG 2.2 AA
+[theme]
+base = "dark"
+primaryColor = "#81C995"
+backgroundColor = "#121212"
+secondaryBackgroundColor = "#1E1E1E"
+textColor = "#E3E3E3"
