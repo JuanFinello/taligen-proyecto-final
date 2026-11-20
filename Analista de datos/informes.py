@@ -19,7 +19,7 @@ from controles import AVISO, MAX_SIN_CONTROL, numeros_del_texto, sin_respaldo, v
 from graficos import CALCULADOS, NOMBRES, color_de, es_destacado, graficar, que_dibujar
 from explicar import DIMENSIONES, MEDIDAS, explicar, periodo
 from informe_pdf import armar_pdf, escribir_sql, fecha
-from procesador_capa_semantica import sqls, ver_modelo
+from procesador_capa_semantica import calcular, sqls, ver_modelo
 
 MODELO = "claude-haiku-5-5"
 
@@ -152,6 +152,131 @@ async def investigar(plan):
     return hallazgos
 
 
+# Profundización en código (decisión 113). Después de los analistas nadie volvía a la base: si nadie pedía la medida
+# por mes, el informe no podía decir desde cuándo (I3, 0 de 6); si nadie bajaba de la categoría al proveedor, no podía
+# decir quién (I1, 1 de 6). En vez de un agente más, el código corre siempre dos consultas sobre lo que ya pidieron
+# los analistas: la medida principal por mes y un nivel más abajo en el grupo que más bajó. Solo en informes: los
+# diagnósticos quedan como estaban
+SIGUIENTE_NIVEL = {"categoria": "nombre_proveedor", "region": "nombre_sucursal"}
+TEMPORALES = {"mes", "mes_fiscal", "semana", "fecha", "trimestre_fiscal"}
+CAMPO_DEL_CAMBIO = {"efectos_margen": "variacion_pp", "ventas_netas": "diferencia", "margen_pct": "variacion",
+                    "tasa_quiebre_pct": "variacion"}
+MESES_DEL_AF = ["mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre", "enero",
+                "febrero", "marzo", "abril"]
+
+
+def medidas_principales(pedido):
+    """La medida de la que trata el informe: las ventas, salvo que el pedido nombre otra. Si se profundiza en otra
+    (el margen en un informe regional), el informe se va de tema (I3 lo hacía 2 de 6 veces)."""
+    texto = pedido.lower()
+    if "margen" in texto or "rentab" in texto:
+        return {"margen_pct", "efectos_margen"}
+    if any(p in texto for p in ("faltante", "quiebre", "stock")):
+        return {"tasa_quiebre_pct"}
+    return {"ventas_netas"}
+
+
+def de_calcular(consultas, medidas=None):
+    """Las comparaciones de calcular() que salieron bien; con medidas, solo las de esas."""
+    return [c for c in consultas if c["tool"] == "calcular" and c["argumentos"].get("comparar_con")
+            and "error" not in c["resultado"] and (medidas is None or c["argumentos"].get("medida") in medidas)]
+
+
+def por_mes(consultas, medidas):
+    """La medida principal abierta por mes fiscal, con el período y la comparación de la primera consulta que la
+    compara (si alguna usó comparables, también). None si no aplica o ya está."""
+    candidatas = sorted(de_calcular(consultas, medidas), key=lambda c: bool(c["argumentos"].get("agrupar_por")))
+    principal = candidatas[0]["argumentos"] if candidatas else None  # mejor una sin agrupar: su filtro es el del pedido
+    if not principal:
+        return None
+    filtros = principal.get("filtros") or {}
+    if "anio_fiscal" not in filtros or any(k in filtros for k in ("fecha", "semana", "mes_fiscal")) or isinstance(
+            filtros.get("mes"), int):  # un año o un trimestre fiscal: por día o por semana no hay meses que abrir
+        return None
+    medida = "margen_pct" if principal["medida"] == "efectos_margen" else principal["medida"]
+    comparables = any(c["argumentos"].get("comparables") for c in de_calcular(consultas, medidas))
+    if any(c["argumentos"]["medida"] == medida and set(c["argumentos"].get("agrupar_por") or []) & {"mes", "mes_fiscal"}
+           and bool(c["argumentos"].get("comparables")) == comparables for c in de_calcular(consultas)):
+        return None  # un analista ya la pidió
+    return {"medida": medida, "filtros": filtros, "comparar_con": principal["comparar_con"],
+            "agrupar_por": ["mes_fiscal"], **({"comparables": True} if comparables else {})}
+
+
+def un_nivel_mas(consultas, medidas):
+    """El grupo que más bajó en una comparación por categoría o región, abierto un nivel más abajo (proveedores,
+    sucursales). Devuelve (argumentos, nombre del grupo) o None."""
+    for c in de_calcular(consultas, medidas):
+        a = c["argumentos"]
+        grupos = [d for d in a.get("agrupar_por") or [] if not d.startswith("nombre_")]
+        campo = CAMPO_DEL_CAMBIO.get(a["medida"])
+        if len(grupos) != 1 or grupos[0] not in SIGUIENTE_NIVEL or not campo:
+            continue
+        filas = [f for f in c["resultado"].get("filas") or [] if isinstance(f.get(campo), (int, float))]
+        if not filas:
+            continue
+        peor = min(filas, key=lambda f: f[campo])
+        if peor[campo] >= 0:
+            continue
+        dimension, grupo = grupos[0], peor[grupos[0]]
+        siguiente = SIGUIENTE_NIVEL[dimension]
+        if any((x["argumentos"].get("filtros") or {}).get(dimension) == grupo
+               and siguiente in (x["argumentos"].get("agrupar_por") or []) for x in de_calcular(consultas)):
+            return None  # un analista ya bajó a ese nivel
+        return ({"medida": a["medida"], "filtros": {**(a.get("filtros") or {}), dimension: grupo},
+                 "comparar_con": a["comparar_con"], "agrupar_por": [siguiente],
+                 **({"comparables": True} if a.get("comparables") else {})}, grupo)
+    return None
+
+
+def desde_cuando(resultado, campo="variacion"):
+    """«desde agosto, debajo del año anterior todos los meses»: el último tramo de 3 meses o más con el mismo signo
+    hasta el final del período. None si no hay un tramo así."""
+    filas = sorted((f for f in resultado.get("filas") or [] if isinstance(f.get(campo), (int, float))),
+                   key=lambda f: f["mes_fiscal"])
+    if len(filas) < 3:
+        return None
+    signo = filas[-1][campo] < 0
+    inicio = len(filas) - 1
+    while inicio > 0 and (filas[inicio - 1][campo] < 0) == signo:
+        inicio -= 1
+    if len(filas) - inicio < 3 or inicio == 0:
+        return None  # todo el período igual (no hay un «desde») o menos de 3 meses
+    return (f"desde {MESES_DEL_AF[filas[inicio]['mes_fiscal'] - 1]}, "
+            f"{'debajo' if signo else 'arriba'} del período anterior todos los meses")
+
+
+def correr(argumentos):
+    """calcular() como lo devuelve el servidor MCP a los analistas: en JSON (las fechas, como texto). Sin esto, una
+    fecha en el resultado (abiertas_hasta, con comparables) rompía el paso de redactar."""
+    return json.loads(json.dumps(calcular(**argumentos), ensure_ascii=False, default=str))
+
+
+def profundizar(consultas, pedido):
+    """Las dos consultas del código, ya corridas, y lo que muestran en una oración cada una (sin cuentas propias:
+    nombres y signos que trae el resultado)."""
+    nuevas, notas = [], []
+    medidas = medidas_principales(pedido)
+    argumentos = por_mes(consultas, medidas)
+    if argumentos:
+        resultado = correr(argumentos)
+        if "error" not in resultado:
+            nuevas.append({"tool": "calcular", "argumentos": argumentos, "resultado": resultado})
+            tramo = desde_cuando(resultado)
+            notas.append("La medida principal por mes" + (f": {tramo}." if tramo else "."))
+    hallado = un_nivel_mas(consultas, medidas)
+    if hallado:
+        argumentos, grupo = hallado
+        resultado = correr(argumentos)
+        campo = CAMPO_DEL_CAMBIO[argumentos["medida"]]
+        filas = [f for f in resultado.get("filas") or [] if isinstance(f.get(campo), (int, float))]
+        if filas:
+            nuevas.append({"tool": "calcular", "argumentos": argumentos, "resultado": resultado})
+            peor = min(filas, key=lambda f: f[campo])
+            nombre = str(peor.get(argumentos["agrupar_por"][0]) or "").removesuffix(" S.A.")
+            notas.append(f"Dentro de {grupo}, el que más bajó: {nombre}.")
+    return nuevas, " ".join(notas)
+
+
 class Indicador(BaseModel):
     nombre: str = Field(description="Nombre corto, por ejemplo «Margen %» o «Ventas netas»")
     consulta: str = Field(description="El id de la consulta de donde sale (C1, C2…)")
@@ -263,6 +388,8 @@ INSTRUCCIONES_REDACCION = (
     "pesos sube; las ventas totales suben y las comparables bajan), el título dice las dos cosas y su porqué, y "
     "los puntos explican cada una: «Se ganó más porque se vendió más, pero cada venta dejó menos por el costo de "
     "Almacén». Con una sola, el lector entiende la mitad.\n"
+    "- Si entre los hallazgos está la profundización del código (la medida por mes y un nivel más abajo), usala "
+    "para decir desde cuándo y quién, si sostiene el mensaje.\n"
     "- Dale escala a cada cambio, para que se entienda si es grave o menor: contra lo normal (el glosario dice cuánto, "
     "si lo dice), contra el total o en pesos. Si el cambio es chico, decilo así: no lo presentes como alarma.\n"
     + EJEMPLOS_REDACCION + "\n")
@@ -774,6 +901,14 @@ async def atender(pedido, carpeta, nombre="Informe", contexto="", tipo=None):
         if problemas:
             raise NoSeEntrega("El plan sigue sin cumplir los límites después de corregirlo: no se manda a los analistas")
         hallazgos = await investigar(plan)
+        if plan.tipo == "informe":  # decisión 113: desde cuándo y quién, sin depender de que alguien lo pida
+            todas = [c for h in hallazgos for c in h["consultas"]]
+            nuevas, notas = profundizar(todas, pedido)
+            if nuevas:
+                hallazgos.append({"objetivo": "Profundización del código: la medida principal por mes y un nivel más "
+                                              "abajo en el grupo que más bajó", "pregunta": "",
+                                  "hallazgo": notas, "consultas": [{"id": f"C{len(todas) + i}", **c}
+                                                                   for i, c in enumerate(nuevas, 1)]})
         for h in hallazgos:
             print(f"\n## {h['objetivo']}\n{h['hallazgo']}\nConsultas: "
                   + (", ".join(c["id"] + " " + c["argumentos"].get("medida", "sql") for c in h["consultas"]) or "ninguna"))

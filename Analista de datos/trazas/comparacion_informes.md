@@ -9,28 +9,29 @@ Lo arma `chequeos_informes.py --guardar` (decisión 110) con los chequeos de `Da
 | Más una región del año simulado | `445f82` | 109 | 7 | la 108 más el informe del Norte del AF2027 con nombres que no existen (no entró) |
 | Solo semana + lecciones | `da7bd6` | 111 | 6 | la 108 sin el ejemplo de marca propia; su lección, en una línea («un margen % más alto no alcanza para decir que algo conviene») |
 | Marca propia con calcular() | `33c430` | 112 | 6 | la 108 con la medida margen_por_unidad en la capa y el ejemplo de marca propia reescrito para que todo salga de calcular() |
+| Profundización en código | `d43414` | 113 | 6 | la 112 más dos consultas que corre el código después de los analistas: la medida principal por mes y un nivel más abajo en el grupo que más bajó |
 
-| Caso | Chequeo | Ejemplos inventados | Semana + marca propia + lecciones | Más una región del año simulado | Solo semana + lecciones | Marca propia con calcular() |
-|---|---|---|---|---|---|---|
-| I1 | dice cuánto bajó el margen % | 2 de 3 | 5 de 6 | 6 de 7 | 6 de 6 | 6 de 6 |
-| I1 | cuenta que en pesos subió | 3 de 3 | 5 de 6 | 7 de 7 | 6 de 6 | 6 de 6 |
-| I1 | nombra la categoría (Almacén) | 3 de 3 | 6 de 6 | 7 de 7 | 6 de 6 | 6 de 6 |
-| I1 | dice que es por costo | 3 de 3 | 6 de 6 | 7 de 7 | 6 de 6 | 6 de 6 |
-| I1 | llega al proveedor (Molinos del Plata) | 0 de 3 | 3 de 6 | 2 de 7 | 0 de 6 | 1 de 6 |
-| I1 | título sin citas [Cn] | 3 de 3 | 6 de 6 | 7 de 7 | 6 de 6 | 6 de 6 |
-| I2 | dice el desvío total | 3 de 3 | 6 de 6 | 4 de 6 | 4 de 6 | 6 de 6 |
-| I2 | avisa del presupuesto sospechoso | 2 de 3 | 6 de 6 | 6 de 6 | 6 de 6 | 6 de 6 |
-| I2 | lo dice en el título | 3 de 3 | 6 de 6 | 6 de 6 | 6 de 6 | 6 de 6 |
-| I2 | nombra dónde está (Perfumería) | 3 de 3 | 6 de 6 | 6 de 6 | 6 de 6 | 6 de 6 |
-| I2 | dice el desvío sin ese presupuesto | 1 de 3 | 6 de 6 | 6 de 6 | 5 de 6 | 6 de 6 |
-| I2 | título sin citas [Cn] | 2 de 3 | 6 de 6 | 6 de 6 | 5 de 6 | 6 de 6 |
-| I3 | dice que el total creció | 1 de 3 | 5 de 6 | 3 de 6 | 5 de 6 | 5 de 6 |
-| I3 | dice que las comparables cayeron | 2 de 3 | 4 de 6 | 4 de 6 | 6 de 6 | 6 de 6 |
-| I3 | lo atribuye a las aperturas | 3 de 3 | 4 de 6 | 5 de 6 | 6 de 6 | 5 de 6 |
-| I3 | dice desde cuándo | 0 de 3 | 0 de 6 | 1 de 6 | 0 de 6 | 1 de 6 |
-| I3 | no se va al margen en el título | 3 de 3 | 4 de 6 | 4 de 6 | 5 de 6 | 5 de 6 |
-| I3 | título sin citas [Cn] | 3 de 3 | 4 de 6 | 4 de 6 | 6 de 6 | 6 de 6 |
-| | **Total** | **40 de 54** (74 %) | **88 de 108** (81 %) | **91 de 114** (80 %) | **90 de 108** (83 %) | **95 de 108** (88 %) |
+| Caso | Chequeo | Ejemplos inventados | Semana + marca propia + lecciones | Más una región del año simulado | Solo semana + lecciones | Marca propia con calcular() | Profundización en código |
+|---|---|---|---|---|---|---|---|
+| I1 | dice cuánto bajó el margen % | 2 de 3 | 5 de 6 | 6 de 7 | 6 de 6 | 6 de 6 | 5 de 6 |
+| I1 | cuenta que en pesos subió | 3 de 3 | 5 de 6 | 7 de 7 | 6 de 6 | 6 de 6 | 5 de 6 |
+| I1 | nombra la categoría (Almacén) | 3 de 3 | 6 de 6 | 7 de 7 | 6 de 6 | 6 de 6 | 6 de 6 |
+| I1 | dice que es por costo | 3 de 3 | 6 de 6 | 7 de 7 | 6 de 6 | 6 de 6 | 6 de 6 |
+| I1 | llega al proveedor (Molinos del Plata) | 0 de 3 | 3 de 6 | 2 de 7 | 0 de 6 | 1 de 6 | 6 de 6 |
+| I1 | título sin citas [Cn] | 3 de 3 | 6 de 6 | 7 de 7 | 6 de 6 | 6 de 6 | 5 de 6 |
+| I2 | dice el desvío total | 3 de 3 | 6 de 6 | 4 de 6 | 4 de 6 | 6 de 6 | 6 de 6 |
+| I2 | avisa del presupuesto sospechoso | 2 de 3 | 6 de 6 | 6 de 6 | 6 de 6 | 6 de 6 | 6 de 6 |
+| I2 | lo dice en el título | 3 de 3 | 6 de 6 | 6 de 6 | 6 de 6 | 6 de 6 | 6 de 6 |
+| I2 | nombra dónde está (Perfumería) | 3 de 3 | 6 de 6 | 6 de 6 | 6 de 6 | 6 de 6 | 6 de 6 |
+| I2 | dice el desvío sin ese presupuesto | 1 de 3 | 6 de 6 | 6 de 6 | 5 de 6 | 6 de 6 | 5 de 6 |
+| I2 | título sin citas [Cn] | 2 de 3 | 6 de 6 | 6 de 6 | 5 de 6 | 6 de 6 | 4 de 6 |
+| I3 | dice que el total creció | 1 de 3 | 5 de 6 | 3 de 6 | 5 de 6 | 5 de 6 | 6 de 6 |
+| I3 | dice que las comparables cayeron | 2 de 3 | 4 de 6 | 4 de 6 | 6 de 6 | 6 de 6 | 5 de 6 |
+| I3 | lo atribuye a las aperturas | 3 de 3 | 4 de 6 | 5 de 6 | 6 de 6 | 5 de 6 | 6 de 6 |
+| I3 | dice desde cuándo | 0 de 3 | 0 de 6 | 1 de 6 | 0 de 6 | 1 de 6 | 2 de 6 |
+| I3 | no se va al margen en el título | 3 de 3 | 4 de 6 | 4 de 6 | 5 de 6 | 5 de 6 | 5 de 6 |
+| I3 | título sin citas [Cn] | 3 de 3 | 4 de 6 | 4 de 6 | 6 de 6 | 6 de 6 | 5 de 6 |
+| | **Total** | **40 de 54** (74 %) | **88 de 108** (81 %) | **91 de 114** (80 %) | **90 de 108** (83 %) | **95 de 108** (88 %) | **95 de 108** (88 %) |
 
 Corridas usadas:
 
@@ -39,3 +40,4 @@ Corridas usadas:
 - Más una región del año simulado: completa-20261120-163835-49fa, completa-20261120-164155-2fd8, completa-20261120-164415-82f0, completa-20261120-165141-330e, completa-20261120-165408-a422, completa-20261120-165902-91e0, completa-20261120-170147-3ec8
 - Solo semana + lecciones: completa-20261120-172238-b75a, completa-20261120-172533-b77c, completa-20261120-172819-57f8, completa-20261120-173050-42d8, completa-20261120-173305-ae4a, completa-20261120-173538-d665
 - Marca propia con calcular(): completa-20261120-175622-2988, completa-20261120-175908-7072, completa-20261120-180200-b26c, completa-20261120-180449-bd75, completa-20261120-180704-1523, completa-20261120-180950-e8ae
+- Profundización en código: completa-20261120-185257-c0eb, completa-20261120-185613-071a, completa-20261120-185937-366f, completa-20261120-190241-0425, completa-20261120-190510-8f2b, completa-20261120-190820-870b

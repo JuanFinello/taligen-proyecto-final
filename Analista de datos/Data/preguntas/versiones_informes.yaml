@@ -6,3 +6,6 @@ d52c32: {nombre: "Semana + marca propia + lecciones", decision: 108, detalle: "2
 445f82: {nombre: "Más una región del año simulado", decision: 109, detalle: "la 108 más el informe del Norte del AF2027 con nombres que no existen (no entró)"}
 da7bd6: {nombre: "Solo semana + lecciones", decision: 111, detalle: "la 108 sin el ejemplo de marca propia; su lección, en una línea («un margen % más alto no alcanza para decir que algo conviene»)"}
 33c430: {nombre: "Marca propia con calcular()", decision: 112, detalle: "la 108 con la medida margen_por_unidad en la capa y el ejemplo de marca propia reescrito para que todo salga de calcular()"}
+# a567db: la primera versión de la 113, con un error del código (las fechas de sus consultas no pasaban a la
+# redacción): 8 de 18 informes no salieron. No se compara.
+d43414: {nombre: "Profundización en código", decision: 113, detalle: "la 112 más dos consultas que corre el código después de los analistas: la medida principal por mes y un nivel más abajo en el grupo que más bajó"}
