@@ -5,3 +5,4 @@ bd8da1: {nombre: "Ejemplos inventados", decision: 107, detalle: "los 3 ejemplos 
 d52c32: {nombre: "Semana + marca propia + lecciones", decision: 108, detalle: "2 informes aprobados completos y 5 lecciones del margen; título hasta 22, oraciones hasta 30 (la versión en uso)"}
 445f82: {nombre: "Más una región del año simulado", decision: 109, detalle: "la 108 más el informe del Norte del AF2027 con nombres que no existen (no entró)"}
 da7bd6: {nombre: "Solo semana + lecciones", decision: 111, detalle: "la 108 sin el ejemplo de marca propia; su lección, en una línea («un margen % más alto no alcanza para decir que algo conviene»)"}
+33c430: {nombre: "Marca propia con calcular()", decision: 112, detalle: "la 108 con la medida margen_por_unidad en la capa y el ejemplo de marca propia reescrito para que todo salga de calcular()"}

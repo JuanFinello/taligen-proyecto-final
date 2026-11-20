@@ -91,6 +91,18 @@ medidas:
   descripcion: 'Ventas netas por unidad. Mezcla productos: puede variar por cambio de mix.'
   sinonimos:
   - precio medio
+- id: margen_por_unidad
+  nombre: Margen por unidad
+  tabla: ventas
+  formula: (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.unidades), 0)
+  unidad: ARS por unidad
+  aditiva: false
+  descripcion: 'Margen bruto en pesos por unidad vendida. Para comparar productos que se reemplazan entre sí:
+    uno con más margen % puede dejar menos pesos por unidad si es más barato. Mezcla productos: puede variar por
+    cambio de mix.'
+  sinonimos:
+  - ganancia por unidad
+  - margen unitario
 - id: costo_unitario
   nombre: Costo por unidad
   tabla: ventas

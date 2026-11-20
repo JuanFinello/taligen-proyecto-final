@@ -103,9 +103,9 @@ informes:
       titulo: "La marca propia tiene mejor margen %, pero cada unidad deja menos pesos: conviene si trae ventas nuevas, no si reemplaza a otras marcas"
       bajada: "Es el 2,2 % de las ventas del AF2026."
       razones:
-        - texto: "Su margen % es entre 7,9 y 9,6 pp mayor que el de las otras marcas, en las seis categorías."
+        - texto: "Su margen % es mayor que el de las otras marcas en las seis categorías: en Almacén, 34,0 % contra 24,3 %."
           grafico: "Margen bruto % por categoría: marca propia contra otras marcas (pesas)"
-        - texto: "Cada unidad deja menos pesos en 12 de las 14 subcategorías donde compite, porque es más barata."
+        - texto: "Cada unidad deja menos pesos en todas las subcategorías donde compite salvo dos, porque es más barata."
           grafico: "Margen bruto en pesos por unidad vendida, por subcategoría: marca propia contra otras marcas (pesas)"
         - texto: "El caso más claro son las dos colas de 2,25 L: fuera del mes en que la Cola Andina estuvo en promoción, la de marca propia dejó $ 511 por unidad y la Cola Andina, $ 629."
           grafico: "sin gráfico"
@@ -130,6 +130,12 @@ informes:
       - mal: "la Cola Andina deja $ 493 por unidad en el año (promedio con el mes de la promoción adentro)"
         bien: "fuera del mes en que la Cola Andina estuvo en promoción, … $ 511 por unidad y la Cola Andina, $ 629"
         por_que: "Comparar productos comparables (mismo tamaño) y en condiciones comparables (sin el mes de la promoción), y decirlo."
+      - mal: "4 de 6 consultas con SQL directo (margen por unidad, diferencia en pp, cuántas subcategorías)"
+        bien: "todas con calcular(): se sumó la medida margen_por_unidad a la capa (decisión 112)"
+        por_que: >-
+          El ejemplo le enseña a Haiku qué afirmar: si sus afirmaciones solo se respaldan con SQL directo, lo empuja a
+          salir de la capa semántica. Las restas y los conteos se dicen con lo que ya trae el resultado («en Almacén,
+          34,0 % contra 24,3 %», «salvo dos»).
       - mal: "La marca propia deja más margen por peso vendido, pero menos por unidad: conviene solo si suma ventas"
         bien: "La marca propia tiene mejor margen %, pero cada unidad deja menos pesos: conviene si trae ventas nuevas, no si reemplaza a otras marcas"
         por_que: "El título se tiene que entender solo: palabras del lector («margen %», «ventas nuevas») y la alternativa dicha."

@@ -123,21 +123,21 @@
   ],
   "puntos": [
    {
-    "texto": "Su margen % es entre 7,9 y 9,6 pp mayor que el de las otras marcas, en las seis categorías [C3].",
+    "texto": "Su margen % es mayor que el de las otras marcas en las seis categorías: en Almacén, 34,0 % contra 24,3 % [C2].",
     "grafico": {
      "consulta": "C2",
      "destacar": []
     }
    },
    {
-    "texto": "Cada unidad deja menos pesos en 12 de las 14 subcategorías donde compite [C5], porque es más barata [C4].",
+    "texto": "Cada unidad deja menos pesos en todas las subcategorías donde compite salvo dos [C3], porque es más barata [C4].",
     "grafico": {
-     "consulta": "C4",
+     "consulta": "C3",
      "destacar": []
     }
    },
    {
-    "texto": "El caso más claro son las dos colas de 2,25 L: fuera del mes en que la Cola Andina estuvo en promoción, la de marca propia dejó $ 511 por unidad y la Cola Andina, $ 629 [C6].",
+    "texto": "El caso más claro son las dos colas de 2,25 L: a precio normal, la de marca propia dejó $ 511 por unidad y la Cola Andina, $ 629 [C5].",
     "grafico": null
    }
   ]
@@ -220,37 +220,37 @@
      {
       "categoria": "Perfumería",
       "es_marca_propia": true,
-      "valor": 42.95601688780422
+      "valor": 42.956016887804225
      },
      {
       "categoria": "Limpieza",
       "es_marca_propia": true,
-      "valor": 37.956057067847475
+      "valor": 37.95605706784748
      },
      {
       "categoria": "Frescos",
       "es_marca_propia": true,
-      "valor": 35.94736124116401
+      "valor": 35.947361241163996
      },
      {
       "categoria": "Perfumería",
       "es_marca_propia": false,
-      "valor": 35.08003082639668
+      "valor": 35.080030826396694
      },
      {
       "categoria": "Almacén",
       "es_marca_propia": true,
-      "valor": 33.95665247661322
+      "valor": 33.95665247661321
      },
      {
       "categoria": "Bebidas",
       "es_marca_propia": true,
-      "valor": 31.92949609168506
+      "valor": 31.929496091685046
      },
      {
       "categoria": "Limpieza",
       "es_marca_propia": false,
-      "valor": 29.55034494271323
+      "valor": 29.550344942713185
      },
      {
       "categoria": "Lácteos",
@@ -260,22 +260,22 @@
      {
       "categoria": "Frescos",
       "es_marca_propia": false,
-      "valor": 27.906894347572447
+      "valor": 27.906894347572457
      },
      {
       "categoria": "Almacén",
       "es_marca_propia": false,
-      "valor": 24.31804585950024
+      "valor": 24.318045859500177
      },
      {
       "categoria": "Bebidas",
       "es_marca_propia": false,
-      "valor": 23.60444712157559
+      "valor": 23.604447121575724
      },
      {
       "categoria": "Lácteos",
       "es_marca_propia": false,
-      "valor": 19.207679979734294
+      "valor": 19.207679979734383
      }
     ],
     "unidad": "%",
@@ -287,395 +287,554 @@
   },
   {
    "id": "C3",
-   "tool": "consultar_sql",
+   "tool": "calcular",
    "argumentos": {
-    "sql": "-- Cuántos pp más de margen bruto % deja la marca propia que las otras marcas, por categoría, AF2026\nselect p.categoria,\n       round(100 * (sum(v.importe_neto - v.costo) filter (where p.es_marca_propia) / sum(v.importe_neto) filter (where p.es_marca_propia)\n             - sum(v.importe_neto - v.costo) filter (where not p.es_marca_propia) / sum(v.importe_neto) filter (where not p.es_marca_propia)), 2) diferencia_pp\nfrom ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\nwhere f.anio_fiscal = 2026 group by 1 order by 2"
+    "medida": "margen_por_unidad",
+    "filtros": {
+     "anio_fiscal": 2026
+    },
+    "agrupar_por": [
+     "subcategoria",
+     "es_marca_propia"
+    ]
    },
    "resultado": {
+    "medida": "margen_por_unidad",
+    "filtros": {
+     "anio_fiscal": 2026
+    },
+    "periodo": {
+     "desde": "2025-05-01",
+     "hasta": "2026-04-30"
+    },
     "filas": [
      {
-      "categoria": "Perfumería",
-      "diferencia_pp": 7.88
+      "subcategoria": "Vinos",
+      "es_marca_propia": false,
+      "valor": 2379.8117728568077
      },
      {
-      "categoria": "Frescos",
-      "diferencia_pp": 8.04
+      "subcategoria": "Jabón para ropa",
+      "es_marca_propia": false,
+      "valor": 2011.125931378941
      },
      {
-      "categoria": "Bebidas",
-      "diferencia_pp": 8.33
+      "subcategoria": "Shampoo y acondicionador",
+      "es_marca_propia": false,
+      "valor": 1904.9099221768788
      },
      {
-      "categoria": "Limpieza",
-      "diferencia_pp": 8.41
+      "subcategoria": "Congelados",
+      "es_marca_propia": false,
+      "valor": 1819.4562248584289
      },
      {
-      "categoria": "Lácteos",
-      "diferencia_pp": 8.75
+      "subcategoria": "Fiambres",
+      "es_marca_propia": false,
+      "valor": 1527.598754518829
      },
      {
-      "categoria": "Almacén",
-      "diferencia_pp": 9.64
+      "subcategoria": "Desodorantes",
+      "es_marca_propia": false,
+      "valor": 1317.888395511488
+     },
+     {
+      "subcategoria": "Quesos",
+      "es_marca_propia": false,
+      "valor": 1262.2694248608473
+     },
+     {
+      "subcategoria": "Aceites",
+      "es_marca_propia": false,
+      "valor": 1156.7689205046006
+     },
+     {
+      "subcategoria": "Shampoo y acondicionador",
+      "es_marca_propia": true,
+      "valor": 1116.8352069425925
+     },
+     {
+      "subcategoria": "Yerba e infusiones",
+      "es_marca_propia": false,
+      "valor": 1041.2240461628805
+     },
+     {
+      "subcategoria": "Papeles",
+      "es_marca_propia": false,
+      "valor": 1025.3985684843494
+     },
+     {
+      "subcategoria": "Aceites",
+      "es_marca_propia": true,
+      "valor": 984.8835120399777
+     },
+     {
+      "subcategoria": "Cuidado dental",
+      "es_marca_propia": false,
+      "valor": 936.0720439979955
+     },
+     {
+      "subcategoria": "Papeles",
+      "es_marca_propia": true,
+      "valor": 910.9946388812243
+     },
+     {
+      "subcategoria": "Detergentes",
+      "es_marca_propia": false,
+      "valor": 646.2984710926752
+     },
+     {
+      "subcategoria": "Mantecas y cremas",
+      "es_marca_propia": false,
+      "valor": 635.5125915373163
+     },
+     {
+      "subcategoria": "Panificados",
+      "es_marca_propia": false,
+      "valor": 597.9693292775107
+     },
+     {
+      "subcategoria": "Conservas",
+      "es_marca_propia": false,
+      "valor": 567.5155149350647
+     },
+     {
+      "subcategoria": "Gaseosas",
+      "es_marca_propia": false,
+      "valor": 557.8501046580988
+     },
+     {
+      "subcategoria": "Arroz",
+      "es_marca_propia": false,
+      "valor": 543.555030674855
+     },
+     {
+      "subcategoria": "Panificados",
+      "es_marca_propia": true,
+      "valor": 539.21041861746
+     },
+     {
+      "subcategoria": "Lavandinas",
+      "es_marca_propia": false,
+      "valor": 523.9874542755903
+     },
+     {
+      "subcategoria": "Jabón de tocador",
+      "es_marca_propia": true,
+      "valor": 515.4821394651359
+     },
+     {
+      "subcategoria": "Gaseosas",
+      "es_marca_propia": true,
+      "valor": 507.0016582092065
+     },
+     {
+      "subcategoria": "Cervezas",
+      "es_marca_propia": false,
+      "valor": 493.07663335359064
+     },
+     {
+      "subcategoria": "Jugos",
+      "es_marca_propia": false,
+      "valor": 441.32486116188414
+     },
+     {
+      "subcategoria": "Jabón de tocador",
+      "es_marca_propia": false,
+      "valor": 439.46853903086173
+     },
+     {
+      "subcategoria": "Yogures",
+      "es_marca_propia": true,
+      "valor": 419.31848806365656
+     },
+     {
+      "subcategoria": "Detergentes",
+      "es_marca_propia": true,
+      "valor": 417.4905166008129
+     },
+     {
+      "subcategoria": "Galletitas",
+      "es_marca_propia": false,
+      "valor": 415.7763344182964
+     },
+     {
+      "subcategoria": "Aguas",
+      "es_marca_propia": false,
+      "valor": 379.1040115178183
+     },
+     {
+      "subcategoria": "Arroz",
+      "es_marca_propia": true,
+      "valor": 373.473515463917
+     },
+     {
+      "subcategoria": "Harinas",
+      "es_marca_propia": false,
+      "valor": 365.9449185990064
+     },
+     {
+      "subcategoria": "Fideos",
+      "es_marca_propia": false,
+      "valor": 350.6249319606403
+     },
+     {
+      "subcategoria": "Lavandinas",
+      "es_marca_propia": true,
+      "valor": 341.5861708860742
+     },
+     {
+      "subcategoria": "Yogures",
+      "es_marca_propia": false,
+      "valor": 340.2616647186745
+     },
+     {
+      "subcategoria": "Leches",
+      "es_marca_propia": false,
+      "valor": 294.38720049458243
+     },
+     {
+      "subcategoria": "Leches",
+      "es_marca_propia": true,
+      "valor": 279.5235425383531
+     },
+     {
+      "subcategoria": "Fideos",
+      "es_marca_propia": true,
+      "valor": 254.67929382964033
+     },
+     {
+      "subcategoria": "Aguas",
+      "es_marca_propia": true,
+      "valor": 239.37254376472146
+     },
+     {
+      "subcategoria": "Galletitas",
+      "es_marca_propia": true,
+      "valor": 220.71179626485397
      }
+    ],
+    "unidad": "ARS por unidad",
+    "sql": "SELECT p.subcategoria AS subcategoria, p.es_marca_propia AS es_marca_propia, (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ?\nGROUP BY p.subcategoria, p.es_marca_propia\nORDER BY valor DESC",
+    "parametros": [
+     2026
     ]
    }
   },
   {
    "id": "C4",
-   "tool": "consultar_sql",
+   "tool": "calcular",
    "argumentos": {
-    "sql": "-- Margen bruto en pesos por unidad vendida, marca propia y otras marcas, en las subcategorías donde hay marca\n-- propia, AF2026. Promedia productos distintos (tamaños y calidades): es una referencia, no una comparación exacta\nwith s as (select distinct subcategoria from productos where es_marca_propia)\nselect p.subcategoria, p.es_marca_propia,\n       round(sum(v.importe_neto - v.costo) / sum(v.unidades)) margen_por_unidad,\n       round(sum(v.importe_neto) / sum(v.unidades)) precio_por_unidad\nfrom ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku join s using (subcategoria)\nwhere f.anio_fiscal = 2026 group by all order by 1, 2"
+    "medida": "precio_promedio",
+    "filtros": {
+     "anio_fiscal": 2026
+    },
+    "agrupar_por": [
+     "subcategoria",
+     "es_marca_propia"
+    ]
    },
    "resultado": {
-    "medida": "margen_por_unidad",
-    "unidad": "ARS por unidad",
-    "con_precio": [
-     {
-      "subcategoria": "Aceites",
-      "es_marca_propia": false,
-      "margen_por_unidad": 1157.0,
-      "precio_por_unidad": 4459.0
-     },
-     {
-      "subcategoria": "Aceites",
-      "es_marca_propia": true,
-      "margen_por_unidad": 985.0,
-      "precio_por_unidad": 2900.0
-     },
-     {
-      "subcategoria": "Aguas",
-      "es_marca_propia": false,
-      "margen_por_unidad": 379.0,
-      "precio_por_unidad": 1549.0
-     },
-     {
-      "subcategoria": "Aguas",
-      "es_marca_propia": true,
-      "margen_por_unidad": 239.0,
-      "precio_por_unidad": 750.0
-     },
-     {
-      "subcategoria": "Arroz",
-      "es_marca_propia": false,
-      "margen_por_unidad": 544.0,
-      "precio_por_unidad": 2096.0
-     },
-     {
-      "subcategoria": "Arroz",
-      "es_marca_propia": true,
-      "margen_por_unidad": 373.0,
-      "precio_por_unidad": 1100.0
-     },
-     {
-      "subcategoria": "Detergentes",
-      "es_marca_propia": false,
-      "margen_por_unidad": 646.0,
-      "precio_por_unidad": 2097.0
-     },
-     {
-      "subcategoria": "Detergentes",
-      "es_marca_propia": true,
-      "margen_por_unidad": 417.0,
-      "precio_por_unidad": 1100.0
-     },
-     {
-      "subcategoria": "Fideos",
-      "es_marca_propia": false,
-      "margen_por_unidad": 351.0,
-      "precio_por_unidad": 1542.0
-     },
-     {
-      "subcategoria": "Fideos",
-      "es_marca_propia": true,
-      "margen_por_unidad": 255.0,
-      "precio_por_unidad": 750.0
-     },
-     {
-      "subcategoria": "Galletitas",
-      "es_marca_propia": false,
-      "margen_por_unidad": 416.0,
-      "precio_por_unidad": 1815.0
-     },
-     {
-      "subcategoria": "Galletitas",
-      "es_marca_propia": true,
-      "margen_por_unidad": 221.0,
-      "precio_por_unidad": 650.0
-     },
-     {
-      "subcategoria": "Gaseosas",
-      "es_marca_propia": false,
-      "margen_por_unidad": 558.0,
-      "precio_por_unidad": 2533.0
-     },
-     {
-      "subcategoria": "Gaseosas",
-      "es_marca_propia": true,
-      "margen_por_unidad": 507.0,
-      "precio_por_unidad": 1588.0
-     },
-     {
-      "subcategoria": "Jabón de tocador",
-      "es_marca_propia": false,
-      "margen_por_unidad": 439.0,
-      "precio_por_unidad": 1232.0
-     },
-     {
-      "subcategoria": "Jabón de tocador",
-      "es_marca_propia": true,
-      "margen_por_unidad": 515.0,
-      "precio_por_unidad": 1200.0
-     },
-     {
-      "subcategoria": "Lavandinas",
-      "es_marca_propia": false,
-      "margen_por_unidad": 524.0,
-      "precio_por_unidad": 1713.0
-     },
-     {
-      "subcategoria": "Lavandinas",
-      "es_marca_propia": true,
-      "margen_por_unidad": 342.0,
-      "precio_por_unidad": 900.0
-     },
-     {
-      "subcategoria": "Leches",
-      "es_marca_propia": false,
-      "margen_por_unidad": 294.0,
-      "precio_por_unidad": 1572.0
-     },
-     {
-      "subcategoria": "Leches",
-      "es_marca_propia": true,
-      "margen_por_unidad": 280.0,
-      "precio_por_unidad": 1000.0
-     },
-     {
-      "subcategoria": "Panificados",
-      "es_marca_propia": false,
-      "margen_por_unidad": 598.0,
-      "precio_por_unidad": 2151.0
-     },
-     {
-      "subcategoria": "Panificados",
-      "es_marca_propia": true,
-      "margen_por_unidad": 539.0,
-      "precio_por_unidad": 1500.0
-     },
-     {
-      "subcategoria": "Papeles",
-      "es_marca_propia": false,
-      "margen_por_unidad": 1025.0,
-      "precio_por_unidad": 3412.0
-     },
-     {
-      "subcategoria": "Papeles",
-      "es_marca_propia": true,
-      "margen_por_unidad": 911.0,
-      "precio_por_unidad": 2400.0
-     },
-     {
-      "subcategoria": "Shampoo y acondicionador",
-      "es_marca_propia": false,
-      "margen_por_unidad": 1905.0,
-      "precio_por_unidad": 5504.0
-     },
-     {
-      "subcategoria": "Shampoo y acondicionador",
-      "es_marca_propia": true,
-      "margen_por_unidad": 1117.0,
-      "precio_por_unidad": 2600.0
-     },
-     {
-      "subcategoria": "Yogures",
-      "es_marca_propia": false,
-      "margen_por_unidad": 340.0,
-      "precio_por_unidad": 1644.0
-     },
-     {
-      "subcategoria": "Yogures",
-      "es_marca_propia": true,
-      "margen_por_unidad": 419.0,
-      "precio_por_unidad": 1500.0
-     }
-    ],
+    "medida": "precio_promedio",
+    "filtros": {
+     "anio_fiscal": 2026
+    },
+    "periodo": {
+     "desde": "2025-05-01",
+     "hasta": "2026-04-30"
+    },
     "filas": [
      {
-      "subcategoria": "Aceites",
+      "subcategoria": "Vinos",
       "es_marca_propia": false,
-      "valor": 1157.0
+      "valor": 9845.486158848837
      },
      {
-      "subcategoria": "Aceites",
-      "es_marca_propia": true,
-      "valor": 985.0
-     },
-     {
-      "subcategoria": "Aguas",
+      "subcategoria": "Jabón para ropa",
       "es_marca_propia": false,
-      "valor": 379.0
+      "valor": 6934.327896377246
      },
      {
-      "subcategoria": "Aguas",
-      "es_marca_propia": true,
-      "valor": 239.0
-     },
-     {
-      "subcategoria": "Arroz",
+      "subcategoria": "Quesos",
       "es_marca_propia": false,
-      "valor": 544.0
+      "valor": 6786.909566936823
      },
      {
-      "subcategoria": "Arroz",
-      "es_marca_propia": true,
-      "valor": 373.0
-     },
-     {
-      "subcategoria": "Detergentes",
+      "subcategoria": "Congelados",
       "es_marca_propia": false,
-      "valor": 646.0
-     },
-     {
-      "subcategoria": "Detergentes",
-      "es_marca_propia": true,
-      "valor": 417.0
-     },
-     {
-      "subcategoria": "Fideos",
-      "es_marca_propia": false,
-      "valor": 351.0
-     },
-     {
-      "subcategoria": "Fideos",
-      "es_marca_propia": true,
-      "valor": 255.0
-     },
-     {
-      "subcategoria": "Galletitas",
-      "es_marca_propia": false,
-      "valor": 416.0
-     },
-     {
-      "subcategoria": "Galletitas",
-      "es_marca_propia": true,
-      "valor": 221.0
-     },
-     {
-      "subcategoria": "Gaseosas",
-      "es_marca_propia": false,
-      "valor": 558.0
-     },
-     {
-      "subcategoria": "Gaseosas",
-      "es_marca_propia": true,
-      "valor": 507.0
-     },
-     {
-      "subcategoria": "Jabón de tocador",
-      "es_marca_propia": false,
-      "valor": 439.0
-     },
-     {
-      "subcategoria": "Jabón de tocador",
-      "es_marca_propia": true,
-      "valor": 515.0
-     },
-     {
-      "subcategoria": "Lavandinas",
-      "es_marca_propia": false,
-      "valor": 524.0
-     },
-     {
-      "subcategoria": "Lavandinas",
-      "es_marca_propia": true,
-      "valor": 342.0
-     },
-     {
-      "subcategoria": "Leches",
-      "es_marca_propia": false,
-      "valor": 294.0
-     },
-     {
-      "subcategoria": "Leches",
-      "es_marca_propia": true,
-      "valor": 280.0
-     },
-     {
-      "subcategoria": "Panificados",
-      "es_marca_propia": false,
-      "valor": 598.0
-     },
-     {
-      "subcategoria": "Panificados",
-      "es_marca_propia": true,
-      "valor": 539.0
-     },
-     {
-      "subcategoria": "Papeles",
-      "es_marca_propia": false,
-      "valor": 1025.0
-     },
-     {
-      "subcategoria": "Papeles",
-      "es_marca_propia": true,
-      "valor": 911.0
+      "valor": 6645.35316194849
      },
      {
       "subcategoria": "Shampoo y acondicionador",
       "es_marca_propia": false,
-      "valor": 1905.0
+      "valor": 5504.124216765453
+     },
+     {
+      "subcategoria": "Fiambres",
+      "es_marca_propia": false,
+      "valor": 5358.805944386183
+     },
+     {
+      "subcategoria": "Aceites",
+      "es_marca_propia": false,
+      "valor": 4458.516302583368
+     },
+     {
+      "subcategoria": "Yerba e infusiones",
+      "es_marca_propia": false,
+      "valor": 4113.157813896336
+     },
+     {
+      "subcategoria": "Desodorantes",
+      "es_marca_propia": false,
+      "valor": 3586.270651591208
+     },
+     {
+      "subcategoria": "Papeles",
+      "es_marca_propia": false,
+      "valor": 3411.939412511254
+     },
+     {
+      "subcategoria": "Mantecas y cremas",
+      "es_marca_propia": false,
+      "valor": 3028.965743106046
+     },
+     {
+      "subcategoria": "Aceites",
+      "es_marca_propia": true,
+      "valor": 2900.0
+     },
+     {
+      "subcategoria": "Cuidado dental",
+      "es_marca_propia": false,
+      "valor": 2748.7458481943827
      },
      {
       "subcategoria": "Shampoo y acondicionador",
       "es_marca_propia": true,
-      "valor": 1117.0
+      "valor": 2600.0
+     },
+     {
+      "subcategoria": "Gaseosas",
+      "es_marca_propia": false,
+      "valor": 2532.553609093983
+     },
+     {
+      "subcategoria": "Conservas",
+      "es_marca_propia": false,
+      "valor": 2432.96808550913
+     },
+     {
+      "subcategoria": "Papeles",
+      "es_marca_propia": true,
+      "valor": 2400.0
+     },
+     {
+      "subcategoria": "Cervezas",
+      "es_marca_propia": false,
+      "valor": 2190.6923602673146
+     },
+     {
+      "subcategoria": "Panificados",
+      "es_marca_propia": false,
+      "valor": 2150.740782819028
+     },
+     {
+      "subcategoria": "Detergentes",
+      "es_marca_propia": false,
+      "valor": 2096.58437165026
+     },
+     {
+      "subcategoria": "Arroz",
+      "es_marca_propia": false,
+      "valor": 2096.3522210228593
+     },
+     {
+      "subcategoria": "Jugos",
+      "es_marca_propia": false,
+      "valor": 1939.022260192323
+     },
+     {
+      "subcategoria": "Galletitas",
+      "es_marca_propia": false,
+      "valor": 1815.125522869796
+     },
+     {
+      "subcategoria": "Lavandinas",
+      "es_marca_propia": false,
+      "valor": 1712.908305772085
      },
      {
       "subcategoria": "Yogures",
       "es_marca_propia": false,
-      "valor": 340.0
+      "valor": 1644.4410722047814
+     },
+     {
+      "subcategoria": "Gaseosas",
+      "es_marca_propia": true,
+      "valor": 1587.7462214219458
+     },
+     {
+      "subcategoria": "Leches",
+      "es_marca_propia": false,
+      "valor": 1571.95976808462
+     },
+     {
+      "subcategoria": "Aguas",
+      "es_marca_propia": false,
+      "valor": 1548.6702774929
+     },
+     {
+      "subcategoria": "Harinas",
+      "es_marca_propia": false,
+      "valor": 1541.7967962361377
+     },
+     {
+      "subcategoria": "Fideos",
+      "es_marca_propia": false,
+      "valor": 1541.795525202589
+     },
+     {
+      "subcategoria": "Panificados",
+      "es_marca_propia": true,
+      "valor": 1500.0
      },
      {
       "subcategoria": "Yogures",
       "es_marca_propia": true,
-      "valor": 419.0
+      "valor": 1500.0
+     },
+     {
+      "subcategoria": "Jabón de tocador",
+      "es_marca_propia": false,
+      "valor": 1232.3431126800256
+     },
+     {
+      "subcategoria": "Jabón de tocador",
+      "es_marca_propia": true,
+      "valor": 1200.0
+     },
+     {
+      "subcategoria": "Arroz",
+      "es_marca_propia": true,
+      "valor": 1100.0
+     },
+     {
+      "subcategoria": "Detergentes",
+      "es_marca_propia": true,
+      "valor": 1100.0
+     },
+     {
+      "subcategoria": "Leches",
+      "es_marca_propia": true,
+      "valor": 1000.0
+     },
+     {
+      "subcategoria": "Lavandinas",
+      "es_marca_propia": true,
+      "valor": 900.0
+     },
+     {
+      "subcategoria": "Aguas",
+      "es_marca_propia": true,
+      "valor": 750.0
+     },
+     {
+      "subcategoria": "Fideos",
+      "es_marca_propia": true,
+      "valor": 750.0
+     },
+     {
+      "subcategoria": "Galletitas",
+      "es_marca_propia": true,
+      "valor": 650.0
      }
+    ],
+    "unidad": "ARS por unidad",
+    "sql": "SELECT p.subcategoria AS subcategoria, p.es_marca_propia AS es_marca_propia, SUM(v.importe_neto) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ?\nGROUP BY p.subcategoria, p.es_marca_propia\nORDER BY valor DESC",
+    "parametros": [
+     2026
     ]
    }
   },
   {
    "id": "C5",
-   "tool": "consultar_sql",
+   "tool": "calcular",
    "argumentos": {
-    "sql": "-- En cuántas subcategorías con marca propia la marca propia deja menos pesos de margen por unidad que las otras, AF2026\nwith s as (select distinct subcategoria from productos where es_marca_propia),\nm as (select p.subcategoria,\n             sum(v.importe_neto - v.costo) filter (where p.es_marca_propia) / sum(v.unidades) filter (where p.es_marca_propia) propia,\n             sum(v.importe_neto - v.costo) filter (where not p.es_marca_propia) / sum(v.unidades) filter (where not p.es_marca_propia) otras\n      from ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku join s using (subcategoria)\n      where f.anio_fiscal = 2026 group by 1)\nselect count(*) subcategorias_con_marca_propia, count(*) filter (where propia < otras) deja_menos_por_unidad from m"
-   },
-   "resultado": {
-    "filas": [
-     {
-      "subcategorias_con_marca_propia": 14,
-      "deja_menos_por_unidad": 12
-     }
+    "medida": "margen_por_unidad",
+    "filtros": {
+     "anio_fiscal": 2026,
+     "producto": [
+      "P0071",
+      "P0298"
+     ],
+     "mes_fiscal": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12
+     ]
+    },
+    "agrupar_por": [
+     "producto"
     ]
-   }
-  },
-  {
-   "id": "C6",
-   "tool": "consultar_sql",
-   "argumentos": {
-    "sql": "-- Las dos gaseosas cola de 2,25 L (Cola Andina y Del Sur, la de marca propia), AF2026 sin diciembre de 2025\n-- (ese mes la Cola Andina estuvo al 25 % de descuento): precio y margen bruto por unidad vendida\nselect p.descripcion producto, round(sum(v.importe_neto) / sum(v.unidades)) precio_por_unidad,\n       round(sum(v.importe_neto - v.costo) / sum(v.unidades)) margen_por_unidad\nfrom ventas v join fechas f on v.fecha = f.fecha join productos p on v.sku = p.sku\nwhere p.descripcion in ('Gaseosa cola Cola Andina 2,25 L', 'Gaseosa cola Del Sur 2,25 L')\n  and f.anio_fiscal = 2026 and f.mes_fiscal <> 8\ngroup by 1 order by 1"
    },
    "resultado": {
+    "medida": "margen_por_unidad",
+    "filtros": {
+     "anio_fiscal": 2026,
+     "producto": [
+      "P0071",
+      "P0298"
+     ],
+     "mes_fiscal": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12
+     ]
+    },
     "filas": [
      {
-      "producto": "Gaseosa cola Cola Andina 2,25 L",
-      "precio_por_unidad": 2980.0,
-      "margen_por_unidad": 629.0
+      "producto": "P0071",
+      "valor": 628.90624811019
      },
      {
-      "producto": "Gaseosa cola Del Sur 2,25 L",
-      "precio_por_unidad": 1600.0,
-      "margen_por_unidad": 511.0
+      "producto": "P0298",
+      "valor": 511.4373821766973
      }
+    ],
+    "unidad": "ARS por unidad",
+    "sql": "SELECT p.sku AS producto, (SUM(v.importe_neto) - SUM(v.costo)) / NULLIF(SUM(v.unidades), 0) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND p.sku IN (?, ?) AND f.mes_fiscal IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\nGROUP BY p.sku\nORDER BY valor DESC",
+    "parametros": [
+     2026,
+     "P0071",
+     "P0298",
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     9,
+     10,
+     11,
+     12
     ]
    }
   }
