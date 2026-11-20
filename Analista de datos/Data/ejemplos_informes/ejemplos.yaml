@@ -177,3 +177,50 @@ informes:
       - mal: "un gráfico de puntos, uno por sucursal, apilados"
         bien: "columnas ordenadas, una por sucursal: una escalera sin saltos"
         por_que: "El gráfico se tiene que leer sin explicación: en el de puntos la altura no significaba nada."
+
+  - id: norte_af2027_simulado
+    aprobado_por: usuario
+    fecha: 2026-11-20
+    # OJO: sale del AÑO SIMULADO (salidas/anio/limpia.duckdb, decisión 88; se regenera con pruebas/anio_simulado.py), no
+    # de la base real: en la base real los cuatro eventos son respuesta de casos medidos. En la base real Monte Chico
+    # sigue vendiendo y el Norte no tuvo días sin ventas: por eso en el prompt va con una región y una sucursal que no
+    # existen («el Este», «Las Tunas»). Comparte el molde del pedido de I3 (informe del año para el gerente de una región).
+    # NO VA AL PROMPT (decisión 109): medido 6 corridas con él y 6 sin él, no mejoró (80 % contra 81 % de los chequeos).
+    pedido: "Armame un informe del AF2027 para el gerente de la región Norte."
+    archivos: norte_af2027_simulado/
+    graficos: [divergente, lineas]
+    final:
+      titulo: "El Norte vendió 2,8 % menos: Monte Chico no registra ventas desde enero y en agosto hubo tres días sin ventas"
+      bajada: "Vendió $ 2.954 M en el AF2027, $ 85,6 M menos que en el AF2026."
+      razones:
+        - texto: "Monte Chico no registra ventas desde el 1 de enero: perdió $ 66,1 M, tres cuartas partes de la caída de la región."
+          grafico: "Cambio de ventas netas por sucursal, en pesos (barras; Monte Chico resaltada)"
+        - texto: "En agosto ninguna sucursal registró ventas del 10 al 12: el mes cayó 8,2 %, $ 20,2 M."
+          grafico: "Ventas netas por mes fiscal: el AF2027 contra el AF2026 (dos líneas)"
+        - texto: "Las otras nueve sucursales vendieron 0,7 % menos en el año, pero no parejo: de enero a abril, 2,0 % menos en pesos y 3,1 % menos unidades."
+          grafico: "sin gráfico"
+    correcciones:
+      - mal: "Norte vendió menos por la caída de Monte Chico, pero ganó margen por Almacén"
+        bien: "El Norte vendió 2,8 % menos: Monte Chico no registra ventas desde enero y en agosto hubo tres días sin ventas"
+        por_que: >-
+          El informe se queda en lo que explica el resultado de la región (las ventas): un segundo tema (el margen)
+          le saca lugar a la segunda causa. Y cada causa lleva su fecha.
+      - mal: "Además, hubo 4,1 % menos días con venta que el año anterior: un factor secundario"
+        bien: "En agosto ninguna sucursal registró ventas del 10 al 12: el mes cayó 8,2 %, $ 20,2 M"
+        por_que: >-
+          Un total de días sin ventas mezcla dos cosas distintas (una sucursal que deja de vender y tres días de toda
+          la región): abrirlo por mes, decir qué días y cuánto costó.
+      - mal: "Monte Chico cerró en enero"
+        bien: "Monte Chico no registra ventas desde el 1 de enero"
+        por_que: >-
+          La base no registra cierres: se dice lo que el dato muestra, y en los supuestos lo que no se sabe (puede
+          ser un cierre o una carga que falta). El gerente sabe cuál de las dos es.
+      - mal: "Las otras sucursales vendieron casi lo mismo (−0,7 % en el año)"
+        bien: "…0,7 % menos en el año, pero no parejo: de enero a abril, 2,0 % menos en pesos y 3,1 % menos unidades"
+        por_que: "«El resto está igual» también se abre por tramos: el promedio del año escondía una baja al final."
+      - mal: "en pesos lo tapa Almacén, que factura 6,2 % más con 5,0 % menos unidades"
+        bien: "(sacado)"
+        por_que: "No afirmar una explicación que no se verificó: de enero a abril las ventas también caían en pesos."
+      - mal: "la razón 1 con su peso (tres cuartas partes) y la razón 2 solo con el porcentaje del mes"
+        bien: "cada causa con su tamaño en pesos: $ 66,1 M y $ 20,2 M"
+        por_que: "Si el título pone dos causas a la par, el lector necesita saber cuánto pesa cada una."

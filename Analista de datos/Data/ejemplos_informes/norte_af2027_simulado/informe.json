@@ -1,0 +1,978 @@
+{
+ "pedido": "Armame un informe del AF2027 para el gerente de la región Norte.",
+ "nombre": "Informe",
+ "corrida": "20261120-163005-fc03",
+ "version": "d52c32",
+ "plan": {
+  "tipo": "informe",
+  "titulo": "Región Norte: desempeño del año fiscal 2027",
+  "supuestos": [
+   "El AF2027 va de mayo de 2026 a abril de 2027 y se compara con el AF2026. Son datos de un año simulado (decisión 88).",
+   "La base no registra cierres de sucursales: de Monte Chico se sabe que no tiene ventas desde el 01-01-2027, no por qué.",
+   "De los tres días de agosto sin ventas en toda la región, la base tampoco dice si fue un corte o datos que faltan.",
+   "«Las otras nueve sucursales» son las del Norte sin Monte Chico. La comparación de sucursales comparables del sistema no sirve acá: no saca a una sucursal que deja de vender."
+  ],
+  "encargos": [
+   {
+    "objetivo": "Dar el resultado de ventas de Norte en el año y su cumplimiento del presupuesto.",
+    "pregunta": "¿Cuánto vendió la región Norte en el AF2027 (de mayo de 2026 a abril de 2027) y cómo se compara con el AF2026 (de mayo de 2025 a abril de 2026), en total y en sucursales comparables? ¿Cuánto se desvió de su presupuesto del año, mes por mes?",
+    "consultas": [
+     "ventas_netas, región Norte, 01/05/2026 a 30/04/2027, comparado con 01/05/2025 a 30/04/2026, total",
+     "ventas_netas, región Norte, 01/05/2026 a 30/04/2027, comparado con 01/05/2025 a 30/04/2026, comparables",
+     "desvio_presupuesto_pct, región Norte, 01/05/2026 a 30/04/2027, por mes"
+    ],
+    "devolver": "Indicar las ventas netas del año de la región Norte, su variación contra el AF2026 en total y en comparables, y el desvío contra presupuesto del año. Mencionar los meses donde el desvío fue más grande, en un par de oraciones con los números clave.",
+    "limites": "No abrir por producto, marca ni sucursal; eso corresponde a otros encargos. No comparar con otras regiones."
+   },
+   {
+    "objetivo": "Explicar si el margen de Norte mejoró o empeoró y por qué.",
+    "pregunta": "¿Cómo cambió el margen bruto % de la región Norte en el AF2027 frente al AF2026, y cuánto de ese cambio viene del precio y cuánto del costo? Abrir por categoría.",
+    "consultas": [
+     "margen_pct, región Norte, 01/05/2026 a 30/04/2027, comparado con 01/05/2025 a 30/04/2026, total",
+     "efectos_margen, región Norte, 01/05/2026 a 30/04/2027, comparado con 01/05/2025 a 30/04/2026, por categoría"
+    ],
+    "devolver": "Indicar el margen bruto % del año y su variación en puntos porcentuales contra el AF2026, con el efecto precio y el efecto costo. Señalar las categorías que más movieron el margen, en dos o tres oraciones con los números clave.",
+    "limites": "No hablar de ventas en pesos ni de volumen; eso está en el encargo de desempeño general. No abrir por producto ni por proveedor."
+   },
+   {
+    "objetivo": "Ver si la variación de ventas de Norte es general o se concentra en pocas sucursales, y si faltaron días de venta.",
+    "pregunta": "¿La variación de ventas de la región Norte en el AF2027 frente al AF2026 es de todas las sucursales o de unas pocas? Abrir por sucursal en sucursales comparables. Además, ¿hubo menos días con ventas que el año anterior?",
+    "consultas": [
+     "ventas_netas, región Norte, 01/05/2026 a 30/04/2027, comparado con 01/05/2025 a 30/04/2026, comparables, por sucursal",
+     "dias_con_ventas, región Norte, 01/05/2026 a 30/04/2027, comparado con 01/05/2025 a 30/04/2026, total"
+    ],
+    "devolver": "Indicar cuántas sucursales de Norte crecieron y cuántas cayeron en comparables, y cuáles explican la mayor parte del cambio. Decir si faltaron días con ventas frente al año anterior, en dos o tres oraciones con los números clave.",
+    "limites": "No abrir por producto ni por categoría. No calcular el desvío contra presupuesto por sucursal, porque el presupuesto no se abre por sucursal con esta medida."
+   },
+   {
+    "objetivo": "Revisar si los quiebres de stock en Norte ayudan a explicar el resultado del año.",
+    "pregunta": "¿Cómo evolucionó la tasa de quiebre de stock en la región Norte durante el AF2027 frente al AF2026, mes por mes, y en qué categorías se concentró?",
+    "consultas": [
+     "tasa_quiebre_pct, región Norte, 01/05/2026 a 30/04/2027, comparado con 01/05/2025 a 30/04/2026, por mes",
+     "tasa_quiebre_pct, región Norte, 01/05/2026 a 30/04/2027, comparado con 01/05/2025 a 30/04/2026, por categoría"
+    ],
+    "devolver": "Indicar la tasa de quiebre promedio de la región en el año frente al AF2026 y los meses donde subió más. Señalar las categorías con mayor quiebre, en dos o tres oraciones con los números clave, comparando con las semanas cercanas del año anterior.",
+    "limites": "No se busca explicar ventas por producto ni por proveedor. No concluir causalidad: solo describir si coincide con la caída de ventas."
+   }
+  ]
+ },
+ "hallazgos": [
+  {
+   "objetivo": "Dar el resultado de ventas de Norte en el año y su cumplimiento del presupuesto.",
+   "pregunta": "¿Cuánto vendió la región Norte en el AF2027 (de mayo de 2026 a abril de 2027) y cómo se compara con el AF2026 (de mayo de 2025 a abril de 2026), en total y en sucursales comparables? ¿Cuánto se desvió de su presupuesto del año, mes por mes?",
+   "hallazgo": "La región Norte vendió $2.954.146.632 en ventas netas en el AF2027, un 2,82 % menos que los $3.039.786.582 del AF2026 (-85.639.950 pesos). En comparables la variación es la misma (-2,82 %), porque todas las sucursales Norte estaban abiertas antes del inicio del AF2026. Frente al presupuesto anual de $3.133.832.809, la región quedó 5,73 % por debajo (-179.686.177 pesos). Los desvíos más grandes fueron en el mes fiscal 4 (-12,31 %), el mes fiscal 11 (-9,33 %) y el mes fiscal 12 (-8,47 %).",
+   "consultas": [
+    "C1",
+    "C2",
+    "C3",
+    "C4"
+   ]
+  },
+  {
+   "objetivo": "Explicar si el margen de Norte mejoró o empeoró y por qué.",
+   "pregunta": "¿Cómo cambió el margen bruto % de la región Norte en el AF2027 frente al AF2026, y cuánto de ese cambio viene del precio y cuánto del costo? Abrir por categoría.",
+   "hallazgo": "El margen bruto % de la región Norte fue 27,83 % en el AF2027, 1,04 pp más que el 26,79 % del AF2026. Del cambio, el efecto precio explica +0,56 pp y el efecto costo +0,48 pp. Almacén es la categoría que más lo movió: pasó de 24,75 % a 31,53 % (+6,78 pp, con +4,95 pp por precio y +1,84 pp por costo), y el resto de las categorías quedó prácticamente estable, con Lácteos neutro porque el precio (−1,06 pp) y el costo (+1,06 pp) se compensaron.",
+   "consultas": [
+    "C5",
+    "C6"
+   ]
+  },
+  {
+   "objetivo": "Ver si la variación de ventas de Norte es general o se concentra en pocas sucursales, y si faltaron días de venta.",
+   "pregunta": "¿La variación de ventas de la región Norte en el AF2027 frente al AF2026 es de todas las sucursales o de unas pocas? Abrir por sucursal en sucursales comparables. Además, ¿hubo menos días con ventas que el año anterior?",
+   "hallazgo": "En comparables, la variación de ventas netas de Norte en el AF2027 (−2,82 %, −85.639.950 ARS) no es de todas las sucursales: de las 10 sucursales de la región, 2 crecieron (La Calera, S06, con +0,22 %, y Las Acacias, S08, con +0,30 %) y 8 cayeron. Monte Chico (S07) explica el 77,2 % del cambio, con −34,83 % (de 189.881.100 a 123.746.150 ARS). Sí faltaron días con ventas: Norte tuvo 3.500 sucursal-días con venta en el AF2027 frente a 3.650 en el AF2026 (−4,11 %).",
+   "consultas": [
+    "C7",
+    "C8"
+   ]
+  },
+  {
+   "objetivo": "Revisar si los quiebres de stock en Norte ayudan a explicar el resultado del año.",
+   "pregunta": "¿Cómo evolucionó la tasa de quiebre de stock en la región Norte durante el AF2027 frente al AF2026, mes por mes, y en qué categorías se concentró?",
+   "hallazgo": "En la región Norte, la tasa de quiebre promedio del AF2027 fue 1,50 %, frente a 1,76 % en el AF2026 (−0,26 pp), aunque subió en 9 de los 12 meses fiscales. Los mayores aumentos fueron en julio (1,76 % frente a 1,36 %, +0,40 pp), noviembre (+0,31 pp) y enero (+0,28 pp); en enero las ventas netas cayeron 6,5 %, pero en julio subieron 1,9 %, así que la coincidencia con la caída de ventas es solo parcial. Por categoría, el quiebre más alto está en Bebidas (1,68 %, +0,19 pp interanual) y Lácteos (1,67 %, muy por debajo del 4,12 % del AF2026), y los mayores aumentos fueron en Perfumería (+0,26 pp) y Frescos (+0,23 pp); Mascotas no tiene AF2026 para comparar. Las ventas netas de la región bajaron 2,8 % (la variación comparable es la misma, porque no hay sucursales nuevas en el período), y no hay datos semanales para comparar con las semanas cercanas, así que la comparación se hizo por mes.",
+   "consultas": [
+    "C9",
+    "C10",
+    "C11",
+    "C12"
+   ]
+  }
+ ],
+ "redaccion": {
+  "titulo": "El Norte vendió 2,8 % menos: Monte Chico no registra ventas desde enero y en agosto hubo tres días sin ventas",
+  "bajada": "Vendió $ 2.954 M en el AF2027, $ 85,6 M menos que en el AF2026 [C1].",
+  "indicadores": [
+   {
+    "nombre": "Ventas netas del Norte",
+    "consulta": "C1",
+    "dato": "actual",
+    "variacion": "variacion",
+    "contra": "vs AF2026"
+   }
+  ],
+  "puntos": [
+   {
+    "texto": "Monte Chico no registra ventas desde el 1 de enero [C3]: perdió $ 66,1 M, tres cuartas partes de la caída de la región [C2].",
+    "grafico": {
+     "consulta": "C2",
+     "destacar": [
+      "Monte Chico"
+     ]
+    }
+   },
+   {
+    "texto": "En agosto ninguna sucursal registró ventas del 10 al 12 [C5]: el mes cayó 8,2 %, $ 20,2 M [C4].",
+    "grafico": {
+     "consulta": "C4",
+     "destacar": []
+    }
+   },
+   {
+    "texto": "Las otras nueve sucursales vendieron 0,7 % menos en el año [C6], pero no parejo: de enero a abril, 2,0 % menos en pesos [C8] y 3,1 % menos unidades [C7].",
+    "grafico": null
+   }
+  ]
+ },
+ "revisiones": [
+  [
+   "forma: el punto «Monte Chico explica el 77,2 % de la caída de venta…» da números que no se ven en su gráfico: el gráfico muestra el cambio de ventas netas, en pesos y sus etiquetas dicen La Calera +$ 473.313, Las Acacias +$ 126.870, Bajo Hondo −$ 72.984, Río Claro −$ 712.170, San Isidro Labrador −$ 1.395.201, Villa Arenal −$ 3.689.448. Usá esos números tal como se ven (redondeados igual), o elegí la consulta que muestra lo que dice el punto",
+   "editor: Bajada: \"AF2026\" es un código interno y el gerente no sabe qué período es ni si es el año anterior o un forecast. Propuesta: «Las ventas netas bajaron 2,8 % frente al [nombre en lenguaje de negocio del período AF2026, por ejemplo el año anterior] [C2] y quedaron 5,7 % bajo presupuesto [C4].»",
+   "editor: Punto 3: dice \"días de venta\" y después \"días con ventas\", dos expresiones distintas para lo mismo, y \"4,1 % menos días\" no se entiende de corrido. Propuesta: «Hubo 4,1 % menos días con venta que el año anterior [C8], así que parte de la caída de ventas se explica por esos días sin venta.»",
+   "editor: Punto 3 no sostiene el título: el título y el punto 1 atribuyen la caída a Monte Chico (77,2 %), pero el punto 3 suma otra causa sin dejar claro cuánto pesa frente a Monte Chico, y el lector no sabe si se superponen. Propuesta: «Monte Chico explica el 77,2 % de la caída de ventas, con sus ventas bajando 34,8 % [C7]; además, hubo 4,1 % menos días con venta que el año anterior [C8], que pesan como factor secundario.»"
+  ],
+  []
+ ],
+ "consultas": [
+  {
+   "id": "C1",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "region": "Norte",
+     "anio_fiscal": 2027
+    },
+    "comparar_con": {
+     "anio_fiscal": 2026
+    }
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "unidad": "ARS",
+    "actual": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "region": "Norte",
+      "anio_fiscal": 2027
+     },
+     "periodo": {
+      "desde": "2026-05-01",
+      "hasta": "2027-04-30"
+     },
+     "valor": 2954146632.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?",
+     "parametros": [
+      "Norte",
+      2027
+     ]
+    },
+    "anterior": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "region": "Norte",
+      "anio_fiscal": 2026
+     },
+     "periodo": {
+      "desde": "2025-05-01",
+      "hasta": "2026-04-30"
+     },
+     "valor": 3039786582.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?",
+     "parametros": [
+      "Norte",
+      2026
+     ]
+    },
+    "variacion": -2.817301402246929,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": -85639950.0
+   }
+  },
+  {
+   "id": "C2",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "region": "Norte",
+     "anio_fiscal": 2027
+    },
+    "comparar_con": {
+     "anio_fiscal": 2026
+    },
+    "agrupar_por": [
+     "nombre_sucursal"
+    ]
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "unidad": "ARS",
+    "actual": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "region": "Norte",
+      "anio_fiscal": 2027
+     },
+     "periodo": {
+      "desde": "2026-05-01",
+      "hasta": "2027-04-30"
+     },
+     "valor": 2954146632.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?",
+     "parametros": [
+      "Norte",
+      2027
+     ]
+    },
+    "anterior": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "region": "Norte",
+      "anio_fiscal": 2026
+     },
+     "periodo": {
+      "desde": "2025-05-01",
+      "hasta": "2026-04-30"
+     },
+     "valor": 3039786582.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?",
+     "parametros": [
+      "Norte",
+      2026
+     ]
+    },
+    "variacion": -2.817301402246929,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": -85639950.0,
+    "filas": [
+     {
+      "nombre_sucursal": "Almacenes del Sur La Calera",
+      "actual": 218000186.0,
+      "anterior": 217526873.0,
+      "variacion": 0.21758828850539308,
+      "diferencia": 473313.0,
+      "aporte_pct": -0.5526778098305756
+     },
+     {
+      "nombre_sucursal": "Almacenes del Sur Las Acacias",
+      "actual": 42976292.0,
+      "anterior": 42849422.5,
+      "variacion": 0.29608217006891985,
+      "diferencia": 126869.5,
+      "aporte_pct": -0.14814289359113358
+     },
+     {
+      "nombre_sucursal": "Almacenes del Sur Bajo Hondo",
+      "actual": 43503935.0,
+      "anterior": 43576919.0,
+      "variacion": -0.16748315776982764,
+      "diferencia": -72984.0,
+      "aporte_pct": 0.08522190870032036
+     },
+     {
+      "nombre_sucursal": "Almacenes del Sur Río Claro",
+      "actual": 54414671.0,
+      "anterior": 55126841.5,
+      "variacion": -1.2918761180975695,
+      "diferencia": -712170.5,
+      "aporte_pct": 0.8315867769656569
+     },
+     {
+      "nombre_sucursal": "Almacenes del Sur San Isidro Labrador",
+      "actual": 335568704.0,
+      "anterior": 336963905.0,
+      "variacion": -0.4140505790968917,
+      "diferencia": -1395201.0,
+      "aporte_pct": 1.6291473780636259
+     },
+     {
+      "nombre_sucursal": "Almacenes del Sur Villa Arenal",
+      "actual": 710634202.5,
+      "anterior": 714323651.0,
+      "variacion": -0.5164953582084321,
+      "diferencia": -3689448.5,
+      "aporte_pct": 4.308092776794008
+     },
+     {
+      "nombre_sucursal": "Almacenes del Sur Puerto Norte",
+      "actual": 219751318.5,
+      "anterior": 223587613.0,
+      "variacion": -1.7157902660734607,
+      "diferencia": -3836294.5,
+      "aporte_pct": 4.479561816652159
+     },
+     {
+      "nombre_sucursal": "Almacenes del Sur Alto Verde",
+      "actual": 249441214.5,
+      "anterior": 253374206.0,
+      "variacion": -1.5522462061509135,
+      "diferencia": -3932991.5,
+      "aporte_pct": 4.592472905460594
+     },
+     {
+      "nombre_sucursal": "Almacenes del Sur Los Ceibos",
+      "actual": 956109959.0,
+      "anterior": 962576051.0,
+      "variacion": -0.671748688665432,
+      "diferencia": -6466092.0,
+      "aporte_pct": 7.550322016769043
+     },
+     {
+      "nombre_sucursal": "Almacenes del Sur Monte Chico",
+      "actual": 123746149.5,
+      "anterior": 189881100.0,
+      "variacion": -34.829664721765354,
+      "diferencia": -66134950.5,
+      "aporte_pct": 77.2244151240163
+     }
+    ],
+    "ordenado_por": "diferencia",
+    "sql": {
+     "actual": "SELECT s.nombre AS nombre_sucursal, SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?\nGROUP BY s.nombre\nORDER BY valor DESC",
+     "anterior": "SELECT s.nombre AS nombre_sucursal, SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?\nGROUP BY s.nombre\nORDER BY valor DESC"
+    },
+    "parametros": {
+     "actual": [
+      "Norte",
+      2027
+     ],
+     "anterior": [
+      "Norte",
+      2026
+     ]
+    }
+   }
+  },
+  {
+   "id": "C3",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Último día con ventas de cada sucursal del Norte en el AF2027 (del 01-05-2026 al 30-04-2027)\nselect s.nombre sucursal, max(v.fecha) ultimo_dia_con_ventas\nfrom ventas v join sucursales s using (sucursal_id)\nwhere s.region = 'Norte' and v.fecha between date '2026-05-01' and date '2027-04-30' group by 1 order by 2, 1"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "sucursal": "Almacenes del Sur Monte Chico",
+      "ultimo_dia_con_ventas": "2026-12-31 00:00:00"
+     },
+     {
+      "sucursal": "Almacenes del Sur Alto Verde",
+      "ultimo_dia_con_ventas": "2027-04-30 00:00:00"
+     },
+     {
+      "sucursal": "Almacenes del Sur Bajo Hondo",
+      "ultimo_dia_con_ventas": "2027-04-30 00:00:00"
+     },
+     {
+      "sucursal": "Almacenes del Sur La Calera",
+      "ultimo_dia_con_ventas": "2027-04-30 00:00:00"
+     },
+     {
+      "sucursal": "Almacenes del Sur Las Acacias",
+      "ultimo_dia_con_ventas": "2027-04-30 00:00:00"
+     },
+     {
+      "sucursal": "Almacenes del Sur Los Ceibos",
+      "ultimo_dia_con_ventas": "2027-04-30 00:00:00"
+     },
+     {
+      "sucursal": "Almacenes del Sur Puerto Norte",
+      "ultimo_dia_con_ventas": "2027-04-30 00:00:00"
+     },
+     {
+      "sucursal": "Almacenes del Sur Río Claro",
+      "ultimo_dia_con_ventas": "2027-04-30 00:00:00"
+     },
+     {
+      "sucursal": "Almacenes del Sur San Isidro Labrador",
+      "ultimo_dia_con_ventas": "2027-04-30 00:00:00"
+     },
+     {
+      "sucursal": "Almacenes del Sur Villa Arenal",
+      "ultimo_dia_con_ventas": "2027-04-30 00:00:00"
+     }
+    ]
+   }
+  },
+  {
+   "id": "C4",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "region": "Norte",
+     "anio_fiscal": 2027
+    },
+    "comparar_con": {
+     "anio_fiscal": 2026
+    },
+    "agrupar_por": [
+     "mes_fiscal"
+    ]
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "unidad": "ARS",
+    "actual": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "region": "Norte",
+      "anio_fiscal": 2027
+     },
+     "periodo": {
+      "desde": "2026-05-01",
+      "hasta": "2027-04-30"
+     },
+     "valor": 2954146632.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?",
+     "parametros": [
+      "Norte",
+      2027
+     ]
+    },
+    "anterior": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "region": "Norte",
+      "anio_fiscal": 2026
+     },
+     "periodo": {
+      "desde": "2025-05-01",
+      "hasta": "2026-04-30"
+     },
+     "valor": 3039786582.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?",
+     "parametros": [
+      "Norte",
+      2026
+     ]
+    },
+    "variacion": -2.817301402246929,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": -85639950.0,
+    "filas": [
+     {
+      "mes_fiscal": 5,
+      "actual": 240491320.0,
+      "anterior": 231583059.5,
+      "variacion": 3.8466805470285275,
+      "diferencia": 8908260.5,
+      "aporte_pct": -10.40199171064439
+     },
+     {
+      "mes_fiscal": 6,
+      "actual": 261110333.5,
+      "anterior": 255197061.0,
+      "variacion": 2.3171397338310253,
+      "diferencia": 5913272.5,
+      "aporte_pct": -6.90480610976536
+     },
+     {
+      "mes_fiscal": 3,
+      "actual": 245490774.0,
+      "anterior": 241013712.5,
+      "variacion": 1.857596173080816,
+      "diferencia": 4477061.5,
+      "aporte_pct": -5.227772202108945
+     },
+     {
+      "mes_fiscal": 1,
+      "actual": 250065817.0,
+      "anterior": 247226402.5,
+      "variacion": 1.1485077933777725,
+      "diferencia": 2839414.5,
+      "aporte_pct": -3.3155256396109527
+     },
+     {
+      "mes_fiscal": 8,
+      "actual": 293447694.5,
+      "anterior": 294032556.0,
+      "variacion": -0.19891045670466503,
+      "diferencia": -584861.5,
+      "aporte_pct": 0.6829306883061002
+     },
+     {
+      "mes_fiscal": 2,
+      "actual": 231654784.0,
+      "anterior": 233098292.0,
+      "variacion": -0.6192700888601963,
+      "diferencia": -1443508.0,
+      "aporte_pct": 1.6855544637753759
+     },
+     {
+      "mes_fiscal": 7,
+      "actual": 255921103.5,
+      "anterior": 257415655.5,
+      "variacion": -0.5805987196454724,
+      "diferencia": -1494552.0,
+      "aporte_pct": 1.7451574878313219
+     },
+     {
+      "mes_fiscal": 9,
+      "actual": 260667153.5,
+      "anterior": 278781151.0,
+      "variacion": -6.497568947909251,
+      "diferencia": -18113997.5,
+      "aporte_pct": 21.151340583454335
+     },
+     {
+      "mes_fiscal": 10,
+      "actual": 225658134.0,
+      "anterior": 245181237.5,
+      "variacion": -7.9627232895420885,
+      "diferencia": -19523103.5,
+      "aporte_pct": 22.796724542692985
+     },
+     {
+      "mes_fiscal": 4,
+      "actual": 227130900.0,
+      "anterior": 247288100.5,
+      "variacion": -8.151302249984326,
+      "diferencia": -20157200.5,
+      "aporte_pct": 23.53714650697484
+     },
+     {
+      "mes_fiscal": 12,
+      "actual": 224727946.0,
+      "anterior": 246234430.0,
+      "variacion": -8.734149810000169,
+      "diferencia": -21506484.0,
+      "aporte_pct": 25.112676969101454
+     },
+     {
+      "mes_fiscal": 11,
+      "actual": 237780672.0,
+      "anterior": 262734924.0,
+      "variacion": -9.497881598717345,
+      "diferencia": -24954252.0,
+      "aporte_pct": 29.13856441999324
+     }
+    ],
+    "ordenado_por": "diferencia",
+    "sql": {
+     "actual": "SELECT f.mes_fiscal AS mes_fiscal, SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?\nGROUP BY f.mes_fiscal\nORDER BY valor DESC",
+     "anterior": "SELECT f.mes_fiscal AS mes_fiscal, SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE s.region = ? AND f.anio_fiscal = ?\nGROUP BY f.mes_fiscal\nORDER BY valor DESC"
+    },
+    "parametros": {
+     "actual": [
+      "Norte",
+      2027
+     ],
+     "anterior": [
+      "Norte",
+      2026
+     ]
+    }
+   }
+  },
+  {
+   "id": "C5",
+   "tool": "consultar_sql",
+   "argumentos": {
+    "sql": "-- Días del AF2027 en que ninguna sucursal del Norte registró ventas\nselect f.fecha dia_sin_ventas from fechas f\nwhere f.fecha between date '2026-05-01' and date '2027-04-30'\n  and not exists (select 1 from ventas v join sucursales s using (sucursal_id) where s.region = 'Norte' and v.fecha = f.fecha)\norder by 1"
+   },
+   "resultado": {
+    "filas": [
+     {
+      "dia_sin_ventas": "2026-08-10 00:00:00"
+     },
+     {
+      "dia_sin_ventas": "2026-08-11 00:00:00"
+     },
+     {
+      "dia_sin_ventas": "2026-08-12 00:00:00"
+     }
+    ]
+   }
+  },
+  {
+   "id": "C6",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "anio_fiscal": 2027,
+     "sucursal": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S08",
+      "S09",
+      "S10"
+     ]
+    },
+    "comparar_con": {
+     "anio_fiscal": 2026
+    }
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "unidad": "ARS",
+    "actual": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "anio_fiscal": 2027,
+      "sucursal": [
+       "S01",
+       "S02",
+       "S03",
+       "S04",
+       "S05",
+       "S06",
+       "S08",
+       "S09",
+       "S10"
+      ]
+     },
+     "periodo": {
+      "desde": "2026-05-01",
+      "hasta": "2027-04-30"
+     },
+     "valor": 2830400482.5,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND s.sucursal_id IN (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+     "parametros": [
+      2027,
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S08",
+      "S09",
+      "S10"
+     ]
+    },
+    "anterior": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "anio_fiscal": 2026,
+      "sucursal": [
+       "S01",
+       "S02",
+       "S03",
+       "S04",
+       "S05",
+       "S06",
+       "S08",
+       "S09",
+       "S10"
+      ]
+     },
+     "periodo": {
+      "desde": "2025-05-01",
+      "hasta": "2026-04-30"
+     },
+     "valor": 2849905482.0,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND s.sucursal_id IN (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+     "parametros": [
+      2026,
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S08",
+      "S09",
+      "S10"
+     ]
+    },
+    "variacion": -0.6844086452408179,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": -19504999.5
+   }
+  },
+  {
+   "id": "C7",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "unidades",
+    "filtros": {
+     "anio_fiscal": 2027,
+     "sucursal": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S08",
+      "S09",
+      "S10"
+     ],
+     "mes": [
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "comparar_con": {
+     "anio_fiscal": 2026
+    }
+   },
+   "resultado": {
+    "medida": "unidades",
+    "unidad": "unidades",
+    "actual": {
+     "medida": "unidades",
+     "filtros": {
+      "anio_fiscal": 2027,
+      "sucursal": [
+       "S01",
+       "S02",
+       "S03",
+       "S04",
+       "S05",
+       "S06",
+       "S08",
+       "S09",
+       "S10"
+      ],
+      "mes": [
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "periodo": {
+      "desde": "2027-01-01",
+      "hasta": "2027-04-30"
+     },
+     "valor": 273216,
+     "unidad": "unidades",
+     "sql": "SELECT SUM(v.unidades) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND s.sucursal_id IN (?, ?, ?, ?, ?, ?, ?, ?, ?) AND f.mes IN (?, ?, ?, ?)",
+     "parametros": [
+      2027,
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S08",
+      "S09",
+      "S10",
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "anterior": {
+     "medida": "unidades",
+     "filtros": {
+      "anio_fiscal": 2026,
+      "sucursal": [
+       "S01",
+       "S02",
+       "S03",
+       "S04",
+       "S05",
+       "S06",
+       "S08",
+       "S09",
+       "S10"
+      ],
+      "mes": [
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "periodo": {
+      "desde": "2026-01-01",
+      "hasta": "2026-04-30"
+     },
+     "valor": 282089,
+     "unidad": "unidades",
+     "sql": "SELECT SUM(v.unidades) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND s.sucursal_id IN (?, ?, ?, ?, ?, ?, ?, ?, ?) AND f.mes IN (?, ?, ?, ?)",
+     "parametros": [
+      2026,
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S08",
+      "S09",
+      "S10",
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "variacion": -3.1454611842361806,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": -8873
+   }
+  },
+  {
+   "id": "C8",
+   "tool": "calcular",
+   "argumentos": {
+    "medida": "ventas_netas",
+    "filtros": {
+     "anio_fiscal": 2027,
+     "sucursal": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S08",
+      "S09",
+      "S10"
+     ],
+     "mes": [
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "comparar_con": {
+     "anio_fiscal": 2026
+    }
+   },
+   "resultado": {
+    "medida": "ventas_netas",
+    "unidad": "ARS",
+    "actual": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "anio_fiscal": 2027,
+      "sucursal": [
+       "S01",
+       "S02",
+       "S03",
+       "S04",
+       "S05",
+       "S06",
+       "S08",
+       "S09",
+       "S10"
+      ],
+      "mes": [
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "periodo": {
+      "desde": "2027-01-01",
+      "hasta": "2027-04-30"
+     },
+     "valor": 948833905.5,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND s.sucursal_id IN (?, ?, ?, ?, ?, ?, ?, ?, ?) AND f.mes IN (?, ?, ?, ?)",
+     "parametros": [
+      2027,
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S08",
+      "S09",
+      "S10",
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "anterior": {
+     "medida": "ventas_netas",
+     "filtros": {
+      "anio_fiscal": 2026,
+      "sucursal": [
+       "S01",
+       "S02",
+       "S03",
+       "S04",
+       "S05",
+       "S06",
+       "S08",
+       "S09",
+       "S10"
+      ],
+      "mes": [
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "periodo": {
+      "desde": "2026-01-01",
+      "hasta": "2026-04-30"
+     },
+     "valor": 968428386.5,
+     "unidad": "ARS",
+     "sql": "SELECT SUM(v.importe_neto) AS valor\nFROM ventas v JOIN fechas f ON v.fecha = f.fecha JOIN productos p ON v.sku = p.sku JOIN sucursales s ON v.sucursal_id = s.sucursal_id JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id\nWHERE f.anio_fiscal = ? AND s.sucursal_id IN (?, ?, ?, ?, ?, ?, ?, ?, ?) AND f.mes IN (?, ?, ?, ?)",
+     "parametros": [
+      2026,
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S08",
+      "S09",
+      "S10",
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "variacion": -2.02332782404453,
+    "unidad_variacion": "%",
+    "comparables": false,
+    "abiertas_hasta": null,
+    "diferencia": -19594481.0
+   }
+  }
+ ]
+}

@@ -1,0 +1,7 @@
+# Las versiones del diseño con que se midieron los informes (I1, I2, I3), para que la comparación diga qué es cada
+# una. La huella la calcula registro.py con los archivos que leen o deciden por Haiku (la anota correr_todo.py en su
+# resumen). Una versión nueva que no esté acá sale con su huella sola.
+bd8da1: {nombre: "Ejemplos inventados", decision: 107, detalle: "los 3 ejemplos inventados de la decisión 105; título hasta 15 palabras, oraciones hasta 25"}
+d52c32: {nombre: "Semana + marca propia + lecciones", decision: 108, detalle: "2 informes aprobados completos y 5 lecciones del margen; título hasta 22, oraciones hasta 30 (la versión en uso)"}
+445f82: {nombre: "Más una región del año simulado", decision: 109, detalle: "la 108 más el informe del Norte del AF2027 con nombres que no existen (no entró)"}
+da7bd6: {nombre: "Solo semana + lecciones", decision: 111, detalle: "la 108 sin el ejemplo de marca propia; su lección, en una línea («un margen % más alto no alcanza para decir que algo conviene»)"}

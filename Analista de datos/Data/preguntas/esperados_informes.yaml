@@ -1,0 +1,29 @@
+# Lo que tiene que decir cada informe que se mide (I1, I2, I3), para calificarlos con código y no leyéndolos.
+# Cada chequeo mira el texto del informe (título, bajada y razones) que quedó en su informe.json:
+#   texto: la expresión aparece en algún lado · titulo: aparece en el título · titulo_sin: NO aparece en el título
+#   cifra: alguno de los valores está escrito, con su tolerancia (se compara sin signo: «bajó 0,24 pp» o «−0,24 pp»)
+# Los valores se verificaron con SQL directo el 2026-11-20; los hallazgos son los de esperados.yaml (P13, P15) y el
+# aviso de presupuesto sospechoso (decisión 84). Son de trabajo, no de la reserva: se puede ajustar mirándolos.
+TODOS:   # valen para los tres
+  - {nombre: "título sin citas [Cn]", tipo: titulo_sin, patron: '\[C\d+\]'}
+
+I1:   # Informe ejecutivo del T2 del AF2026 con foco en margen
+  - {nombre: "dice cuánto bajó el margen %", tipo: cifra, valores: [0.24, 26.78], tolerancia: 0.006}   # 27,03 % → 26,78 %
+  - {nombre: "cuenta que en pesos subió", tipo: texto, patron: 'en pesos|margen bruto en \$|ganó más pesos|más pesos'}
+  - {nombre: "nombra la categoría (Almacén)", tipo: texto, patron: 'Almac[eé]n'}
+  - {nombre: "dice que es por costo", tipo: texto, patron: 'costo'}
+  - {nombre: "llega al proveedor (Molinos del Plata)", tipo: texto, patron: 'Molinos'}
+
+I2:   # Cumplimiento de presupuesto de enero de 2026, por categoría y por región
+  - {nombre: "dice el desvío total", tipo: cifra, valores: [23.7], tolerancia: 0.06}
+  - {nombre: "avisa del presupuesto sospechoso", tipo: texto, patron: 'carga|sospech|dudos|mal cargad|error'}
+  - {nombre: "lo dice en el título", tipo: titulo, patron: 'carga|sospech|dudos|mal cargad|error|sin contar|sin Perfumer'}
+  - {nombre: "nombra dónde está (Perfumería)", tipo: texto, patron: 'Perfumer[ií]a'}
+  - {nombre: "dice el desvío sin ese presupuesto", tipo: cifra, valores: [5.1], tolerancia: 0.06}
+
+I3:   # Informe del AF2026 para el gerente de la región Oeste
+  - {nombre: "dice que el total creció", tipo: cifra, valores: [6.3, 6.27], tolerancia: 0.06}
+  - {nombre: "dice que las comparables cayeron", tipo: cifra, valores: [5.7, 5.67], tolerancia: 0.06}
+  - {nombre: "lo atribuye a las aperturas", tipo: texto, patron: 'apertura|nuevas|abrieron|Nuevo Oeste'}
+  - {nombre: "dice desde cuándo", tipo: texto, patron: '(desde|a partir de|tras|después de|luego de)\s+(junio|julio|la apertura|las aperturas|que abri)'}
+  - {nombre: "no se va al margen en el título", tipo: titulo_sin, patron: 'margen'}

@@ -85,7 +85,8 @@ def valor(dimension, v):
     if isinstance(v, bool):
         return "marca propia" if v else "marcas de terceros"
     nombre = NOMBRES.get(str(v))
-    return f"{v} ({nombre})" if nombre and dimension in ("sucursal", "proveedor") else str(v)
+    # El nombre solo: el código es ruido para quien lee (decisión 68), y el PDF lo cambiaba por el nombre («X (X)»)
+    return nombre if nombre and dimension in ("sucursal", "proveedor") else str(v)
 
 
 def alcance(filtros):
@@ -132,7 +133,8 @@ def explicar(consulta):
     elif a.get("comparables"):
         lineas.append("Solo sucursales comparables (abiertas en todo el período).")
     if a.get("agrupar_por"):
-        grupos = [DIMENSIONES.get(d, d) for d in a["agrupar_por"] if not d.startswith("nombre_")]
+        # nombre_sucursal cuenta como «sucursal»; si también vino el código, una sola vez
+        grupos = list(dict.fromkeys(DIMENSIONES.get(d, d) for d in a["agrupar_por"]))
         orden = "de mayor a menor" if a.get("orden", "desc") == "desc" else "de menor a mayor"
         if a["agrupar_por"][0] in PERIODO:  # por tiempo, el informe lo muestra en orden de fechas
             orden = "en orden de fechas"
