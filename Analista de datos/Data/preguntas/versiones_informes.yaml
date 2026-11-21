@@ -9,3 +9,4 @@ da7bd6: {nombre: "Solo semana + lecciones", decision: 111, detalle: "la 108 sin 
 # a567db: la primera versión de la 113, con un error del código (las fechas de sus consultas no pasaban a la
 # redacción): 8 de 18 informes no salieron. No se compara.
 d43414: {nombre: "Profundización en código", decision: 113, detalle: "la 112 más dos consultas que corre el código después de los analistas: la medida principal por mes y un nivel más abajo en el grupo que más bajó"}
+d2dcba: {nombre: "Control de citas en el título", decision: 114, detalle: "la 113 más un control en código: si el título lleva citas [Cn], vuelve a Haiku para corregir. Descartada"}
