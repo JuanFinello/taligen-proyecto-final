@@ -19,7 +19,8 @@ import streamlit.components.v1 as components
 import informes
 import registro
 from agente import resumen
-from controles import FECHA_ESCRITA, MAX_SIN_CONTROL, grupos_sin_filtro, numeros_del_texto, periodo_fuera_de_la_base, valores_de
+from controles import (FECHA_ESCRITA, MAX_SIN_CONTROL, grupos_sin_filtro, numeros_del_texto, periodo_fuera_de_la_base, valores_de,
+                       valores_que_no_estan)
 from datetime import date, timedelta
 
 from explicar import MESES, explicar
@@ -146,13 +147,15 @@ def sin_respaldo(r):
 
 
 def controles(turno):
-    """Los controles en código que pasó la respuesta (decisiones 49, 95 y 97), en una línea."""
+    """Los controles en código que pasó la respuesta (decisiones 49, 95, 97 y 116), en una línea."""
     r = turno["respuesta"]
     numeros = not sin_respaldo(r)
     filtros = not grupos_sin_filtro(turno["pregunta"], r["consultas"], supuestos(r))
     afuera = periodo_fuera_de_la_base(turno["pregunta"])
+    no_esta = valores_que_no_estan(turno["pregunta"])
     return " · ".join([f"{'✓' if numeros else '✗'} números con respaldo", f"{'✓' if filtros else '✗'} filtros usados",
-                       "✓ período dentro de la base" if not afuera else "✓ período fuera de la base, sin números"])
+                       "✓ período dentro de la base" if not afuera else "✓ período fuera de la base, sin números"]
+                      + ["✓ lo pedido no está en la base, sin números"] * bool(no_esta))
 
 
 def mostrar_pdf(r):

@@ -4,7 +4,8 @@ import json
 
 import duckdb
 
-from controles import AVISO, grupos_sin_filtro, numeros_de_consultas_en, numeros_sin_respaldo, periodo_fuera_de_la_base
+from controles import (AVISO, grupos_sin_filtro, numeros_de_consultas_en, numeros_sin_respaldo, periodo_fuera_de_la_base,
+                       valores_que_no_estan)
 
 _PARSER = duckdb.connect()  # en memoria, sin base: solo para leer el tipo de cada sentencia
 
@@ -94,3 +95,20 @@ def pedido_sin_numeros(periodos):
     return (f"La pregunta pide {pedidos}, que está fuera de la base (hay ventas del {desde} al {hasta}). No respondas con "
             "números de otro período: decí que no hay datos para lo pedido y dejá el valor vacío. Si sirve, ofrecé "
             "consultar el período más cercano, sin dar su número. Reescribí la respuesta completa.")
+
+
+def valores_inexistentes(pregunta, texto, valor, consultas):
+    """Al terminar, también: si todos los valores que la pregunta nombra con su dimensión («la sucursal S99», «la región
+    Este») no están en la base, la respuesta no lleva valor ni números de consultas (decisión 116)."""
+    faltan = valores_que_no_estan(pregunta)
+    if faltan and (valor is not None or numeros_de_consultas_en(texto, consultas)):
+        return faltan
+    return []
+
+
+def pedido_sin_numeros_de_otro(faltan):
+    """El motivo que recibe el modelo cuando responde con números algo que la base no tiene."""
+    nombres = ", ".join(f"«{d.replace('region', 'región').replace('categoria', 'categoría')} {e}»" for d, e in faltan)
+    return (f"La pregunta pide {nombres}, que no está en la base. No respondas con números de otra cosa (el total, las "
+            "otras sucursales, regiones o categorías): decí que no está, nombrá los valores que sí existen si sirve, y "
+            "dejá el valor vacío. Reescribí la respuesta completa.")

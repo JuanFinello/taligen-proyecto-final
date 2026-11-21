@@ -246,3 +246,52 @@ def periodo_fuera_de_la_base(pregunta):
     if periodos and all(h < desde or d > hasta for _, d, h in periodos):
         return periodos
     return []
+
+
+# Decisión 116. El test 4 (decisión 115): ante «la sucursal S99», «la región Este» o «la categoría Electrónica», que no
+# están en la base, el agente dice que no existen pero 7 de 9 veces agrega números de otra cosa «de referencia» (el
+# total de la cadena, las cuatro regiones, las seis categorías). Es el patrón de la 97 con valores en lugar de períodos.
+# Si todos los valores que la pregunta nombra junto a «sucursal», «región», «categoría» o «subcategoría» no están en la
+# base, la respuesta no lleva números de consultas ni valor. Solo con la palabra de la dimensión delante (o un código
+# S99): sin ella, el código no puede saber qué es un nombre («Coca-Cola» puede ser un producto, una marca o nada).
+PALABRA_DE = {"sucursal": r"(?i:sucursal(?:es)?)", "region": r"(?i:regi[oó]n(?:es)?)",
+              "categoria": r"(?i:(?:sub)?categor[ií]as?)"}
+NOMBRE = r"((?:[A-ZÁÉÍÓÚÑ0-9][\wáéíóúñ-]*)(?:\s+(?:(?:de|del|la|las|los)\s+)?[A-ZÁÉÍÓÚÑ][\wáéíóúñ-]*){0,3})"
+
+
+@functools.cache
+def valores_conocidos():
+    """Por dimensión, los valores de la base sin tildes y en minúscula (las sucursales, por código y por nombre)."""
+    import duckdb
+    from procesador_capa_semantica import BASE
+    with duckdb.connect(BASE, read_only=True) as con:
+        lista = lambda sql: [sin_tildes(str(v)) for (v,) in con.execute(sql).fetchall()]
+        sucursales = lista("SELECT sucursal_id FROM sucursales UNION SELECT nombre FROM sucursales")
+        regiones = lista("SELECT DISTINCT region FROM sucursales")
+        # «las sucursales del Oeste»: después de «sucursal» también puede venir una región
+        return {"sucursal": sucursales + [n.removeprefix("almacenes del sur ").strip() for n in sucursales] + regiones,
+                "region": regiones,
+                "categoria": lista("SELECT DISTINCT categoria FROM productos UNION SELECT DISTINCT subcategoria FROM productos")}
+
+
+def valores_nombrados(pregunta):
+    """[(dimensión, cómo está escrito, ¿está en la base?)] de los valores que la pregunta nombra con su dimensión."""
+    conocidos = valores_conocidos()
+    esta = lambda dimension, escrito: any(sin_tildes(escrito).startswith(k) or k.startswith(sin_tildes(escrito))
+                                          for k in conocidos[dimension])
+    salida = []
+    for dimension, palabra in PALABRA_DE.items():
+        for m in re.finditer(rf"\b{palabra}\s+(?:(?:de|del|la|el)\s+)?{NOMBRE}", pregunta):
+            if not re.match(r"(?i)(af|t|q)\d|20\d\d|" + "|".join(MESES), sin_tildes(m.group(1))):  # «top 5 sucursales AF26»
+                salida.append((dimension, m.group(1), esta(dimension, m.group(1))))
+    escritos = {e for _, e, _ in salida}
+    for m in re.finditer(r"\bS\d{2,3}\b", pregunta):  # un código de sucursal suelto: «¿cuánto vendió S99?»
+        if m.group(0) not in escritos:
+            salida.append(("sucursal", m.group(0), esta("sucursal", m.group(0))))
+    return salida
+
+
+def valores_que_no_estan(pregunta):
+    """Los valores nombrados, si ninguno está en la base; si alguno está, [] (la respuesta puede tener su número)."""
+    nombrados = valores_nombrados(pregunta)
+    return [(d, e) for d, e, esta in nombrados] if nombrados and not any(esta for *_, esta in nombrados) else []
