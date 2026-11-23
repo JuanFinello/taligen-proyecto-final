@@ -90,7 +90,7 @@ CONTROLES = [
 
 # Lo raro que puede ser real o un error de carga: se avisa con ejemplos y no bloquea (decisión 85). Cada consulta
 # devuelve filas de ejemplo. El umbral de cada salto depende del ruido de su serie (decisión 92, medido en
-# evaluacion/pruebas/sensibilidad.py): el presupuesto y el costo unitario son muy estables, y con 1,5 veces sus vecinos ven un
+# evaluacion/robustez/sensibilidad.py): el presupuesto y el costo unitario son muy estables, y con 1,5 veces sus vecinos ven un
 # error del doble sin falsas alarmas (en dos años, solo 2 avisos más, los dos hechos reales: una apertura y un quiebre);
 # las ventas de un día son ruidosas (con 1,5 serían 450 alarmas) y siguen con 3, el umbral del agente (decisión 84).
 V = VECES_SOSPECHOSO

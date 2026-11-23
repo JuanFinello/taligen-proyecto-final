@@ -80,4 +80,4 @@ El PDF es de dos páginas: el mensaje como título, 2 o 3 puntos con su prueba, 
 | `evaluador.py` | los casos del enunciado contra lo esperado |
 | `correr_todo.py` | todo el enunciado con un comando |
 | `chequeos_informes.py` | califica con código lo que tienen que decir los informes |
-| `pruebas/` | los 9 tests de robustez |
+| `evaluacion/robustez/` | los 9 tests de robustez |

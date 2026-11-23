@@ -26,8 +26,8 @@ interfaz:  ## interfaz Streamlit en http://localhost:8501
 chat:  ## chat en la terminal («?» muestra de dónde sale cada número)
 	$(PY) analista/puerta.py
 
-evaluar:  ## evaluador: 21 casos contra lo esperado (~1 min, ~US$ 0,04)
+evaluar:  ## evaluador: 21 casos contra lo esperado (~1,5 min, ~US$ 0,05)
 	$(PY) evaluacion/evaluador.py
 
-todo:  ## todo el enunciado: 20 preguntas, 5 conversaciones y 3 informes (~2 min, ~US$ 0,10)
+todo:  ## todo el enunciado: 20 preguntas, 5 conversaciones y 3 informes (~3 min, ~US$ 0,14)
 	$(PY) evaluacion/correr_todo.py

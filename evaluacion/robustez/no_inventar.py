@@ -6,7 +6,7 @@ Pasa como el enunciado pide para P20 (chequeo «sin_dato» del evaluador): dice 
 de otra cosa (sin valor en el registro ni cifras de sus consultas en el texto). Antes de correr el agente, se verifica
 con SQL escrito acá que de verdad no está, y se guarda.
 
-Uso: .venv/bin/python evaluacion/pruebas/no_inventar.py [--veces N]      (~US$ 0,02 por vez)
+Uso: .venv/bin/python evaluacion/robustez/no_inventar.py [--veces N]      (~US$ 0,02 por vez)
 Deja salidas/no_inventar/ (ausencias.json antes de correr, resultado.md) y copia el resultado a trazas/no_inventar.md."""
 import asyncio
 import json
@@ -105,7 +105,7 @@ async def main(veces):
 
     si = lambda x: "✓" if x else "✗"
     lineas = ["# Test 4: no inventar", "",
-              f"Comando: `.venv/bin/python evaluacion/pruebas/no_inventar.py{f' --veces {veces}' if veces > 1 else ''}` · {len(CASOS)} preguntas × "
+              f"Comando: `.venv/bin/python evaluacion/robustez/no_inventar.py{f' --veces {veces}' if veces > 1 else ''}` · {len(CASOS)} preguntas × "
               f"{veces} · US$ {costo():.3f} · {reloj:.0f} s", "",
               "Pasa si dice que no hay dato y no responde con un número de otra cosa (como P20 en el enunciado). La "
               "ausencia se verificó con SQL antes de correr (`salidas/no_inventar/ausencias.json`).", "",

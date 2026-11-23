@@ -4,7 +4,7 @@ para k = 1…N (estimador sin sesgo por caso: C(aciertos, k) / C(N, k)): la dist
 inestable. Califica con evaluador.evaluar (misma medida, mismo valor, consulta reproducible y ruteo al agente).
 Es una medición: si algo falla, se reporta, no se ajusta. La reserva (decisión 80) va aparte.
 
-Uso: .venv/bin/python evaluacion/pruebas/consistencia.py [--veces N] [ids]      (N = 10 por defecto; ~US$ 0,30, de a 5)
+Uso: .venv/bin/python evaluacion/robustez/consistencia.py [--veces N] [ids]      (N = 10 por defecto; ~US$ 0,30, de a 5)
 Deja salidas/consistencia/resultado.md y lo copia a trazas/consistencia.md."""
 import asyncio
 import json
@@ -60,7 +60,7 @@ async def main(ids, veces):
     aciertos = {i: sum(r["paso"] for r in resultados if r["id"] == i) for i in ids}
     trabajo, reserva = [i for i in ids if i not in RESERVA], [i for i in ids if i in RESERVA]
     lineas = ["# Test 6: consistencia, pass^k (decisión 117)", "",
-              f"Comando: `.venv/bin/python evaluacion/pruebas/consistencia.py --veces {veces}` · {len(ids)} casos × {veces} · "
+              f"Comando: `.venv/bin/python evaluacion/robustez/consistencia.py --veces {veces}` · {len(ids)} casos × {veces} · "
               f"US$ {costo():.3f} · {reloj:.0f} s", ""]
     for nombre, grupo in [("De trabajo", trabajo), ("Reserva (no se ajusta nada por ellas)", reserva)]:
         if not grupo:

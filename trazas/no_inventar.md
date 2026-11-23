@@ -1,6 +1,6 @@
 # Test 4: no inventar
 
-Comando: `.venv/bin/python evaluacion/pruebas/no_inventar.py --veces 3` · 12 preguntas × 3 · US$ 0.074 · 123 s
+Comando: `.venv/bin/python evaluacion/robustez/no_inventar.py --veces 3` · 12 preguntas × 3 · US$ 0.074 · 123 s
 
 Pasa si dice que no hay dato y no responde con un número de otra cosa (como P20 en el enunciado). La ausencia se verificó con SQL antes de correr (`salidas/no_inventar/ausencias.json`).
 

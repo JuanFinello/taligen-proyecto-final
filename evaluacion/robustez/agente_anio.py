@@ -1,12 +1,12 @@
 """Fase 4 del año simulado (decisión 90): el agente sobre el AF2027 simulado (salidas/anio/limpia.duckdb, de
-evaluacion/pruebas/anio_simulado.py). Las preguntas salen de los eventos plantados; los valores esperados se calculan con SQL
+evaluacion/robustez/anio_simulado.py). Las preguntas salen de los eventos plantados; los valores esperados se calculan con SQL
 escrito acá, sin el procesador, y se guardan antes de correr el agente. Todo se califica por código:
 - las preguntas con número, con los chequeos del evaluador (medida y valor, decisión 75);
 - los diagnósticos, con reglas escritas abajo (un número dentro de un rango, o qué tiene que decir y qué no). El
   texto queda en la traza para leerlo.
 Además, un segundo oráculo: lo que se plantó (una caída de −30 %) contra lo que mide el agente.
 
-Uso: .venv/bin/python evaluacion/pruebas/agente_anio.py      (~US$ 0,08, unos 3 minutos)
+Uso: .venv/bin/python evaluacion/robustez/agente_anio.py      (~US$ 0,08, unos 3 minutos)
 Deja salidas/anio_agente/ (esperados.json antes de correr, resultado.md) y copia el resultado a trazas/agente_anio.md."""
 import asyncio
 import json
@@ -149,7 +149,7 @@ def costo():
 
 def main():
     if not ANIO.exists():
-        sys.exit("Falta el año simulado: correr antes .venv/bin/python evaluacion/pruebas/anio_simulado.py")
+        sys.exit("Falta el año simulado: correr antes .venv/bin/python evaluacion/robustez/anio_simulado.py")
     CARPETA.mkdir(parents=True, exist_ok=True)
     ev = json.loads(Path("salidas/anio/eventos.json").read_text())["eventos"]
     e = esperados(ev)
@@ -161,7 +161,7 @@ def main():
     si = lambda x: "✓" if x else "✗"
     coma = lambda x: str(x).replace(".", ",")
     lineas = ["# El agente sobre el año simulado (decisión 90)", "",
-              f"Comando: `.venv/bin/python evaluacion/pruebas/agente_anio.py` · base: el AF2027 simulado (decisión 88) · US$ {usd:.3f}", "",
+              f"Comando: `.venv/bin/python evaluacion/robustez/agente_anio.py` · base: el AF2027 simulado (decisión 88) · US$ {usd:.3f}", "",
               f"**{sum(r['paso'] for r in resultados)} de {len(resultados)}** pasan los chequeos por código.", "",
               "| Caso | Qué prueba | Tipo → camino | Chequeo |", "|---|---|---|---|"]
     que = {"total": "el AF2027 completo", "comparables": "comparables con una sucursal que cerró",

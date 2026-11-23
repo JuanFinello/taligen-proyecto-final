@@ -101,4 +101,6 @@ El análisis completo, con un gráfico por cruce, está en [`diagramas/modelo_de
 
 Casi todas las preguntas siguen la forma **qué + de qué + cuándo**: qué se mide (la medida), de qué (los filtros: cadena, categoría, región…) y cuándo (el período). Es el mismo formulario que el modelo completa en `calcular()`. Las trampas suelen estar en palabras que define el glosario: en «¿Cuánto vendió la cadena en el AF2025?», «vendió» son ventas netas, no brutas, y el AF2025 va de mayo de 2024 a abril de 2025, no es el año calendario.
 
+La capa semántica (`Data/capa_semantica/`) es la versión trabajada de la del curso; `medidas_original.yaml` es la copia original, sin tocar, para comparar.
+
 En `Data/preguntas/` están las 20 preguntas, las 5 conversaciones y los 3 pedidos de informe del enunciado, junto con los valores esperados (`esperados.yaml`), calculados con SQL escrito a mano.

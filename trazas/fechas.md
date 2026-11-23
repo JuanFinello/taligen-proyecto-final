@@ -1,6 +1,6 @@
 # Test 3: fechas difíciles (decisión 96)
 
-Comando: `.venv/bin/python evaluacion/pruebas/fechas.py --veces 3` · 14 preguntas × 3 · US$ 0.049 · 75 s · base hasta el 30-04-2026, hoy noviembre de 2026
+Comando: `.venv/bin/python evaluacion/robustez/fechas.py --veces 3` · 14 preguntas × 3 · US$ 0.049 · 75 s · base hasta el 30-04-2026, hoy noviembre de 2026
 
 **42 de 42** pasan.
 

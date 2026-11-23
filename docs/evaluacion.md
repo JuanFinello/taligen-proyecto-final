@@ -15,8 +15,8 @@ Las mismas reglas valen para el evaluador y para los tests:
 | Nivel | Qué mide | Modelo | Comando |
 |---|---|---|---|
 | Tests unitarios (`tests/`) | que el código calcule y frene bien: `calcular()` contra los valores esperados, los controles de números sin respaldo, filtros y períodos, y las capas de seguridad | no · 1 s · sin costo | `make tests` |
-| Evaluador (`evaluacion/`) | los casos del enunciado, de punta a punta | sí · ~1 min · ~US$ 0,04 | `make evaluar` |
-| Tests de robustez (`evaluacion/pruebas/`) | lo que el enunciado no prueba | sí, salvo 1c y 9 | uno por test |
+| Evaluador (`evaluacion/`) | los casos del enunciado, de punta a punta | sí · ~1,5 min · ~US$ 0,05 | `make evaluar` |
+| Tests de robustez (`evaluacion/robustez/`) | lo que el enunciado no prueba | sí, salvo 1c y 9 | uno por test |
 
 Los tests unitarios usan los mismos valores esperados del evaluador (calculados con SQL escrito a mano), así que un error en una fórmula, un join o el calendario fiscal se ve sin gastar nada: rompiendo a propósito la fórmula de las ventas netas, fallan 3 de 34.
 
@@ -34,11 +34,11 @@ En las conversaciones se califica cada turno por separado: un turno que pierde u
 .venv/bin/python evaluacion/evaluador.py [--veces N] [P03 C1 …]
 ```
 
-Corre 16 preguntas y las 5 conversaciones (21 casos) contra [`Data/preguntas/esperados.yaml`](../Data/preguntas/esperados.yaml), de a 5 en paralelo, en alrededor de un minuto y por unos US$ 0,04. Con `--veces N`, un caso aprueba solo si pasa las N veces. Los 25 valores esperados se recalcularon con SQL escrito a mano y coinciden.
+Corre 16 preguntas y las 5 conversaciones (21 casos) contra [`Data/preguntas/esperados.yaml`](../Data/preguntas/esperados.yaml), de a 5 en paralelo, en alrededor de un minuto y medio y por unos US$ 0,05. Con `--veces N`, un caso aprueba solo si pasa las N veces. Los 25 valores esperados se recalcularon con SQL escrito a mano y coinciden.
 
 **Resultado:** 17 de 17 casos de trabajo y 4 de 4 de reserva. Con 10 corridas por caso: 170 de 170 y 39 de 40 ([test 6](../trazas/consistencia.md)).
 
-`correr_todo.py` corre todo el enunciado con un comando: 20 preguntas, 5 conversaciones y 3 informes (28 casos), en 120 s y por US$ 0,105 ([traza](../trazas/corrida_completa.md)). Los informes se califican aparte con `chequeos_informes.py`, que verifica que cada uno diga lo que tiene que decir: la última corrida pasó 18 de 18 chequeos ([PDF y trazas](informes/)).
+`correr_todo.py` corre todo el enunciado con un comando: 20 preguntas, 5 conversaciones y 3 informes (28 casos), en 182 s y por US$ 0,14 ([traza](../trazas/corrida_completa.md)). Los informes se califican aparte con `chequeos_informes.py`, que verifica que cada uno diga lo que tiene que decir (6 chequeos por informe, 18 en total). Con el diseño actual, en 6 corridas: **95 de 108 (88 %)** ([comparación](../trazas/comparacion_informes.md)). Varía entre corridas: el 23-11 una pasó 18 de 18 (sus PDF y trazas están en [`informes/`](informes/)) y otra 14 de 18.
 
 ## Tests de robustez
 
@@ -56,35 +56,35 @@ El evaluador mide los casos del enunciado. Los tests miden lo que el enunciado n
 | 6 | Consistencia (pass^k) | ¿Acierta siempre o solo a veces? 10 corridas por caso | **170 de 170** de trabajo (pass^10 = 100 %); reserva 39 de 40 (pass^10 = 75 %) | [consistencia](../trazas/consistencia.md) |
 | 7 | Conversación | ¿Qué arrastra de un turno al siguiente y qué suelta? | **69 de 72** turnos; falla siempre «¿Y un año antes?» | [conversacion](../trazas/conversacion.md) |
 | 8 | La puerta | ¿Manda cada pregunta al camino correcto? | **192 de 192** caminos; tipo exacto 96 % | [matriz_puerta](../trazas/matriz_puerta.md) |
-| 9 | Costo y tiempo | ¿Cuánto cuesta y cuánto tarda, por tipo? | Una pregunta: mediana US$ 0,0010–0,0017 y 6–11 s | [costos](../trazas/costos.md) |
+| 9 | Costo y tiempo | ¿Cuánto cuesta y cuánto tarda, por tipo? | Una pregunta: mediana US$ 0,0009–0,0018 y 7–12 s; un informe, US$ 0,020 y 75 s | [costos](../trazas/costos.md) |
 
 ```bash
-.venv/bin/python evaluacion/pruebas/ingesta_simulada.py [--agente]   # 1
-.venv/bin/python evaluacion/pruebas/agente_anio.py                   # 1b (el año, con evaluacion/pruebas/anio_simulado.py)
-.venv/bin/python evaluacion/pruebas/deteccion.py [N]                 # 1c (y evaluacion/pruebas/sensibilidad.py)
-.venv/bin/python evaluacion/pruebas/lenguaje.py [--veces N]          # 2
-.venv/bin/python evaluacion/pruebas/fechas.py [--veces N]            # 3
-.venv/bin/python evaluacion/pruebas/no_inventar.py [--veces N]       # 4
-.venv/bin/python evaluacion/pruebas/ataques.py [--veces N]           # 5
-.venv/bin/python evaluacion/pruebas/consistencia.py [--veces N]      # 6
-.venv/bin/python evaluacion/pruebas/conversacion.py [--veces N]      # 7
-.venv/bin/python evaluacion/pruebas/matriz_puerta.py [--veces N]     # 8
-.venv/bin/python evaluacion/pruebas/costos.py [desde]                # 9, de los registros, sin modelo
+.venv/bin/python evaluacion/robustez/ingesta_simulada.py [--agente]   # 1
+.venv/bin/python evaluacion/robustez/agente_anio.py                   # 1b (el año, con evaluacion/robustez/anio_simulado.py)
+.venv/bin/python evaluacion/robustez/deteccion.py [N]                 # 1c (y evaluacion/robustez/sensibilidad.py)
+.venv/bin/python evaluacion/robustez/lenguaje.py [--veces N]          # 2
+.venv/bin/python evaluacion/robustez/fechas.py [--veces N]            # 3
+.venv/bin/python evaluacion/robustez/no_inventar.py [--veces N]       # 4
+.venv/bin/python evaluacion/robustez/ataques.py [--veces N]           # 5
+.venv/bin/python evaluacion/robustez/consistencia.py [--veces N]      # 6
+.venv/bin/python evaluacion/robustez/conversacion.py [--veces N]      # 7
+.venv/bin/python evaluacion/robustez/matriz_puerta.py [--veces N]     # 8
+.venv/bin/python evaluacion/robustez/costos.py [desde]                # 9, de los registros, sin modelo
 ```
 
 ## Costos
 
-Medidos con `registro.py`, con el caché del prefijo (decisión 72):
+Medidos con `registro.py` desde el 21-11 (el diseño actual), con el caché del prefijo (decisión 72); detalle en [costos](../trazas/costos.md):
 
 | Qué | US$ | Tiempo |
 |---|---|---|
-| Una pregunta suelta (mediana) | 0,0010–0,0017 | 6–11 s |
-| Un turno de conversación (mediana) | 0,0012 | 7 s |
-| Un diagnóstico (mediana) | 0,0116 | 52 s |
-| Un informe (mediana) | 0,0134 | 54 s |
-| El evaluador (21 casos) | ~0,04 | ~60 s |
-| Todo el enunciado (`correr_todo.py`, 28 casos) | 0,105 | 120 s |
-| Un año de informes programados (69 informes) | ~0,92 | |
+| Una pregunta suelta (mediana según el tipo) | 0,0009–0,0018 | 7–12 s |
+| Un turno de conversación (mediana) | 0,0011 | 9 s |
+| Un diagnóstico (mediana) | 0,0108 | 47 s |
+| Un informe (mediana) | 0,0199 | 75 s |
+| El evaluador (21 casos) | ~0,05 | ~90 s |
+| Todo el enunciado (`correr_todo.py`, 28 casos) | 0,14 | 182 s |
+| Un año de informes programados (69 informes) | ~1,37 | |
 
 ## Límites conocidos
 

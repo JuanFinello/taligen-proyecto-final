@@ -1,6 +1,6 @@
 # Sensibilidad de `verificar_base.py` (decisión 91)
 
-Comando: `.venv/bin/python evaluacion/pruebas/sensibilidad.py` · 1 s, sin modelo · base real (AF2025 y AF2026)
+Comando: `.venv/bin/python evaluacion/robustez/sensibilidad.py` · 1 s, sin modelo · base real (AF2025 y AF2026)
 
 La curva de detección es exacta sobre todos los lugares normales de la base: un error ×k en un lugar con cociente natural r contra sus vecinos se detecta si k·r ≥ 3.
 

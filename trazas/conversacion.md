@@ -1,6 +1,6 @@
 # Test 7: conversación (decisión 118)
 
-Comando: `.venv/bin/python evaluacion/pruebas/conversacion.py --veces 3` · 8 conversaciones de 3 turnos × 3 · US$ 0.075 · 149 s
+Comando: `.venv/bin/python evaluacion/robustez/conversacion.py --veces 3` · 8 conversaciones de 3 turnos × 3 · US$ 0.075 · 149 s
 
 **Turnos correctos: 69 de 72** · conversaciones enteras: 21 de 24
 

@@ -11,7 +11,7 @@ el control de verdad, se inyectan errores reales en una copia y se corre la func
 Se hace sobre la base real (dos años), sin las celdas que ya están marcadas (el error de carga de enero de 2026), que
 son las únicas que no son datos normales.
 
-Uso: .venv/bin/python evaluacion/pruebas/sensibilidad.py      (~1 minuto, sin modelo)
+Uso: .venv/bin/python evaluacion/robustez/sensibilidad.py      (~1 minuto, sin modelo)
 Deja salidas/sensibilidad/resultado.md y lo copia a trazas/sensibilidad.md."""
 import random
 import shutil
@@ -127,7 +127,7 @@ def main():
     segundos = time.monotonic() - inicio
 
     lineas = ["# Sensibilidad de `verificar_base.py` (decisión 91)", "",
-              f"Comando: `.venv/bin/python evaluacion/pruebas/sensibilidad.py` · {segundos:.0f} s, sin modelo · base real (AF2025 y AF2026)", "",
+              f"Comando: `.venv/bin/python evaluacion/robustez/sensibilidad.py` · {segundos:.0f} s, sin modelo · base real (AF2025 y AF2026)", "",
               "La curva de detección es exacta sobre todos los lugares normales de la base: un error ×k en un lugar con "
               "cociente natural r contra sus vecinos se detecta si k·r ≥ 3.", "",
               "## 1. El error más chico que detecta, con el umbral de cada control", "",

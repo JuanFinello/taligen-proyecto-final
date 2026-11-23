@@ -1,6 +1,6 @@
 # Test 6: consistencia, pass^k (decisión 117)
 
-Comando: `.venv/bin/python evaluacion/pruebas/consistencia.py --veces 10` · 21 casos × 10 · US$ 0.405 · 658 s
+Comando: `.venv/bin/python evaluacion/robustez/consistencia.py --veces 10` · 21 casos × 10 · US$ 0.405 · 658 s
 
 **De trabajo: 17 de 17 aciertan las 10 veces** · aciertos totales 170 de 170 (pass^1 = 100%, pass^10 = 100%)
 

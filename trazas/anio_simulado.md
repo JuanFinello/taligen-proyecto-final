@@ -1,6 +1,6 @@
 # Año simulado: AF2027 con eventos nuevos (decisión 88)
 
-Comando: `.venv/bin/python evaluacion/pruebas/anio_simulado.py` · semilla 2027 · 17 s
+Comando: `.venv/bin/python evaluacion/robustez/anio_simulado.py` · semilla 2027 · 17 s
 
 ## Cómo se armaron los datos
 

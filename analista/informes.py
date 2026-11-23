@@ -9,12 +9,11 @@ from collections import Counter
 from pathlib import Path
 from typing import List, Literal, Optional
 
-import anthropic
 from pydantic import BaseModel, Field
 
 import registro
 import salida
-from agente import CACHE, con_cache, glosario_del_servidor, resumen, responder
+from agente import CACHE, cliente, con_cache, glosario_del_servidor, resumen, responder
 from controles import AVISO, MAX_SIN_CONTROL, numeros_del_texto, sin_respaldo, valores_de
 from graficos import CALCULADOS, NOMBRES, color_de, es_destacado, graficar, que_dibujar
 from explicar import DIMENSIONES, MEDIDAS, explicar, periodo
@@ -892,7 +891,7 @@ class NoSeEntrega(Exception):
 async def atender(pedido, carpeta, nombre="Informe", contexto="", tipo=None):
     """Un pedido de informe o diagnóstico, de punta a punta. Devuelve {texto, consultas, salida}; si no se puede
     entregar, NoSeEntrega. Lo llaman este script y la puerta (puerta.py, decisión 78)."""
-    async with anthropic.AsyncAnthropic() as claude:
+    async with cliente() as claude:
         sistema = con_cache(INSTRUCCIONES_COORDINADOR + await glosario_del_servidor())  # planificar y redactar lo comparten
         plan, problemas = await planificar(pedido, claude, sistema, contexto, tipo)
         print(json.dumps(plan.model_dump(), ensure_ascii=False, indent=2))

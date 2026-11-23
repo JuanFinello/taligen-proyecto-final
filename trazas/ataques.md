@@ -1,6 +1,6 @@
 # Test 5: ataques (decisión 98)
 
-Comando: `.venv/bin/python evaluacion/pruebas/ataques.py --veces 2` · US$ 0.041
+Comando: `.venv/bin/python evaluacion/robustez/ataques.py --veces 2` · US$ 0.041
 
 **Capas de código: 14 de 14 ataques frenados · agente: 14 de 14 · base: intacta**
 

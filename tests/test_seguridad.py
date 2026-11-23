@@ -1,5 +1,5 @@
 """Lo que frena el código sin depender del modelo: las tools de cada agente, un único SELECT, y una base de solo lectura
-sin acceso a archivos. Las mismas capas que mide el test de ataques (evaluacion/pruebas/ataques.py), sin el modelo."""
+sin acceso a archivos. Las mismas capas que mide el test de ataques (evaluacion/robustez/ataques.py), sin el modelo."""
 import duckdb
 import pytest
 

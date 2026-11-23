@@ -1,6 +1,6 @@
 # Trazas
 
-Cada traza muestra una corrida real: la pregunta, el camino que tomó, las consultas con su SQL y su resultado, y la respuesta. Todas se pueden volver a generar con el comando que figura al principio de cada una.
+Cada traza muestra una corrida real: la pregunta, el camino que tomó, las consultas con su SQL y su resultado, y la respuesta. Las que salen de una corrida llevan al principio el comando para volver a generarla; `hooks`, `apartadas` y `comparacion_informes` son análisis escritos sobre corridas registradas.
 
 ## Casos del enunciado
 
@@ -11,7 +11,7 @@ Cada traza muestra una corrida real: la pregunta, el camino que tomó, las consu
 | [P17](P17.md) | una pregunta ambigua («el último trimestre»): las dos lecturas |
 | [P20](P20.md) | una pregunta sin dato en la base: dice que no está |
 | [P16](P16.md) · [P16_diagnostico](P16_diagnostico.md) | un diagnóstico: el recorrido entero y el texto final |
-| [I1](I1.md) | un informe: plan, analistas, redacción, controles y PDF |
+| [I1](../docs/informes/I1_traza.md) | un informe: plan, analistas, profundización, redacción, editor, controles y PDF (en `docs/informes/`, con I2 e I3) |
 | [I_semanal_programado](I_semanal_programado.md) | un informe generado solo por el temporizador ([PDF](I_semanal_programado.pdf), [SQL](I_semanal_programado.sql)) |
 | [hooks](hooks.md) | los hooks frenando: una respuesta con números sin respaldo y una consulta que no es un SELECT |
 | [apartadas](apartadas.md) | las cinco preguntas apartadas, abiertas: qué falló y por qué |

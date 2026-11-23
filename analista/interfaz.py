@@ -297,7 +297,7 @@ TESTS = [  # (test, qué prueba, traza, patrón del resultado)
 
 
 def pestania_calidad():
-    st.caption("Cada resultado sale de un test que se vuelve a correr con un comando (`evaluacion/pruebas/`), calificado por código "
+    st.caption("Cada resultado sale de un test que se vuelve a correr con un comando (`evaluacion/robustez/`), calificado por código "
                "contra valores calculados con SQL antes de correr el agente.")
     filas = []
     for test, que, archivo, patron in TESTS:

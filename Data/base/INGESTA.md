@@ -48,4 +48,4 @@ Si `verificar_base.py` marca un error, se corrige en la copia y se vuelve al pas
 
 ## Un ensayo completo
 
-`evaluacion/pruebas/ingesta_simulada.py` hace todo esto sobre copias, con un mes simulado (mayo de 2026, una sucursal y un producto nuevos, hechos reales y errores de carga plantados): sirve de ejemplo de cómo cargar cada tabla y de prueba de que el agente y los informes toman los datos nuevos solos (decisión 87).
+`evaluacion/robustez/ingesta_simulada.py` hace todo esto sobre copias, con un mes simulado (mayo de 2026, una sucursal y un producto nuevos, hechos reales y errores de carga plantados): sirve de ejemplo de cómo cargar cada tabla y de prueba de que el agente y los informes toman los datos nuevos solos (decisión 87).

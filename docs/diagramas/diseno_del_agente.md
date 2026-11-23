@@ -4,37 +4,37 @@ Versión para leer en GitHub del canvas [`Diseño del agente.canvas`](Diseño%20
 
 ```mermaid
 flowchart TD
-    interfaz["1a. Interfaz"]
-    hooks["Hooks y controles en código"]
-    s3_pdf["Gráficos y PDF · código"]
-    evaluador["8. Evaluador"]
-    capa_py["procesador_capa_semantica.py"]
-    chequeos["Chequeos del evaluador: trampas por pregunta"]
-    base["6. almacenes_del_sur.duckdb"]
-    pruebas["8a. Pruebas de robustez · pruebas/"]
-    programado["1b. Informes programados"]
-    s3_registro["Registro · código"]
-    resumen_s1["Lo que enseñan las preguntas de la semana 1"]
-    editor["3c. Editor · editar()"]
-    salida["7. Respuesta trazable"]
-    s3_plan["3b. Coordinador"]
-    puerta["2. La puerta"]
-    agente["3a. Agente: Haiku decide qué pedir"]
-    verificar["6a. Verificación de la base"]
-    pregunta["1. Entra una pregunta"]
-    subgraph g_analistas["ANALISTAS · 2 a 4 en un informe, 1 o 2 en un diagnóstico · todos a la vez (dec. 74)"]
-        analista3["Analista 3"]
-        analista2["Analista 2"]
-        s3_analistas["Analista 1"]
-        analista4["Analista 4"]
-    end
     subgraph g_mcp["4. SERVIDOR MCP PROPIO · servidor_mcp.py · 4 tools + prompt glosario · dec. 14, 33, 34, 61"]
         t_ver["ver_modelo()"]
         t_calc["calcular()"]
     end
+    agente["3a. Agente: Haiku decide qué pedir"]
+    resumen_s1["Lo que enseñan las preguntas de la semana 1"]
+    evaluador["8. Evaluador"]
+    chequeos["Chequeos del evaluador: trampas por pregunta"]
+    s3_pdf["Gráficos y PDF · código"]
+    hooks["Hooks y controles en código"]
+    salida["7. Respuesta trazable"]
+    s3_plan["3b. Coordinador"]
+    s3_registro["Registro · código"]
+    pruebas["8a. Pruebas de robustez · evaluacion/robustez/"]
+    base["6. almacenes_del_sur.duckdb"]
+    verificar["6a. Verificación de la base"]
+    capa_py["procesador_capa_semantica.py"]
+    pregunta["1. Entra una pregunta"]
+    puerta["2. La puerta"]
+    interfaz["1a. Interfaz"]
+    editor["3c. Editor · editar()"]
+    programado["1b. Informes programados"]
+    subgraph g_analistas["ANALISTAS · 2 a 4 en un informe, 1 o 2 en un diagnóstico · todos a la vez (dec. 74)"]
+        s3_analistas["Analista 1"]
+        analista2["Analista 2"]
+        analista3["Analista 3"]
+        analista4["Analista 4"]
+    end
     subgraph g_capa["5. Capa semántica · carpeta capa_semantica/"]
-        glosario["Lo usa Haiku"]
         capa["Los usa el procesador · dec. 1"]
+        glosario["Lo usa Haiku"]
     end
     capa_py -->|"SQL armado (valores como ?)"| base
     hooks -->|"respuesta final, ya controlada: texto + consultas (SQL)"| salida
@@ -67,7 +67,7 @@ flowchart TD
 ### Diseño del agente: el recorrido de una pregunta
 
 De izquierda a derecha: **entra** una pregunta (por el chat, la **interfaz** o un informe programado) → la **puerta** reconoce el tipo y elige el camino → **arriba**, el camino simple (el agente elige qué pedir y el código calcula) · **abajo**, el multi-agente (el coordinador reparte entre analistas y redacta) → los dos terminan en una **respuesta trazable** que mide el **evaluador**. Al pie: el avance por semana y el porqué del diseño multi-agente.  
-🟩 **hecho** · 🟪 **en curso** · sin color: entradas y datos · *dec. N* = decisión N del README · ①…⑥ = el recorrido de un informe
+🟩 **hecho** · 🟪 **en curso** · sin color: entradas y datos · *dec. N* = decisión N de `docs/decisiones.md` · ①…⑥ = el recorrido de un informe
 
 ## El recorrido
 
@@ -390,17 +390,18 @@ Lo que tiene que hacer bien el agente en cada pregunta. Sale del estudio de a un
 
 **Una buena respuesta** da el número, el criterio usado y el contexto que cambia la lectura (sucursales nuevas, costo de PR01).
 
-### 8a. Pruebas de robustez · pruebas/
+### 8a. Pruebas de robustez · evaluacion/robustez/
 
-*Semana 7 · dec. 87–100.* Más allá de las 28 preguntas del curso. Calificadas **por código**, con valores calculados con SQL **antes** de correr el agente; si algo falla, se reporta (y si se corrige, es diseño general, no un parche).
+*Semana 7 · dec. 87–100 y 115–118.* Más allá de las 28 preguntas del curso. Calificadas **por código**, con valores calculados con SQL **antes** de correr el agente; si algo falla, se reporta (y si se corrige, es diseño general, no un parche).
 - **Datos nuevos:** un mes y un **año simulados** con cosas que nunca pasaron → el agente, **10 de 10**; el diseño no sabe de cierres ni de cambios de precio
 - **Lenguaje:** la misma pregunta de 4 maneras → **84 de 84**
-- **Fechas:** año fiscal, «el mes pasado», ambiguas, fuera de la base → **41 de 42**
+- **Fechas:** año fiscal, «el mes pasado», ambiguas, fuera de la base → **42 de 42**
 - **Ataques:** por capas (hook, conexión, base) → **14 de 14** y la base intacta
 - **La puerta:** matriz de confusión → camino **192 de 192**
-- **Costo:** una pregunta ~US$ 0,001 y < 10 s; un informe ~US$ 0,013
-
-Pendientes: no inventar, consistencia (pass^k), conversación.
+- **Costo:** una pregunta ~US$ 0,001 y < 10 s; un informe ~US$ 0,020
+- **No inventar:** preguntas que la base no responde → **26 de 36**; nunca inventa el dato
+- **Consistencia:** cada caso 10 veces → **170 de 170**
+- **Conversación:** qué arrastra y qué suelta → **69 de 72**
 
 ## Por qué el diseño multi-agente
 
@@ -499,5 +500,6 @@ Ejemplo, dec. 50: la corrida del evaluador bajó de US$ 0,087 a 0,066.
 - ✅ Interfaz en Streamlit · *dec. 101–103*
 - ✅ Informes: cada idea una vez, la historia entera, un editor · *dec. 104, 105*
 - ✅ **20-11:** ejemplos del coordinador aprobados por el usuario (dos al prompt) e informes calificados con código · *dec. 106–111*
-- 🟪 Pruebas que faltan: no inventar, consistencia, conversación
-- 🟪 Guion del Demo Day
+- ✅ Las pruebas que faltaban: no inventar, consistencia y conversación · *dec. 115–118*
+- ✅ **23-11:** repo ordenado, tests unitarios sin modelo y timeout del cliente · *dec. 119*
+- 🟪 Guion de la defensa

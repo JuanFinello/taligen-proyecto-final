@@ -56,6 +56,12 @@ async def glosario_del_servidor():
 CACHE = {"type": "ephemeral"}
 
 
+def cliente():
+    """El cliente de la API. Sin timeout, el del SDK es de 600 s: una llamada trabada frenaba toda la corrida 10 minutos.
+    La llamada más lenta registrada tardó 68 s (el coordinador), así que 120 s alcanza, y si vence se reintenta."""
+    return anthropic.AsyncAnthropic(timeout=120, max_retries=2)
+
+
 def con_cache(texto):
     """El prompt de sistema como bloque con su marca de caché."""
     return [{"type": "text", "text": texto, "cache_control": CACHE}]
@@ -66,7 +72,7 @@ async def responder(pregunta, historial=None, tipo=None):
     tipo: el que reconoció la puerta (decisión 78); solo va al registro, el agente no lo ve."""
     # Paso 1: lanzar el servidor MCP y pedirle la lista de tools
     async with (stdio_client(SERVIDOR) as (lectura, escritura), ClientSession(lectura, escritura) as mcp,
-                anthropic.AsyncAnthropic() as claude):
+                cliente() as claude):
         await mcp.initialize()
         sistema = con_cache(INSTRUCCIONES + await pedir_glosario(mcp))
         # Ordenadas por nombre: las tools van primero en el prefijo y cualquier cambio de orden rompe el caché

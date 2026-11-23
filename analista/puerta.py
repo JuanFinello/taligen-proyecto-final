@@ -15,13 +15,12 @@ import time
 from pathlib import Path
 from typing import Literal, Optional
 
-import anthropic
 import yaml
 from pydantic import BaseModel, ValidationError
 
 import informes
 import registro
-from agente import con_cache, glosario_del_servidor, guardar_traza, responder, resumen
+from agente import cliente, con_cache, glosario_del_servidor, guardar_traza, responder, resumen
 from explicar import explicar
 from sugerir import sugerencias
 from procesador_capa_semantica import sqls, ver_modelo
@@ -137,7 +136,7 @@ class Conversacion:
     async def turno(self, turno):
         """La respuesta de un turno, con tipo, motivo y ruta."""
         numero = len(self.anteriores) + 1
-        async with anthropic.AsyncAnthropic() as claude:
+        async with cliente() as claude:
             clasificacion = await clasificar(turno, [p for p, _ in self.anteriores], claude)
         print(f"[{clasificacion.tipo}] {clasificacion.motivo}", flush=True)
         if clasificacion.tipo in AL_COORDINADOR:
@@ -184,7 +183,7 @@ async def medir(ids=()):
     """Solo la puerta: clasifica cada caso y lo compara con lo esperado. Lo que importa es la ruta; el tipo, aparte."""
     casos = [c for c in tipos_esperados() if not ids or c[0] in ids]
     semaforo = asyncio.Semaphore(5)
-    async with anthropic.AsyncAnthropic() as claude:
+    async with cliente() as claude:
         async def uno(caso):
             async with semaforo:
                 id_, _, turnos, _ = caso

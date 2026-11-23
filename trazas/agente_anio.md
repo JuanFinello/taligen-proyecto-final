@@ -1,6 +1,6 @@
 # El agente sobre el año simulado (decisión 90)
 
-Comando: `.venv/bin/python evaluacion/pruebas/agente_anio.py` · base: el AF2027 simulado (decisión 88) · US$ 0.076
+Comando: `.venv/bin/python evaluacion/robustez/agente_anio.py` · base: el AF2027 simulado (decisión 88) · US$ 0.076
 
 **10 de 10** pasan los chequeos por código.
 
