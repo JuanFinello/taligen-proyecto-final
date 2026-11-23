@@ -791,6 +791,7 @@ Cambios en `sugerir.py`:
 - **La consulta principal**: la primera de la respuesta; las demás sirven solo para no sugerir lo ya hecho.
 - **Dos pasos nuevos**: el hermano («¿Y en el Centro?», con una región o categoría que no se preguntó) y el primero de un ranking contra el año anterior.
 - **Redacción**: «entre mayo de 2024 y abril de 2026» en vez de «en todo el período de la base».
+- **No repite lo ya respondido**: si la respuesta ya separó el efecto precio y el efecto costo (`efectos_margen`), no sugiere «¿fue por precio o por costo?».
 
 Medido: la conversación del usuario, repetida en un test, pasa de las mismas dos sugerencias tres veces a 9 distintas, sin repetir y sin volver a regiones ya preguntadas. Tres de las nuevas, preguntadas al agente, se responden bien (US$ 0,005). Tests unitarios: 46 de 46 (10 nuevos). No toca a Haiku: la versión del diseño no cambia y el evaluador no usa las sugerencias.
 

@@ -209,8 +209,9 @@ def candidatas(respuesta, ya_dicho=""):
     # 4. Comparables: las ventas de dos períodos con todas las sucursales (S39 y S40 abrieron en el medio)
     if comparo and not comparables and medida in ("ventas_netas", "unidades"):
         salida.append(("comparables", "¿Y en sucursales comparables, las que estaban abiertas en los dos períodos?"))
-    # 5. El margen: ¿precio o costo?
-    if medida == "margen_pct" and a.get("comparar_con"):
+    # 5. El margen: ¿precio o costo? Salvo que la respuesta ya lo haya separado (efectos_margen)
+    separado = any(c["argumentos"].get("medida") == "efectos_margen" for c in consultas)
+    if medida == "margen_pct" and a.get("comparar_con") and not separado:
         salida.append(("precio_costo", f"¿El cambio del margen{de(filtros)}{en_periodo} fue por precio o por costo?"))
     # 6. Bajar un nivel
     if not agrupar:

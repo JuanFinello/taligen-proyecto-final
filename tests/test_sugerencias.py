@@ -76,3 +76,12 @@ def test_dice_del_y_no_de_el():
     salida = sugerencias(respuesta(caida), Memoria(), "pregunta")
     assert not any(" de el " in s for s in salida)
     assert any("del margen" in s for s in salida)
+
+
+def test_no_sugiere_precio_o_costo_si_ya_se_separo():
+    """La captura del README: la respuesta ya separó efecto precio y efecto costo, y la sugerencia lo volvía a preguntar."""
+    filtros = {"categoria": "Almacén", "anio_fiscal": 2026, "trimestre_fiscal": 2}
+    margen = {"medida": "margen_pct", "filtros": filtros, "comparar_con": {"anio_fiscal": 2025}}
+    efectos = {"medida": "efectos_margen", "filtros": filtros, "comparar_con": {"anio_fiscal": 2025}}
+    assert any("precio o por costo" in s for s in sugerencias(respuesta(margen), Memoria(), "pregunta"))
+    assert not any("precio o por costo" in s for s in sugerencias(respuesta(margen, efectos), Memoria(), "pregunta"))
