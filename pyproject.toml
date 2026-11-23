@@ -1,0 +1,26 @@
+# Una aplicación que se corre desde el repo, no un paquete que se instala: por eso no tiene [build-system].
+# Las versiones exactas para reproducir el entorno están en requirements.txt.
+[project]
+name = "analista-de-datos"
+version = "1.0.0"
+description = "Agente que responde preguntas de negocio sobre Almacenes del Sur y arma informes ejecutivos en PDF"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=1.15",
+    "mcp>=2.3",
+    "duckdb>=1.5",
+    "pyyaml>=6.0",
+    "pydantic>=2.14",
+    "matplotlib>=3.11",
+    "reportlab>=5.1",
+    "streamlit>=1.67",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["analista"]
+addopts = "-q"

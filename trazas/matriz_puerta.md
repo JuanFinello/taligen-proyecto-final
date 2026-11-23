@@ -1,6 +1,6 @@
 # Test 8: matriz de confusión de la puerta (decisión 99)
 
-Comando: `.venv/bin/python pruebas/matriz_puerta.py --veces 3` · 64 preguntas × 3 · US$ 0.031
+Comando: `.venv/bin/python evaluacion/pruebas/matriz_puerta.py --veces 3` · 64 preguntas × 3 · US$ 0.031
 
 **Camino correcto (agente o coordinador): 192 de 192 (100.0 %)** · tipo exacto: 185 de 192 (96.4 %)
 

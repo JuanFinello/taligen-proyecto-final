@@ -33,19 +33,19 @@ cp Data/base/almacenes_del_sur.duckdb /tmp/base_nueva.duckdb
 #    … INSERT INTO fechas …, sucursales, productos, proveedores, promociones, después ventas, stock, presupuesto
 
 # 3. Verificar la copia: tiene que dar todos los controles bien
-.venv/bin/python verificar_base.py /tmp/base_nueva.duckdb
+.venv/bin/python analista/verificar_base.py /tmp/base_nueva.duckdb
 
 # 4. Probar el agente sobre la copia, con una pregunta del período nuevo
-BASE_ALMACENES=/tmp/base_nueva.duckdb .venv/bin/python agente.py "¿Cuánto vendimos el último mes?"
+BASE_ALMACENES=/tmp/base_nueva.duckdb .venv/bin/python analista/agente.py "¿Cuánto vendimos el último mes?"
 
 # 5. Reemplazar la base y comprobar que lo de antes sigue igual
 cp /tmp/base_nueva.duckdb Data/base/almacenes_del_sur.duckdb
-.venv/bin/python verificar_base.py
-.venv/bin/python evaluador.py        # si no se tocó historia, tiene que seguir pasando todo
+.venv/bin/python analista/verificar_base.py
+.venv/bin/python evaluacion/evaluador.py        # si no se tocó historia, tiene que seguir pasando todo
 ```
 
 Si `verificar_base.py` marca un error, se corrige en la copia y se vuelve al paso 3. Los avisos (⚠) no bloquean: son cosas raras que pueden ser reales o un error de carga (un salto contra los meses o semanas vecinas: 1,5 veces en el presupuesto y el costo, que son estables, y 3 en las ventas de un día; un día sin ventas; una foto de stock idéntica a la anterior; un texto escrito como una orden para el asistente). Hay que mirarlos uno por uno antes de dar la base por buena; los de la base original son conocidos: el presupuesto de Perfumería del Sur de enero de 2026 (los primeros ejemplos, a 10 veces), dos celdas a 1,6 y 1,7 veces que son hechos reales (la apertura de S39 y el quiebre de Lácteos de S08) y el texto de P0040 (decisiones 85 y 92). El informe programado también corre `verificar_base.py` antes de arrancar: con la base rota no gasta en el modelo, lo anota en `salidas/programado/historial.txt` y avisa.
 
 ## Un ensayo completo
 
-`pruebas/ingesta_simulada.py` hace todo esto sobre copias, con un mes simulado (mayo de 2026, una sucursal y un producto nuevos, hechos reales y errores de carga plantados): sirve de ejemplo de cómo cargar cada tabla y de prueba de que el agente y los informes toman los datos nuevos solos (decisión 87).
+`evaluacion/pruebas/ingesta_simulada.py` hace todo esto sobre copias, con un mes simulado (mayo de 2026, una sucursal y un producto nuevos, hechos reales y errores de carga plantados): sirve de ejemplo de cómo cargar cada tabla y de prueba de que el agente y los informes toman los datos nuevos solos (decisión 87).

@@ -1,13 +1,16 @@
 """Evaluador: pasa por la puerta (puerta.py, decisión 78) y corre el agente con las preguntas y conversaciones de esperados.yaml y compara sus consultas contra lo esperado.
-Uso: .venv/bin/python evaluador.py                    (todas, una vez)
-     .venv/bin/python evaluador.py P03 P05 C1         (solo esas; C1–C5 son conversaciones, se evalúa cada turno)
-     .venv/bin/python evaluador.py --veces 5 P03      (cada una 5 veces: Haiku varía entre corridas)"""
+Uso: .venv/bin/python evaluacion/evaluador.py                    (todas, una vez)
+     .venv/bin/python evaluacion/evaluador.py P03 P05 C1         (solo esas; C1–C5 son conversaciones, se evalúa cada turno)
+     .venv/bin/python evaluacion/evaluador.py --veces 5 P03      (cada una 5 veces: Haiku varía entre corridas)"""
 import asyncio
 import json
 import sys
 import time
+from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "analista"))  # los módulos del sistema
 
 import procesador_capa_semantica as procesador
 import registro

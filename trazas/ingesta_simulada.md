@@ -1,6 +1,6 @@
 # Test 1: ingesta simulada (decisión 87)
 
-Comando: `.venv/bin/python pruebas/ingesta_simulada.py --agente` · semilla 2026
+Comando: `.venv/bin/python evaluacion/pruebas/ingesta_simulada.py --agente` · semilla 2026
 
 ## Cómo se armaron los datos
 

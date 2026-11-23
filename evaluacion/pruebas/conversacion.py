@@ -10,7 +10,7 @@ puerta lo mande al agente. A diferencia del evaluador, cada turno se califica so
 reusa un número de un turno anterior, tiene que ser el que corresponde a este turno. Es una medición: lo que falla se
 reporta, no se ajusta.
 
-Uso: .venv/bin/python pruebas/conversacion.py [--veces N] [ids]      (~US$ 0,03 por vez)
+Uso: .venv/bin/python evaluacion/pruebas/conversacion.py [--veces N] [ids]      (~US$ 0,03 por vez)
 Deja salidas/conversacion/ (esperados.json antes de correr, resultado.md) y copia el resultado a trazas/conversacion.md."""
 import asyncio
 import json
@@ -18,7 +18,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+RAIZ = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(RAIZ / "analista"), str(RAIZ / "evaluacion")]
 
 import duckdb  # noqa: E402
 
@@ -162,7 +163,7 @@ async def main(ids, veces):
     turnos_todos = [l for r in resultados for l in r["turnos"]]
     enteras = [r for r in resultados if all(l["paso"] for l in r["turnos"])]
     lineas = ["# Test 7: conversación (decisión 118)", "",
-              f"Comando: `.venv/bin/python pruebas/conversacion.py{f' --veces {veces}' if veces > 1 else ''}` · "
+              f"Comando: `.venv/bin/python evaluacion/pruebas/conversacion.py{f' --veces {veces}' if veces > 1 else ''}` · "
               f"{len(casos)} conversaciones de 3 turnos × {veces} · US$ {costo():.3f} · {reloj:.0f} s", "",
               f"**Turnos correctos: {sum(l['paso'] for l in turnos_todos)} de {len(turnos_todos)}** · "
               f"conversaciones enteras: {len(enteras)} de {len(resultados)}", "",

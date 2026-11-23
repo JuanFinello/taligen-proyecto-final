@@ -2,7 +2,7 @@
 (decisión 110). Lee lo esperado de Data/preguntas/esperados_informes.yaml y el texto de cada informe.json; no llama al
 modelo. Sirve para comparar versiones del diseño: agrupa las corridas por la huella que anota correr_todo.py.
 
-Uso: .venv/bin/python chequeos_informes.py [--guardar] salidas/completa-A …   (sin carpetas: las versiones registradas)
+Uso: .venv/bin/python evaluacion/chequeos_informes.py [--guardar] salidas/completa-A …   (sin carpetas: las versiones registradas)
 Con --guardar escribe la tabla en trazas/comparacion_informes.md (el registro de todas las comparaciones)."""
 import json
 import re
@@ -11,6 +11,8 @@ from collections import defaultdict
 from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "analista"))  # los módulos del sistema
 
 from controles import numeros_del_texto
 

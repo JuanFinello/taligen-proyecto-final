@@ -7,7 +7,7 @@ código del evaluador: valor (misma medida y número), lecturas (las dos, o una 
 sin_dato (no responde con otro número), y «valor_o_sin_dato» para las que admiten dos respuestas honestas (contar desde
 el último dato, o decir que no hay datos para esa fecha).
 
-Uso: .venv/bin/python pruebas/fechas.py [--veces N]      (~US$ 0,05 por vez)
+Uso: .venv/bin/python evaluacion/pruebas/fechas.py [--veces N]      (~US$ 0,05 por vez)
 Deja salidas/fechas/ (esperados.json antes de correr, resultado.md) y copia el resultado a trazas/fechas.md."""
 import asyncio
 import json
@@ -16,7 +16,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+RAIZ = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(RAIZ / "analista"), str(RAIZ / "evaluacion")]
 
 import duckdb  # noqa: E402
 
@@ -119,7 +120,7 @@ async def main(veces):
     si = lambda x: "✓" if x else "✗"
     miles = lambda x: f"$ {x:,.0f}".replace(",", ".")
     lineas = ["# Test 3: fechas difíciles (decisión 96)", "",
-              f"Comando: `.venv/bin/python pruebas/fechas.py{f' --veces {veces}' if veces > 1 else ''}` · {len(CASOS)} preguntas × "
+              f"Comando: `.venv/bin/python evaluacion/pruebas/fechas.py{f' --veces {veces}' if veces > 1 else ''}` · {len(CASOS)} preguntas × "
               f"{veces} · US$ {costo():.3f} · {reloj:.0f} s · base hasta el 30-04-2026, hoy noviembre de 2026", "",
               f"**{sum(r['paso'] for r in resultados)} de {len(resultados)}** pasan.", "",
               "| Caso | Grupo | Pregunta | Pasa si… | Esperado (SQL a mano) | Resultado |", "|---|---|---|---|---|---|"]

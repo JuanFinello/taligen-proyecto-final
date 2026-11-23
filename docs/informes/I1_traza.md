@@ -3,7 +3,7 @@
 Generada el 2026-11-23 con `claude-haiku-5-5`. Para volver a correrla:
 
 ```
-.venv/bin/python puerta.py "Preparame un informe ejecutivo del T2 del AF2026 con foco en margen."
+.venv/bin/python analista/puerta.py "Preparame un informe ejecutivo del T2 del AF2026 con foco en margen."
 ```
 
 ## Preparame un informe ejecutivo del T2 del AF2026 con foco en margen.

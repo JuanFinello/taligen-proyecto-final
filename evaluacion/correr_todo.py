@@ -2,7 +2,7 @@
 todos por la puerta (puerta.py), con su costo y su tiempo. Los que tienen chequeo en esperados.yaml se evalúan con el
 mismo código del evaluador; la reserva (decisión 80) se informa aparte.
 
-Uso: .venv/bin/python correr_todo.py [P13 C1 I2 …]     (sin ids, los 28)
+Uso: .venv/bin/python evaluacion/correr_todo.py [P13 C1 I2 …]     (sin ids, los 28)
 Deja en salidas/completa-<corrida>/: resumen.md, una traza por caso (<id>.md), lo que imprimió cada uno (<id>.log) y,
 en los diagnósticos e informes, su carpeta (<id>/) con el diagnóstico o el PDF."""
 import asyncio
@@ -10,6 +10,8 @@ import json
 import sys
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "analista"))  # los módulos del sistema
 
 import registro
 from agente import guardar_traza
@@ -57,7 +59,7 @@ async def correr(id_, semaforo):
         segundos = time.monotonic() - inicio
         registro.CASO.set(None)
         if respuestas:
-            guardar_traza(respuestas, CARPETA / f"{id_}.md", "puerta.py")
+            guardar_traza(respuestas, CARPETA / f"{id_}.md", "analista/puerta.py")
         if error:
             chequeo = f"✗ error: {error[:120]}"
         elif id_ in ESPERADOS:
@@ -86,7 +88,7 @@ def resumen(resultados, reloj):
     costos = costo_por_caso()
     grupos = {"Preguntas": [i for i in PREGUNTAS], "Conversaciones": list(CONVERSACIONES), "Informes": list(INFORMES)}
     lineas = [f"# Corrida completa {registro.CORRIDA}", "",
-              f"Versión del diseño `{registro.VERSION}` · `claude-haiku-5-5` · para repetirla: `.venv/bin/python correr_todo.py`",
+              f"Versión del diseño `{registro.VERSION}` · `claude-haiku-5-5` · para repetirla: `.venv/bin/python evaluacion/correr_todo.py`",
               "", "Chequeo: ✓/✗ contra `esperados.yaml` (R = reserva, decisión 80: no se ajusta nada por ellas); "
               "– = sin chequeo numérico (diagnósticos e informes: se leen). Segundos: reloj de cada caso.", ""]
     por_id = {r["id"]: r for r in resultados}

@@ -5,7 +5,7 @@
     anual:      el primer lunes de mayo, el año fiscal: de dónde vino el crecimiento
 Si la base no cubre el período, no arma un informe viejo: avisa que faltan datos.
 Lo lanza un temporizador de systemd los lunes a las 8 (programado/). A mano, o para simular otra fecha:
-    .venv/bin/python informe_programado.py [--hoy 2026-05-04]
+    .venv/bin/python analista/informe_programado.py [--hoy 2026-05-04]
 Cada informe va a salidas/programado/<período>/ (con ejecucion.log); cada corrida suma líneas a
 salidas/programado/historial.txt y avisa con una notificación."""
 import subprocess
@@ -107,7 +107,7 @@ def correr(clave, pedido):
             log.flush()
             try:
                 nombre = NOMBRES[clave.split("-")[0]]
-                codigo = subprocess.run([sys.executable, "informes.py", pedido, str(carpeta), "--nombre", nombre],
+                codigo = subprocess.run([sys.executable, str(Path(__file__).with_name("informes.py")), pedido, str(carpeta), "--nombre", nombre],
                                         stdout=log, stderr=subprocess.STDOUT, timeout=LIMITE_SEGUNDOS).returncode
             except subprocess.TimeoutExpired:
                 codigo = "límite de tiempo"

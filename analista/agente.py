@@ -1,7 +1,7 @@
 """Agente mínimo: Haiku responde una pregunta usando las tools del servidor MCP.
-Uso: .venv/bin/python agente.py "¿Cuál fue el margen bruto de Perfumería en el AF2026?"
-     .venv/bin/python agente.py "¿primer turno?" "¿Y en la región Sur?" …   (una conversación, un turno por argumento)
-     .venv/bin/python agente.py --traza trazas/P17.md "¿pregunta?" …         (además guarda la traza en ese archivo)"""
+Uso: .venv/bin/python analista/agente.py "¿Cuál fue el margen bruto de Perfumería en el AF2026?"
+     .venv/bin/python analista/agente.py "¿primer turno?" "¿Y en la región Sur?" …   (una conversación, un turno por argumento)
+     .venv/bin/python analista/agente.py --traza trazas/P17.md "¿pregunta?" …         (además guarda la traza en ese archivo)"""
 import asyncio
 import json
 import os
@@ -33,7 +33,7 @@ INSTRUCCIONES = ("Sos un analista de datos de Almacenes del Sur. Respondé en es
                  "- Al nombrar sucursales o proveedores, mostrá código y nombre (agrupá por las dos dimensiones).\n"
                  "- Si comparás ventas de dos períodos, informá la variación total y la comparable (comparables=True).\n\n")
 # El servidor no hereda el entorno: si se eligió otra base (BASE_ALMACENES), se la pasa
-SERVIDOR = StdioServerParameters(command=".venv/bin/python", args=["servidor_mcp.py"],
+SERVIDOR = StdioServerParameters(command=".venv/bin/python", args=[str(Path(__file__).with_name("servidor_mcp.py"))],
                                  env={**get_default_environment(), **{k: v for k, v in os.environ.items()
                                                                       if k == "BASE_ALMACENES"}})
 
@@ -184,7 +184,7 @@ def resumen(resultado):
     return " · ".join(partes)
 
 
-def guardar_traza(respuestas, ruta, comando="agente.py"):
+def guardar_traza(respuestas, ruta, comando="analista/agente.py"):
     from explicar import explicar  # acá y no arriba: explicar importa graficos, que el loop no necesita
     """Traza legible de una pregunta o conversación (decisión 36): cada turno con su respuesta y sus consultas con SQL."""
     turnos = [r["pregunta"] for r in respuestas]
@@ -215,7 +215,7 @@ if __name__ == "__main__":
     if argumentos[:1] == ["--traza"]:
         ruta_traza, argumentos = argumentos[1], argumentos[2:]
     if not argumentos:
-        sys.exit('Uso: .venv/bin/python agente.py [--traza archivo.md] "¿pregunta?" ["¿turno siguiente?" …]')
+        sys.exit('Uso: .venv/bin/python analista/agente.py [--traza archivo.md] "¿pregunta?" ["¿turno siguiente?" …]')
     respuestas = asyncio.run(conversar(argumentos))
     for numero, respuesta in enumerate(respuestas, 1):
         if len(respuestas) > 1:

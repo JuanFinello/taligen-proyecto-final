@@ -10,7 +10,7 @@
 Corrida `20261117-101535-15e5` · versión del diseño `d8d5f0` · `claude-haiku-5-5`. Para volver a correrla:
 
 ```
-.venv/bin/python informes.py "Preparame un informe ejecutivo de la semana del lunes 20-04-2026 al domingo 26-04-2026, sobre qué requiere la atención de la gerencia esta semana: la tasa de quiebre de stock de la semana, por región y por proveedor; las sucursales con mayor caída de ventas netas; y los productos con caída fuerte. Todo contra la misma semana del año anterior (del lunes 21-04-2025 al domingo 27-04-2025). Las ventas netas y el margen del total, solo como contexto." salidas/programado/semana-2026-04-20
+.venv/bin/python analista/informes.py "Preparame un informe ejecutivo de la semana del lunes 20-04-2026 al domingo 26-04-2026, sobre qué requiere la atención de la gerencia esta semana: la tasa de quiebre de stock de la semana, por región y por proveedor; las sucursales con mayor caída de ventas netas; y los productos con caída fuerte. Todo contra la misma semana del año anterior (del lunes 21-04-2025 al domingo 27-04-2025). Las ventas netas y el margen del total, solo como contexto." salidas/programado/semana-2026-04-20
 ```
 
 Resultado: `salidas/programado/semana-2026-04-20/informe.pdf` · SQL de las consultas citadas: `salidas/programado/semana-2026-04-20/consultas.sql`

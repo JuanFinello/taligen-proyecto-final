@@ -1,6 +1,6 @@
 # Test 9: costo y tiempo por tipo de pregunta (decisión 100)
 
-Comando: `.venv/bin/python pruebas/costos.py 2026-11-18` · 5.154 llamadas al modelo desde el 2026-11-18, agrupadas en 810 casos con tipo · sin modelo
+Comando: `.venv/bin/python evaluacion/pruebas/costos.py 2026-11-18` · 5.154 llamadas al modelo desde el 2026-11-18, agrupadas en 810 casos con tipo · sin modelo
 
 | Tipo | Casos | Costo mediano | p95 | Máximo | Tiempo mediano | p95 | Máximo | Llamadas (mediana) |
 |---|---|---|---|---|---|---|---|---|

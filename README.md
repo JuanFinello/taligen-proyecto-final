@@ -15,6 +15,7 @@ Proyecto final del Taligen Spring Camp. Usa Claude Haiku 5.5 (`claude-haiku-5-5`
 | Informes: lo que tienen que decir, calificado por código | **18 de 18** |
 | Todo el enunciado con un comando (28 casos) | **US$ 0,105** · 120 s |
 | Una pregunta | mediana **US$ 0,0010–0,0017** · 6–11 s |
+| Tests unitarios del código, sin modelo (capa semántica, controles, seguridad) | **34 de 34** · 1 s |
 | 9 tests de robustez (lenguaje, fechas, ataques, no inventar, conversación…) | [ver la tabla](docs/evaluacion.md#tests-de-robustez) |
 
 Los valores esperados se calcularon con SQL escrito a mano antes de correr el agente, y los califica el código. Las fallas que quedan están medidas y documentadas en [límites conocidos](docs/evaluacion.md#límites-conocidos).
@@ -46,32 +47,34 @@ Detalle en [docs/arquitectura.md](docs/arquitectura.md).
 
 ## Inicio rápido
 
-Requiere Python 3.12 y `ANTHROPIC_API_KEY`. Todo se corre desde la raíz del repo.
+Requiere Python 3.12 y una `ANTHROPIC_API_KEY` (en `.env`, a partir de `.env.example`). Todo se corre desde la raíz del repo.
 
 ```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-
-.venv/bin/streamlit run interfaz.py                         # interfaz: chat y, al lado, de dónde sale cada número
-.venv/bin/python puerta.py                                  # chat en la terminal; «?» muestra el origen de cada número
-.venv/bin/python puerta.py "¿Cuál fue el margen de Perfumería en el AF2026?"
-.venv/bin/python correr_todo.py                             # todo el enunciado: 20 preguntas, 5 conversaciones, 3 informes
-.venv/bin/python evaluador.py [--veces N]                   # evaluador contra lo esperado
+make instalar   # crea .venv e instala las dependencias
+make tests      # tests unitarios del código, sin modelo (~1 s, sin costo)
+make interfaz   # interfaz: chat y, al lado, de dónde sale cada número
+make chat       # chat en la terminal; «?» muestra el origen de cada número
+make evaluar    # evaluador: 21 casos contra lo esperado (~1 min, ~US$ 0,04)
+make todo       # todo el enunciado: 20 preguntas, 5 conversaciones, 3 informes (~2 min, ~US$ 0,10)
 ```
 
 <details>
-<summary>Todos los comandos</summary>
+<summary>Todos los comandos, sin make</summary>
 
 ```bash
-.venv/bin/python puerta.py "¿primer turno?" "¿Y en la región Sur?"    # una conversación
-.venv/bin/python puerta.py --traza trazas/X.md "¿pregunta?"          # con su traza
-.venv/bin/python puerta.py --medir                                    # solo la clasificación, contra lo esperado
-.venv/bin/python correr_todo.py [P13 C1 I2 …]                         # algunos casos
-.venv/bin/python chequeos_informes.py salidas/completa-…             # califica los informes de una corrida
-.venv/bin/python informe_programado.py [--hoy 2026-05-04]             # los informes del lunes
-.venv/bin/python verificar_base.py [ruta.duckdb]                      # la base, después de una ingesta
-.venv/bin/python registro.py [--todas | --comparar A B]               # costo y tiempo de las corridas
-.venv/bin/python pruebas/<test>.py                                    # los tests de robustez (ver docs/evaluacion.md)
+.venv/bin/streamlit run analista/interfaz.py                                            # la interfaz
+.venv/bin/python analista/puerta.py "¿Cuál fue el margen de Perfumería en el AF2026?"   # una pregunta
+.venv/bin/python analista/puerta.py "¿primer turno?" "¿Y en la región Sur?"             # una conversación
+.venv/bin/python analista/puerta.py --traza trazas/X.md "¿pregunta?"                    # con su traza
+.venv/bin/python analista/puerta.py --medir                                             # solo la clasificación, contra lo esperado
+.venv/bin/python -m pytest                                                              # los tests unitarios
+.venv/bin/python evaluacion/evaluador.py [--veces N] [P03 C1 …]                         # el evaluador
+.venv/bin/python evaluacion/correr_todo.py [P13 C1 I2 …]                                # algunos casos
+.venv/bin/python evaluacion/chequeos_informes.py salidas/completa-…                     # califica los informes de una corrida
+.venv/bin/python analista/informe_programado.py [--hoy 2026-05-04]                      # los informes del lunes
+.venv/bin/python analista/verificar_base.py [ruta.duckdb]                               # la base, después de una ingesta
+.venv/bin/python analista/registro.py [--todas | --comparar A B]                        # costo y tiempo de las corridas
+.venv/bin/python evaluacion/pruebas/<test>.py                                           # los tests de robustez (ver docs/evaluacion.md)
 ```
 
 Los informes programados los lanza un temporizador de systemd los lunes a las 8 (`programado/`).
@@ -80,24 +83,32 @@ Los informes programados los lanza un temporizador de systemd los lunes a las 8 
 ## Estructura
 
 ```
-├── interfaz.py, puerta.py         entrada: interfaz Streamlit y chat
-├── agente.py, informes.py         agente; coordinador y analistas
-├── servidor_mcp.py                tools ver_modelo · calcular · buscar_producto · consultar_sql
-├── procesador_capa_semantica.py   arma y corre el SQL de cada medida
-├── hooks.py, controles.py         controles en código
-├── salida.py, registro.py         registro de cada respuesta y de cada llamada
-├── graficos.py, informe_pdf.py    gráficos y PDF
-├── evaluador.py, correr_todo.py   evaluación y corrida completa
-├── verificar_base.py              integridad de la base después de una ingesta
+├── Makefile, pyproject.toml         comandos (make ayuda) y configuración
+├── requirements*.txt, .env.example  dependencias y variables de entorno
+├── analista/                        el sistema
+│   ├── interfaz.py, puerta.py         entrada: interfaz Streamlit y chat
+│   ├── agente.py, informes.py         agente; coordinador y analistas
+│   ├── servidor_mcp.py                tools ver_modelo · calcular · buscar_producto · consultar_sql
+│   ├── procesador_capa_semantica.py   arma y corre el SQL de cada medida
+│   ├── hooks.py, controles.py         controles en código
+│   ├── salida.py, registro.py         registro de cada respuesta y de cada llamada
+│   ├── graficos.py, informe_pdf.py    gráficos y PDF
+│   ├── explicar.py, sugerir.py        cada consulta en castellano; la pregunta siguiente
+│   ├── informe_programado.py          informes por calendario (lo lanza programado/)
+│   └── verificar_base.py              integridad de la base después de una ingesta
+├── evaluacion/                      cómo se mide, con el modelo
+│   ├── evaluador.py, correr_todo.py   evaluación contra lo esperado y corrida completa
+│   ├── chequeos_informes.py           califica los informes con código
+│   └── pruebas/                       los 9 tests de robustez
+├── tests/                           tests unitarios del código, sin modelo (pytest)
 ├── Data/
-│   ├── base/                      almacenes_del_sur.duckdb · guía de ingesta
-│   ├── capa_semantica/            medidas.yaml · esquema.yaml · glosario.md
-│   ├── preguntas/                 preguntas del enunciado y valores esperados
-│   └── ejemplos_informes/         ejemplos aprobados para el prompt del coordinador
-├── pruebas/                       tests de robustez
-├── trazas/                        corridas reales, con sus consultas y SQL (índice en trazas/README.md)
-├── programado/                    servicio y temporizador de systemd
-└── docs/                          arquitectura · datos · evaluación · decisiones · informes · diagramas
+│   ├── base/                          almacenes_del_sur.duckdb · guía de ingesta
+│   ├── capa_semantica/                medidas.yaml · esquema.yaml · glosario.md
+│   ├── preguntas/                     preguntas del enunciado y valores esperados
+│   └── ejemplos_informes/             ejemplos aprobados para el prompt del coordinador
+├── trazas/                          corridas reales, con sus consultas y SQL (índice en trazas/README.md)
+├── programado/                      servicio y temporizador de systemd
+└── docs/                            arquitectura · datos · evaluación · decisiones · informes · diagramas
 ```
 
 ## Documentación

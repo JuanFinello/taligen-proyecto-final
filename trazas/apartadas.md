@@ -6,7 +6,7 @@ paso y paso.
 
 ## 1. La puerta, con los tipos declarados antes de verlas
 
-`.venv/bin/python puerta.py --medir P09 P12 P14 P18 P19`, tres veces:
+`.venv/bin/python analista/puerta.py --medir P09 P12 P14 P18 P19`, tres veces:
 
 | | Tipo declarado (dec. 5) | Lo que dio la puerta | Camino |
 |---|---|---|---|

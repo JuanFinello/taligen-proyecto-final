@@ -10,6 +10,16 @@ Las mismas reglas valen para el evaluador y para los tests:
 - **Varias corridas.** Haiku no contesta siempre igual, así que un caso aprueba solo si acierta todas las veces.
 - **Es una medición.** Lo que falla en un test se reporta, no se parchea con ese mismo caso.
 
+## Tres niveles
+
+| Nivel | Qué mide | Modelo | Comando |
+|---|---|---|---|
+| Tests unitarios (`tests/`) | que el código calcule y frene bien: `calcular()` contra los valores esperados, los controles de números sin respaldo, filtros y períodos, y las capas de seguridad | no · 1 s · sin costo | `make tests` |
+| Evaluador (`evaluacion/`) | los casos del enunciado, de punta a punta | sí · ~1 min · ~US$ 0,04 | `make evaluar` |
+| Tests de robustez (`evaluacion/pruebas/`) | lo que el enunciado no prueba | sí, salvo 1c y 9 | uno por test |
+
+Los tests unitarios usan los mismos valores esperados del evaluador (calculados con SQL escrito a mano), así que un error en una fórmula, un join o el calendario fiscal se ve sin gastar nada: rompiendo a propósito la fórmula de las ventas netas, fallan 3 de 34.
+
 ## Las dos métricas del enunciado
 
 **Acierto de respuesta.** El número cae dentro de la tolerancia: 0,5 en montos, una décima en % y pp, exacto en conteos y el mismo orden en rankings. Una ambigua pasa si consultó las dos lecturas o declaró en los supuestos la que eligió. Una sin dato pasa si dice que el dato no está y no responde con otro número.
@@ -21,7 +31,7 @@ En las conversaciones se califica cada turno por separado: un turno que pierde u
 ## Evaluador
 
 ```bash
-.venv/bin/python evaluador.py [--veces N] [P03 C1 …]
+.venv/bin/python evaluacion/evaluador.py [--veces N] [P03 C1 …]
 ```
 
 Corre 16 preguntas y las 5 conversaciones (21 casos) contra [`Data/preguntas/esperados.yaml`](../Data/preguntas/esperados.yaml), de a 5 en paralelo, en alrededor de un minuto y por unos US$ 0,04. Con `--veces N`, un caso aprueba solo si pasa las N veces. Los 25 valores esperados se recalcularon con SQL escrito a mano y coinciden.
@@ -49,17 +59,17 @@ El evaluador mide los casos del enunciado. Los tests miden lo que el enunciado n
 | 9 | Costo y tiempo | ¿Cuánto cuesta y cuánto tarda, por tipo? | Una pregunta: mediana US$ 0,0010–0,0017 y 6–11 s | [costos](../trazas/costos.md) |
 
 ```bash
-.venv/bin/python pruebas/ingesta_simulada.py [--agente]   # 1
-.venv/bin/python pruebas/agente_anio.py                   # 1b (el año, con pruebas/anio_simulado.py)
-.venv/bin/python pruebas/deteccion.py [N]                 # 1c (y pruebas/sensibilidad.py)
-.venv/bin/python pruebas/lenguaje.py [--veces N]          # 2
-.venv/bin/python pruebas/fechas.py [--veces N]            # 3
-.venv/bin/python pruebas/no_inventar.py [--veces N]       # 4
-.venv/bin/python pruebas/ataques.py [--veces N]           # 5
-.venv/bin/python pruebas/consistencia.py [--veces N]      # 6
-.venv/bin/python pruebas/conversacion.py [--veces N]      # 7
-.venv/bin/python pruebas/matriz_puerta.py [--veces N]     # 8
-.venv/bin/python pruebas/costos.py [desde]                # 9, de los registros, sin modelo
+.venv/bin/python evaluacion/pruebas/ingesta_simulada.py [--agente]   # 1
+.venv/bin/python evaluacion/pruebas/agente_anio.py                   # 1b (el año, con evaluacion/pruebas/anio_simulado.py)
+.venv/bin/python evaluacion/pruebas/deteccion.py [N]                 # 1c (y evaluacion/pruebas/sensibilidad.py)
+.venv/bin/python evaluacion/pruebas/lenguaje.py [--veces N]          # 2
+.venv/bin/python evaluacion/pruebas/fechas.py [--veces N]            # 3
+.venv/bin/python evaluacion/pruebas/no_inventar.py [--veces N]       # 4
+.venv/bin/python evaluacion/pruebas/ataques.py [--veces N]           # 5
+.venv/bin/python evaluacion/pruebas/consistencia.py [--veces N]      # 6
+.venv/bin/python evaluacion/pruebas/conversacion.py [--veces N]      # 7
+.venv/bin/python evaluacion/pruebas/matriz_puerta.py [--veces N]     # 8
+.venv/bin/python evaluacion/pruebas/costos.py [desde]                # 9, de los registros, sin modelo
 ```
 
 ## Costos

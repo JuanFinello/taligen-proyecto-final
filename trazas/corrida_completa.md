@@ -1,6 +1,6 @@
 # Traza: la corrida completa con un comando (semana 6)
 
-Corrida 20261117-164745-0a72 del 17-11-2026. Versión del diseño `99c4b2` · `claude-haiku-5-5` · para repetirla: `.venv/bin/python correr_todo.py`
+Corrida 20261117-164745-0a72 del 17-11-2026. Versión del diseño `99c4b2` · `claude-haiku-5-5` · para repetirla: `.venv/bin/python evaluacion/correr_todo.py`
 
 Chequeo: ✓/✗ contra `esperados.yaml` (R = reserva, decisión 80: no se ajusta nada por ellas); – = sin chequeo numérico (diagnósticos e informes: se leen). Segundos: reloj de cada caso.
 

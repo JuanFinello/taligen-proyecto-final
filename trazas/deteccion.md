@@ -1,6 +1,6 @@
 # Tasa de detección de `verificar_base.py` (decisión 89)
 
-Comando: `.venv/bin/python pruebas/deteccion.py 30` · 30 semillas · ~240 s, sin modelo · sobre el año simulado (decisión 88), con los errores en el AF2027
+Comando: `.venv/bin/python evaluacion/pruebas/deteccion.py 30` · 30 semillas · ~240 s, sin modelo · sobre el año simulado (decisión 88), con los errores en el AF2027
 
 | Error de carga | Nivel esperado | Control | Detectado |
 |---|---|---|---|

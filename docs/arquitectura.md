@@ -54,6 +54,8 @@ El PDF es de dos páginas: el mensaje como título, 2 o 3 puntos con su prueba, 
 
 ## Módulos
 
+**`analista/`**, el sistema:
+
 | Archivo | Qué hace |
 |---|---|
 | `interfaz.py` | interfaz Streamlit: chat, evidencia de cada número, resultados de los tests |
@@ -64,11 +66,18 @@ El PDF es de dos páginas: el mensaje como título, 2 o 3 puntos con su prueba, 
 | `hooks.py` | antes de cada tool, después y al terminar; tools permitidas por agente |
 | `controles.py` | ningún número sin respaldo; filtros, períodos y valores nombrados |
 | `salida.py` | esquema y validación del registro de cada respuesta |
+| `registro.py` | costo, caché y tiempo de cada llamada |
 | `informes.py` | coordinador, analistas, profundización, redacción, editor y chequeos |
 | `graficos.py`, `informe_pdf.py` | gráficos y PDF, todo en código |
-| `chequeos_informes.py` | califica con código lo que tienen que decir los informes medidos |
-| `informe_programado.py` | informes por calendario real |
 | `explicar.py`, `sugerir.py` | cada consulta en castellano; la pregunta siguiente |
+| `informe_programado.py` | informes por calendario real |
 | `verificar_base.py` | controles de integridad después de una ingesta |
-| `evaluador.py`, `correr_todo.py` | evaluación contra lo esperado; todo con un comando |
-| `registro.py` | costo, caché y tiempo de cada llamada |
+
+**`evaluacion/`**, cómo se mide (detalle en [evaluacion.md](evaluacion.md)):
+
+| Archivo | Qué hace |
+|---|---|
+| `evaluador.py` | los casos del enunciado contra lo esperado |
+| `correr_todo.py` | todo el enunciado con un comando |
+| `chequeos_informes.py` | califica con código lo que tienen que decir los informes |
+| `pruebas/` | los 9 tests de robustez |

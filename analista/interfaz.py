@@ -5,7 +5,7 @@
 El diseño sigue la bibliografía revisada (README, decisión 101) y el boceto que eligió el usuario: lo mínimo, con los
 comprobantes a la vista.
 
-Uso: .venv/bin/streamlit run interfaz.py      (cada pregunta gasta lo mismo que en el chat de la terminal)"""
+Uso: .venv/bin/streamlit run analista/interfaz.py      (cada pregunta gasta lo mismo que en el chat de la terminal)"""
 import asyncio
 import base64
 import contextlib
@@ -297,7 +297,7 @@ TESTS = [  # (test, qué prueba, traza, patrón del resultado)
 
 
 def pestania_calidad():
-    st.caption("Cada resultado sale de un test que se vuelve a correr con un comando (`pruebas/`), calificado por código "
+    st.caption("Cada resultado sale de un test que se vuelve a correr con un comando (`evaluacion/pruebas/`), calificado por código "
                "contra valores calculados con SQL antes de correr el agente.")
     filas = []
     for test, que, archivo, patron in TESTS:

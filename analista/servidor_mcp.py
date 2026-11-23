@@ -2,8 +2,8 @@
 y el glosario como prompt."""
 import os
 
-# El procesador abre Data/... con rutas relativas: el servidor corre siempre desde esta carpeta
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# El procesador abre Data/... con rutas relativas: el servidor corre siempre desde la raíz del repo
+os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError

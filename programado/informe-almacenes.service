@@ -5,5 +5,5 @@ Description=Informe ejecutivo de Almacenes del Sur (último mes con datos)
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c 'source %h/.bashrc; cd "/home/juan/Documentos/TALIGEN_SPRING_CAMP/Proyecto FInal/Analista de datos" && exec .venv/bin/python informe_programado.py'
+ExecStart=/bin/bash -c 'source %h/.bashrc; cd "/home/juan/Documentos/TALIGEN_SPRING_CAMP/Proyecto FInal/Analista de datos" && exec .venv/bin/python analista/informe_programado.py'
 TimeoutStartSec=40min

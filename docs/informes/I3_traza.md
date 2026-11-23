@@ -3,7 +3,7 @@
 Generada el 2026-11-23 con `claude-haiku-5-5`. Para volver a correrla:
 
 ```
-.venv/bin/python puerta.py "Armame un informe del AF2026 para el gerente de la región Oeste."
+.venv/bin/python analista/puerta.py "Armame un informe del AF2026 para el gerente de la región Oeste."
 ```
 
 ## Armame un informe del AF2026 para el gerente de la región Oeste.

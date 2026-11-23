@@ -3,7 +3,7 @@ sinónimos, corta) tiene que dar el mismo número. Las variantes están en Data/
 califica con el chequeo de su pregunta original (evaluador.evaluar: misma medida, mismo valor, consulta reproducible y
 que la puerta la mande al agente). La original va también, como control en la misma corrida.
 
-Uso: .venv/bin/python pruebas/lenguaje.py [--veces N]      (~US$ 0,05 por vez, de a 5 en paralelo)
+Uso: .venv/bin/python evaluacion/pruebas/lenguaje.py [--veces N]      (~US$ 0,05 por vez, de a 5 en paralelo)
 Deja salidas/lenguaje/resultado.md y lo copia a trazas/lenguaje.md."""
 import asyncio
 import json
@@ -11,7 +11,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+RAIZ = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(RAIZ / "analista"), str(RAIZ / "evaluacion")]
 
 import yaml  # noqa: E402
 
@@ -70,7 +71,7 @@ async def main(veces):
         por[(r["id"], r["estilo"], r["texto"])].append(r)
     variantes = [r for r in resultados if r["estilo"] != "original"]
     lineas = ["# Test 2: robustez del lenguaje (decisión 94)", "",
-              f"Comando: `.venv/bin/python pruebas/lenguaje.py{f' --veces {veces}' if veces > 1 else ''}` · "
+              f"Comando: `.venv/bin/python evaluacion/pruebas/lenguaje.py{f' --veces {veces}' if veces > 1 else ''}` · "
               f"{len(lista)} preguntas × {veces} · US$ {costo():.3f} · {reloj:.0f} s", "",
               f"**Variantes que dan el número correcto: {sum(r['paso'] for r in variantes)} de {len(variantes)}** · "
               f"originales: {sum(r['paso'] for r in resultados if r['estilo'] == 'original')} de "

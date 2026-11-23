@@ -1,13 +1,13 @@
 """Fase 2 del año simulado (decisión 89): la tasa de detección de verificar_base.py. Es *mutation testing* aplicado a
 los datos: la calidad de una verificación se mide por el porcentaje de fallas inyectadas que encuentra.
 
-Para cada semilla: una copia del año simulado (salidas/anio/limpia.duckdb, de pruebas/anio_simulado.py) con un error
+Para cada semilla: una copia del año simulado (salidas/anio/limpia.duckdb, de evaluacion/pruebas/anio_simulado.py) con un error
 de carga de cada tipo del catálogo, en un lugar del AF2027 sorteado. Un tipo cuenta como detectado si el control que le
 corresponde marca más filas que en la base sin errores (la base ya trae avisos propios, como el cierre de S07).
 
 Además, 6 errores «ciegos», sin control propio, de a uno por copia: cuenta si salta cualquier control.
 
-Uso: .venv/bin/python pruebas/deteccion.py [N]      (N semillas, 30 por defecto; ~9 s cada una, unos 4 minutos; sin modelo)
+Uso: .venv/bin/python evaluacion/pruebas/deteccion.py [N]      (N semillas, 30 por defecto; ~9 s cada una, unos 4 minutos; sin modelo)
 Deja salidas/deteccion/resultado.md y lo copia a trazas/deteccion.md."""
 import random
 import shutil
@@ -15,7 +15,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+RAIZ = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(RAIZ / "analista"), str(RAIZ / "evaluacion")]
 
 import duckdb  # noqa: E402
 
@@ -186,7 +187,7 @@ def plantar_ciego(con, rng, L, id_):
 
 def main(n):
     if not ANIO.exists():
-        sys.exit("Falta el año simulado: correr antes .venv/bin/python pruebas/anio_simulado.py")
+        sys.exit("Falta el año simulado: correr antes .venv/bin/python evaluacion/pruebas/anio_simulado.py")
     CARPETA.mkdir(parents=True, exist_ok=True)
     inicio = time.monotonic()
     base = conteos(ANIO)
@@ -222,7 +223,7 @@ def main(n):
     segundos = time.monotonic() - inicio
 
     lineas = ["# Tasa de detección de `verificar_base.py` (decisión 89)", "",
-              f"Comando: `.venv/bin/python pruebas/deteccion.py {n}` · {n} semillas · {segundos:.0f} s, sin modelo · "
+              f"Comando: `.venv/bin/python evaluacion/pruebas/deteccion.py {n}` · {n} semillas · {segundos:.0f} s, sin modelo · "
               "sobre el año simulado (decisión 88), con los errores en el AF2027", "",
               "| Error de carga | Nivel esperado | Control | Detectado |", "|---|---|---|---|"]
     for id_, que, control, nivel in CATALOGO:

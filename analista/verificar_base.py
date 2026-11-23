@@ -4,7 +4,7 @@ script lo controla antes de que el agente o el informe programado usen la base.
 Dos niveles (decisión 85): los errores (estructura, valores imposibles, importes que no cierran) bloquean, porque con
 ellos un número sale mal; los avisos (algo raro que puede ser real o un error de carga) se informan y no bloquean,
 porque un salto en las ventas puede ser justo lo que hay que encontrar (el quiebre de P14).
-Uso: .venv/bin/python verificar_base.py [ruta.duckdb]      (sale con código 1 si hay algún error)"""
+Uso: .venv/bin/python analista/verificar_base.py [ruta.duckdb]      (sale con código 1 si hay algún error)"""
 import re
 import sys
 
@@ -90,7 +90,7 @@ CONTROLES = [
 
 # Lo raro que puede ser real o un error de carga: se avisa con ejemplos y no bloquea (decisión 85). Cada consulta
 # devuelve filas de ejemplo. El umbral de cada salto depende del ruido de su serie (decisión 92, medido en
-# pruebas/sensibilidad.py): el presupuesto y el costo unitario son muy estables, y con 1,5 veces sus vecinos ven un
+# evaluacion/pruebas/sensibilidad.py): el presupuesto y el costo unitario son muy estables, y con 1,5 veces sus vecinos ven un
 # error del doble sin falsas alarmas (en dos años, solo 2 avisos más, los dos hechos reales: una apertura y un quiebre);
 # las ventas de un día son ruidosas (con 1,5 serían 450 alarmas) y siguen con 3, el umbral del agente (decisión 84).
 V = VECES_SOSPECHOSO

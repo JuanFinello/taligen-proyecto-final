@@ -10,7 +10,7 @@ Las de los tests 1 y 4 no entran: hablan de las bases simuladas (mayo de 2026, e
 puerta tiene razón en decir que son sin dato (en una primera corrida, con ellas, eso pareció un error de la puerta).
 Las conversaciones no entran: sus turnos dependen de los anteriores.
 
-Uso: .venv/bin/python pruebas/matriz_puerta.py [--veces N]      (~US$ 0,02 por vez; solo clasifica, no responde)
+Uso: .venv/bin/python evaluacion/pruebas/matriz_puerta.py [--veces N]      (~US$ 0,02 por vez; solo clasifica, no responde)
 Deja salidas/matriz_puerta/resultado.md y lo copia a trazas/matriz_puerta.md."""
 import asyncio
 import json
@@ -18,7 +18,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+RAIZ = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(RAIZ / "analista"), str(RAIZ / "evaluacion")]
 
 import anthropic  # noqa: E402
 import yaml  # noqa: E402
@@ -83,7 +84,7 @@ async def main(veces):
     costo = sum(l["costo_usd"] for l in registro.leer(registro.LLAMADAS) if l.get("corrida") == registro.CORRIDA)
     n = len(resultados)
     lineas = ["# Test 8: matriz de confusión de la puerta (decisión 99)", "",
-              f"Comando: `.venv/bin/python pruebas/matriz_puerta.py{f' --veces {veces}' if veces > 1 else ''}` · "
+              f"Comando: `.venv/bin/python evaluacion/pruebas/matriz_puerta.py{f' --veces {veces}' if veces > 1 else ''}` · "
               f"{len(lista)} preguntas × {veces} · US$ {costo:.3f}", "",
               f"**Camino correcto (agente o coordinador): {bien_camino} de {n} ({bien_camino / n * 100:.1f} %)** · "
               f"tipo exacto: {bien_tipo} de {n} ({bien_tipo / n * 100:.1f} %)", "",

@@ -971,7 +971,7 @@ def escribir_traza(carpeta):
     archivo_salida = "diagnostico.md" if plan["tipo"] == "diagnostico" else "informe.pdf"
     lineas = [f"# Traza: {g['pedido']}", "",
               f"Corrida `{g['corrida']}` · versión del diseño `{g['version']}` · `{MODELO}`. Para volver a correrla:", "",
-              "```", f'.venv/bin/python informes.py {json.dumps(g["pedido"], ensure_ascii=False)} {carpeta}', "```", "",
+              "```", f'.venv/bin/python analista/informes.py {json.dumps(g["pedido"], ensure_ascii=False)} {carpeta}', "```", "",
               f"Resultado: `{Path(carpeta, archivo_salida)}` · SQL de las consultas citadas: `{Path(carpeta, 'consultas.sql')}`", "",
               "## 1. Coordinador: el plan", "", f"Tipo: **{plan['tipo']}** · {plan['titulo']}", "", "Supuestos:",
               *[f"- {s}" for s in plan["supuestos"]], ""]
@@ -1044,7 +1044,7 @@ if __name__ == "__main__":
     if sys.argv[1:2] == ["--rearmar"]:
         sys.exit(print(rearmar(sys.argv[2])))
     if len(sys.argv) < 2:
-        sys.exit('Uso: .venv/bin/python informes.py "pedido" [carpeta de salida]  ·  --rearmar carpeta')
+        sys.exit('Uso: .venv/bin/python analista/informes.py "pedido" [carpeta de salida]  ·  --rearmar carpeta')
     argumentos = sys.argv[1:]
     nombre = "Informe"
     if "--nombre" in argumentos:  # «Informe semanal»…: lo pasa informe_programado.py

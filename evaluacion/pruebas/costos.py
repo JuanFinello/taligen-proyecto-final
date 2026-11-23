@@ -3,11 +3,11 @@ modelo, decisión 45) y agrupa por caso (una pregunta, un turno, un informe en u
 mediana, p95 y máximo del costo y del tiempo, y cuánto del prompt sale del caché. No llama al modelo.
 
 El tipo de cada caso sale de su id: las preguntas y los informes, de TIPOS en esperados.yaml; las variantes del test 2,
-del de su original; las fechas del test 3, del declarado en pruebas/matriz_puerta.py; las conversaciones, aparte.
+del de su original; las fechas del test 3, del declarado en evaluacion/pruebas/matriz_puerta.py; las conversaciones, aparte.
 El tiempo es el de reloj del caso: del comienzo de su primera llamada al final de la última (los analistas de un
 informe corren en paralelo, así que sumar sus tiempos lo exageraría).
 
-Uso: .venv/bin/python pruebas/costos.py [desde AAAA-MM-DD]      (por defecto, desde el 2026-11-18: el diseño actual)
+Uso: .venv/bin/python evaluacion/pruebas/costos.py [desde AAAA-MM-DD]      (por defecto, desde el 2026-11-18: el diseño actual)
 Deja salidas/costos/resultado.md y lo copia a trazas/costos.md."""
 import re
 import statistics
@@ -16,7 +16,8 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+RAIZ = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(RAIZ / "analista"), str(RAIZ / "evaluacion")]
 
 import yaml  # noqa: E402
 
@@ -74,7 +75,7 @@ def main(desde):
     miles = lambda n: f"{n:,}".replace(",", ".")
     seg = lambda x: f"{x:.0f} s"
     lineas = ["# Test 9: costo y tiempo por tipo de pregunta (decisión 100)", "",
-              f"Comando: `.venv/bin/python pruebas/costos.py {desde}` · {miles(len(llamadas))} llamadas al modelo desde el {desde}, "
+              f"Comando: `.venv/bin/python evaluacion/pruebas/costos.py {desde}` · {miles(len(llamadas))} llamadas al modelo desde el {desde}, "
               f"agrupadas en {miles(sum(len(v) for v in por_tipo.values()))} casos con tipo · sin modelo", "",
               "| Tipo | Casos | Costo mediano | p95 | Máximo | Tiempo mediano | p95 | Máximo | Llamadas (mediana) |",
               "|---|---|---|---|---|---|---|---|---|"]

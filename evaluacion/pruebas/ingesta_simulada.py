@@ -17,8 +17,8 @@ Cómo se arman los datos (bibliografía en el README, decisión 87):
 - Errores de carga, solo en la sucia: un presupuesto ×10 (lo tiene que marcar como sospechoso) y un día de una
   sucursal cargado dos veces (lo tiene que bloquear).
 
-Uso: .venv/bin/python pruebas/ingesta_simulada.py            (arma las dos bases, las verifica y calcula lo esperado)
-     .venv/bin/python pruebas/ingesta_simulada.py --agente   (además le pregunta al agente y corre el informe programado
+Uso: .venv/bin/python evaluacion/pruebas/ingesta_simulada.py            (arma las dos bases, las verifica y calcula lo esperado)
+     .venv/bin/python evaluacion/pruebas/ingesta_simulada.py --agente   (además le pregunta al agente y corre el informe programado
                                                               de ese lunes sobre la limpia: ~US$ 0,10)
 Deja en salidas/ingesta/: las dos bases, eventos.json (qué se plantó, dónde, y los valores esperados) y resultado.md,
 que se copia a trazas/ingesta_simulada.md."""
@@ -30,7 +30,8 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # los módulos del proyecto
+RAIZ = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(RAIZ / "analista"), str(RAIZ / "evaluacion")]  # los módulos del proyecto
 CARPETA = Path("salidas/ingesta")
 LIMPIA, SUCIA = CARPETA / "limpia.duckdb", CARPETA / "sucia.duckdb"
 # El agente, el servidor MCP y el informe programado leen esta base: tiene que quedar fijada antes de importarlos
@@ -366,7 +367,7 @@ def informe(factores, hechos, errores, filas, valores, verificacion, agente=None
     si = lambda x: "✓" if x else "✗"
     lineas = [
         "# Test 1: ingesta simulada (decisión 87)", "",
-        f"Comando: `.venv/bin/python pruebas/ingesta_simulada.py{' --agente' if agente is not None else ''}` · semilla {SEMILLA}",
+        f"Comando: `.venv/bin/python evaluacion/pruebas/ingesta_simulada.py{' --agente' if agente is not None else ''}` · semilla {SEMILLA}",
         "", "## Cómo se armaron los datos", "",
         f"- Mayo de 2026 (AF2027, mes fiscal 1): cada día copia el mismo día de la semana de 364 días antes, por el "
         f"crecimiento medido en la base (**×{coma(factores['crecimiento'])}**, comparables feb–abr 2026 contra 2025), con ruido "

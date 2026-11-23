@@ -1,11 +1,11 @@
 """Registro de cada llamada al modelo (decisiones 45 y 46): una línea JSON por llamada en registros/llamadas.jsonl,
 con tokens, caché, costo, tiempo y tools, y la versión del diseño que estaba corriendo. El evaluador anota además si
 cada caso pasó (registros/evaluaciones.jsonl). Así cada cambio de diseño queda con su efecto en costo, tiempo y aciertos.
-Uso: .venv/bin/python registro.py                    (resumen de la última corrida)
-     .venv/bin/python registro.py 20261113-1         (resumen de esa corrida)
-     .venv/bin/python registro.py --todas            (una línea por corrida, con su versión)
-     .venv/bin/python registro.py --comparar A B     (dos versiones caso por caso, promediando sus corridas)
-Para nombrar un cambio: CAMBIO="decisión 44" .venv/bin/python evaluador.py"""
+Uso: .venv/bin/python analista/registro.py                    (resumen de la última corrida)
+     .venv/bin/python analista/registro.py 20261113-1         (resumen de esa corrida)
+     .venv/bin/python analista/registro.py --todas            (una línea por corrida, con su versión)
+     .venv/bin/python analista/registro.py --comparar A B     (dos versiones caso por caso, promediando sus corridas)
+Para nombrar un cambio: CAMBIO="decisión 44" .venv/bin/python evaluacion/evaluador.py"""
 import contextvars
 import hashlib
 import json
@@ -23,7 +23,8 @@ CACHE_LECTURA, CACHE_ESCRITURA = 0.1, 1.25  # por la entrada: leer del caché cu
 
 # La versión del diseño: una huella de los archivos que deciden qué hace Haiku (prompt, criterio, capa y tools).
 # Cambia sola con cualquier cambio en ellos, aunque no haya commit; el resto (evaluador, PDF, gráficos) no cuenta
-ARCHIVOS_DEL_DISEÑO = ["puerta.py", "agente.py", "hooks.py", "controles.py", "salida.py", "informes.py", "servidor_mcp.py", "procesador_capa_semantica.py",
+ARCHIVOS_DEL_DISEÑO = [f"analista/{a}" for a in ("puerta.py", "agente.py", "hooks.py", "controles.py", "salida.py", "informes.py", "servidor_mcp.py",
+                                                    "procesador_capa_semantica.py")] + [
                        "Data/capa_semantica/glosario.md", "Data/capa_semantica/medidas.yaml",
                        "Data/capa_semantica/esquema.yaml"]
 VERSION = hashlib.sha1(b"".join(Path(a).read_bytes() for a in ARCHIVOS_DEL_DISEÑO if Path(a).exists())).hexdigest()[:6]

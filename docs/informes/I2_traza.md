@@ -3,7 +3,7 @@
 Generada el 2026-11-23 con `claude-haiku-5-5`. Para volver a correrla:
 
 ```
-.venv/bin/python puerta.py "Necesito un informe de cumplimiento de presupuesto de enero de 2026, por categoría y por región."
+.venv/bin/python analista/puerta.py "Necesito un informe de cumplimiento de presupuesto de enero de 2026, por categoría y por región."
 ```
 
 ## Necesito un informe de cumplimiento de presupuesto de enero de 2026, por categoría y por región.

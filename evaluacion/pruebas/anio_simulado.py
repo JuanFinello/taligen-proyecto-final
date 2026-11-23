@@ -17,7 +17,7 @@ cierre de una sucursal, aumento de precios de una categoría, una categoría nue
 discontinuado, una región sin ventas unos días (un corte) y un cambio gradual del mix hacia la marca propia.
 Más dos hechos conocidos, para medir: un quiebre de stock y una caída de demanda de una categoría en una región.
 
-Uso: .venv/bin/python pruebas/anio_simulado.py      (arma la base, la verifica y escribe salidas/anio/resultado.md)"""
+Uso: .venv/bin/python evaluacion/pruebas/anio_simulado.py      (arma la base, la verifica y escribe salidas/anio/resultado.md)"""
 import json
 import os
 import random
@@ -27,7 +27,8 @@ import time
 from datetime import date, timedelta
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # los módulos del proyecto
+RAIZ = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(RAIZ / "analista"), str(RAIZ / "evaluacion")]  # los módulos del proyecto
 CARPETA = Path("salidas/anio")
 LIMPIA = CARPETA / "limpia.duckdb"
 os.environ["BASE_ALMACENES"] = str(LIMPIA)  # antes de importar el procesador
@@ -351,7 +352,7 @@ def informe(factores, ev, filas, v, segundos):
     e = ev
     lineas = [
         "# Año simulado: AF2027 con eventos nuevos (decisión 88)", "",
-        f"Comando: `.venv/bin/python pruebas/anio_simulado.py` · semilla {SEMILLA} · {segundos:.0f} s", "",
+        f"Comando: `.venv/bin/python evaluacion/pruebas/anio_simulado.py` · semilla {SEMILLA} · {segundos:.0f} s", "",
         "## Cómo se armaron los datos", "",
         f"- Cada día copia el mismo día de la semana del AF2025 (728 días antes), por el crecimiento anual medido "
         f"(**×{coma(factores['crecimiento_anual'])}** por año, comparables AF2026 contra AF2025), con ruido lognormal "

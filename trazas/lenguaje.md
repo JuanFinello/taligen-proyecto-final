@@ -1,6 +1,6 @@
 # Test 2: robustez del lenguaje (decisión 94)
 
-Comando: `.venv/bin/python pruebas/lenguaje.py --veces 3` · 35 preguntas × 3 · US$ 0.146 · 199 s
+Comando: `.venv/bin/python evaluacion/pruebas/lenguaje.py --veces 3` · 35 preguntas × 3 · US$ 0.146 · 199 s
 
 **Variantes que dan el número correcto: 84 de 84** · originales: 21 de 21
 

@@ -4,9 +4,9 @@ que descomponerlo. La puerta clasifica cada pregunta o turno con una llamada cor
 forzada con enum, primero el motivo y después la etiqueta, validada con pydantic) y el código elige el camino:
 diagnóstico e informe van al coordinador (informes.py); los demás tipos, al agente (agente.py), como hasta ahora.
 
-Uso: .venv/bin/python puerta.py                     (chat: una pregunta por vez; «?» muestra de dónde salió)
-     .venv/bin/python puerta.py [--traza archivo.md] "¿pregunta?" ["¿turno siguiente?" …]
-     .venv/bin/python puerta.py --medir [P09 C1 …]   (solo clasifica los casos de TIPOS en esperados.yaml y compara)"""
+Uso: .venv/bin/python analista/puerta.py                     (chat: una pregunta por vez; «?» muestra de dónde salió)
+     .venv/bin/python analista/puerta.py [--traza archivo.md] "¿pregunta?" ["¿turno siguiente?" …]
+     .venv/bin/python analista/puerta.py --medir [P09 C1 …]   (solo clasifica los casos de TIPOS en esperados.yaml y compara)"""
 import asyncio
 import contextlib
 import json
@@ -291,5 +291,5 @@ if __name__ == "__main__":
             print("⚠ registro no guardado: " + "; ".join(respuesta["problemas_registro"]))
     if ruta_traza:
         # Los turnos del coordinador entran con su texto y sus consultas; su recorrido completo, en la carpeta que nombran
-        guardar_traza(respuestas, ruta_traza, "puerta.py")
+        guardar_traza(respuestas, ruta_traza, "analista/puerta.py")
         print(f"\nTraza guardada en {ruta_traza}")
