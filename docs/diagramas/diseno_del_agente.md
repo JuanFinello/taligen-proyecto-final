@@ -85,8 +85,8 @@ El tipo no viene escrito: reconocerlo es parte del trabajo → lo hace la **puer
 *Semana 7 · dec. 101–103.* Streamlit, mínima: la misma puerta que el chat de la terminal (`puerta.py` sin argumentos).
 - **Izquierda:** el chat; debajo de cada respuesta, tipo → camino, costo y tiempo, y lo que **supuso**
 - **Derecha, «De dónde sale»:** cada consulta en castellano (qué se midió, de qué, cuándo), su **SQL** y su **resultado**, y los **controles que pasó**
-- **Pregunta siguiente:** 2 o 3 botones, armados por reglas, sin modelo · *dec. 86, 103*
-- **Generar informe:** los 4 programados para elegir, u otro escrito; el PDF se baja solo
+- **Pregunta siguiente:** 2 o 3 botones, armados por reglas, sin modelo; con memoria de la conversación, no se repiten · *dec. 86, 103, 121*
+- **Generar informe:** sobre la conversación del chat, el semanal, el mensual u otro escrito; el PDF se baja solo
 - **Cómo sé que funciona:** el resultado de cada test
 
 Bibliografía: Microsoft (Amershi, CHI 2019: qué puede y qué tan bien), Google PAIR (calibrar la confianza), Databricks Genie y Snowflake Cortex (mostrar el SQL), Gu y otros (CHI 2024). Colores: tema oscuro de Material Design, contraste WCAG.

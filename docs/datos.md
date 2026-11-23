@@ -86,7 +86,7 @@ Antes de escribir el agente revisé las 8 tablas y sus joins contra la base. La 
 | S39 y S40 abrieron dentro del período (jun y jul de 2025) | Sucursales comparables, aplicadas por el código con `comparables=True` (decisión 12). |
 | Año fiscal de mayo a abril | El criterio está en el glosario y en la tabla `fechas`; el test de fechas lo prueba (42 de 42). |
 | Devoluciones con signo negativo | Se netean en las ventas netas, no se suman aparte. |
-| `promociones`, sin documentar, la usan 28.793 ventas | Se incorporó a la capa. |
+| `promociones`, sin documentar, la usan 28.793 ventas | Se incorporó a la capa: las ventas se abren por promoción (dimensión `promocion`, decisión 120). |
 | 1.749 ventas con margen negativo | No son un error: son promociones con 20–25 % de descuento. |
 | Quiebre de stock normal, mediana de 1,32 % | Un quiebre se compara con las semanas vecinas, no con un umbral fijo. |
 | La primera y la última semana tienen 5 y 4 días | Por semana parecen caídas: está escrito en el esquema, y ante una caída el diagnóstico mira primero si faltan días (decisión 93). |

@@ -14,7 +14,7 @@ instalar:  ## crea .venv e instala las dependencias (con pytest)
 	python3 -m venv .venv
 	$(PY) -m pip install -r requirements-dev.txt
 
-tests:  ## tests unitarios del código, sin modelo (~1 s, sin costo)
+tests:  ## tests unitarios del código, sin modelo (~2 s, sin costo)
 	$(PY) -m pytest
 
 verificar:  ## controles de integridad de la base

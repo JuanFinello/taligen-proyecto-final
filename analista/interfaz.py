@@ -27,7 +27,7 @@ from explicar import MESES, explicar
 from informe_programado import informes_del
 from procesador_capa_semantica import sqls, ver_modelo
 from puerta import Clasificacion, Conversacion, al_historial, contexto_para_coordinador
-from sugerir import sugerencias
+from sugerir import Memoria, sugerencias
 
 st.set_page_config(page_title="Analista de datos · Almacenes del Sur", page_icon="📊", layout="wide")
 st.markdown("""<style>
@@ -37,7 +37,12 @@ div[data-testid="stCaptionContainer"] p {margin-bottom: 0;}
 .stButton button {font-size: 0.85rem; padding: 0.15rem 0.6rem;}
 /* Los dos recuadros: superficies grises sobre el fondo, como la elevación del tema oscuro de Material Design */
 .st-key-caja_chat, .st-key-caja_evidencia {background: #1E1E1E; border-radius: 10px;}
-.st-key-caja_chat [data-testid="stChatMessage"] {background: #2C2C2C;}
+/* Quién habla, en dos grises: la pregunta, más clara (más arriba en la elevación); la respuesta, más oscura */
+.st-key-caja_chat [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) {background: #3A3A3A;}
+.st-key-caja_chat [data-testid="stChatMessage"]:has([aria-label="Chat message from assistant"]) {background: #262626;}
+/* El avatar del agente es el personaje completo en blanco, en el mismo cuadro que el ícono de persona */
+[data-testid="stChatMessageAvatarImage"] {box-sizing: border-box; padding: 3px; object-fit: contain;
+  background: #0E1117; border: 1px solid #31333F;}
 [data-testid="stCaptionContainer"] p {color: #A8A8A8;}
 .st-key-caja_chat button, .st-key-caja_evidencia button {background: #2C2C2C; border: 1px solid #4A4A4A;}
 .st-key-caja_chat button:hover, .st-key-caja_evidencia button:hover {border-color: #81C995;}
@@ -45,6 +50,7 @@ div[data-testid="stCaptionContainer"] p {margin-bottom: 0;}
 button[kind="primary"], button[kind="primary"] * {color: #0B1F13 !important;}
 </style>""", unsafe_allow_html=True)
 LOG = Path(f"salidas/interfaz-{registro.CORRIDA}.log")
+AVATAR_AGENTE = str(Path(__file__).with_name("imagenes") / "agente.png")  # el personaje de la presentación, en blanco
 
 
 # ---------- La conversación ----------
@@ -57,6 +63,7 @@ def estado():
 
 def nueva_conversacion(s):
     s.conversacion, s.turnos, s.pendiente, s.descargar = Conversacion(varios_turnos=True), [], None, None
+    s.memoria = Memoria()  # lo ya sugerido y preguntado, para no repetir (decisión 121)
 
 
 def generar_informe(s, pedido):
@@ -110,7 +117,7 @@ def preguntar(s, texto):
     costo = sum(l["costo_usd"] for l in registro.leer(registro.LLAMADAS)
                 if l.get("corrida") == registro.CORRIDA and l.get("caso") == f"interfaz-{numero}")
     s.turnos.append({"pregunta": texto, "respuesta": respuesta, "segundos": time.monotonic() - inicio, "costo": costo,
-                     "sugerencias": sugerencias(respuesta)})
+                     "sugerencias": sugerencias(respuesta, s.memoria, texto)})
 
 
 # ---------- Lo que se muestra de cada respuesta ----------
@@ -194,28 +201,24 @@ ALTO = 560  # los dos recuadros, de la misma altura y con su propio scroll
 OTRO = "Otro (lo escribo yo)"
 
 
+CONVERSACION = "Sobre esta conversación"
+
+
 def informes_listos(s):
-    """Los informes para elegir con un toque: los mismos cuatro de los informes programados (decisión 66, cada uno
-    responde otra pregunta), con los últimos períodos completos de la base; y, si hay conversación, uno sobre ella."""
+    """Los informes para elegir con un toque: uno sobre la conversación del chat, el semanal y el mensual de los
+    informes programados (decisión 66, cada uno responde otra pregunta) con los últimos períodos completos de la base,
+    y uno escrito por el usuario."""
     hasta = date.fromisoformat(ver_modelo()["cobertura"]["ventas_hasta"])
     ultimo_domingo = hasta - timedelta(days=(hasta.weekday() + 1) % 7)
-    opciones = {}
-    if s.turnos:
-        opciones[f"Sobre lo que venimos hablando ({s.turnos[-1]['pregunta'][:50]})"] = \
-            f"Informe ejecutivo sobre: {s.turnos[-1]['pregunta']}"
+    preguntas = [t["pregunta"] for t in s.turnos]
+    opciones = {CONVERSACION: ("Informe ejecutivo con lo que vimos en esta conversación: " + "; ".join(preguntas))
+                if preguntas else ""}
     semanal = informes_del(ultimo_domingo + timedelta(days=1))[0]
-    opciones[f"Semana del {semanal[1]:%d-%m} al {semanal[2]:%d-%m-%Y}: qué requiere atención"] = semanal[3]
+    opciones[f"Semanal: del {semanal[1]:%d-%m} al {semanal[2]:%d-%m-%Y}, qué requiere atención"] = semanal[3]
     lunes_de_cierre = hasta + timedelta(days=1 + (7 - (hasta + timedelta(days=1)).weekday()) % 7)
     for clave, desde, fin, pedido in informes_del(lunes_de_cierre)[1:]:
-        if fin > hasta:
-            continue
-        if clave.startswith("mes-"):
-            opciones[f"{MESES[desde.month - 1].capitalize()} de {desde.year}: cumplimiento del presupuesto"] = pedido
-        elif clave.startswith("trimestre-"):
-            af, t = clave.split("-")[1:]
-            opciones[f"{t} del {af}: por qué se movió el margen"] = pedido
-        else:
-            opciones[f"{clave.split('-')[1]} completo: de dónde vino el crecimiento"] = pedido
+        if clave.startswith("mes-") and fin <= hasta:
+            opciones[f"Mensual: {MESES[desde.month - 1]} de {desde.year}, cumplimiento del presupuesto"] = pedido
     opciones[OTRO] = ""
     return opciones
 
@@ -229,8 +232,10 @@ def pestania_preguntar():
         st.rerun()
     with informe.popover("Generar informe", width="stretch"):
         opciones = informes_listos(s)
-        elegido = st.radio("Qué informe querés", list(opciones), index=0)
+        elegido = st.radio("Qué informe querés", list(opciones), index=0 if s.turnos else 1)
         pedido = st.text_area("Contame qué informe necesitás", height=90) if elegido == OTRO else opciones[elegido]
+        if elegido == CONVERSACION and not pedido:
+            st.caption("Primero hacé alguna pregunta en el chat.")
         if st.button("Generar el PDF", type="primary", disabled=not pedido.strip()):
             with st.spinner("Armando el informe (alrededor de un minuto)…"):
                 generar_informe(s, pedido)
@@ -250,7 +255,7 @@ def pestania_preguntar():
                 r = turno["respuesta"]
                 with st.chat_message("user", avatar=":material/person:"):
                     st.markdown(turno["pregunta"])
-                with st.chat_message("assistant", avatar=":material/query_stats:"):
+                with st.chat_message("assistant", avatar=AVATAR_AGENTE):
                     st.markdown(sin_rutas(r["texto"]).replace("\n", "  \n"))
                     mostrar_pdf(r)
                     st.caption(pie(turno))

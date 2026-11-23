@@ -30,6 +30,7 @@ Cada decisión importante, con su porqué, en el orden en que se tomó (de la 1,
 - [62. Los valores válidos y los rangos salen de la base al arrancar, y el período deja de estar escrito](#d62)
 - [69. Un período de días se pide como rango, y una lista de dos fechas salteadas es un error](#d69)
 - [112. La medida «margen por unidad» entra en la capa, y el ejemplo de marca propia sale entero de `calcular()`](#d112)
+- [120. Las ventas se pueden abrir por promoción, y el agente no nombra sus herramientas](#d120)
 
 **Servidor MCP y tools**
 
@@ -139,6 +140,7 @@ Cada decisión importante, con su porqué, en el orden en que se tomó (de la 1,
 - [86. El chat sugiere la pregunta siguiente, y las sugerencias las arma el código](#d86)
 - [101. Una interfaz mínima que muestra los comprobantes](#d101)
 - [103. La pregunta siguiente: más opciones y períodos parejos](#d103)
+- [121. Las sugerencias tienen memoria de la conversación y no se repiten](#d121)
 
 **Tests de robustez**
 
@@ -758,4 +760,36 @@ En la revisión del repo del 23-11, una corrida del evaluador quedó colgada y s
 Ahora el cliente sale de una sola función, `agente.cliente()`, con `timeout=120` y `max_retries=2`. El límite sale del registro: de 18.459 llamadas, la más lenta tardó 68 s (el coordinador) y el 99 % tarda menos de 22 s, así que 120 s no corta ninguna llamada normal y una trabada se reintenta en dos minutos en vez de diez.
 
 Alternativas: un timeout más corto (30 o 60 s) cortaría algunas redacciones del coordinador; un timeout por agente agrega configuración sin necesidad. Medido después del cambio: tests unitarios 34 de 34, evaluador 17 de 17 y 4 de 4, y todo el enunciado en 182 s.
+
+<a id="d120"></a>
+### 120. Las ventas se pueden abrir por promoción, y el agente no nombra sus herramientas
+
+Probando la interfaz el 23-11, el usuario preguntó «¿cuál es la promoción que más ventas trajo?». El agente no inventó nada, pero no respondió: cada venta guarda su `promocion_id`, pero la capa no lo ofrecía como dimensión, así que `calcular()` no podía agrupar por promoción, y el prompt le prohíbe sacar medidas con SQL directo (decisión 34). Además, la respuesta le hablaba al gerente de «calcular», «consultar_sql», «sku» y de un listado «truncado».
+
+No es un parche para esa pregunta sino un hueco de la capa: con datos que la base tiene, una pregunta obvia sobre promociones no tenía camino. Cambios:
+
+- `esquema.yaml`: la dimensión `promocion` (`v.promocion_id`). Como está en la tabla de ventas, vale para las medidas de ventas y no para stock ni presupuesto; `calcular()` rechaza el resto.
+- `procesador_capa_semantica.py`: al agrupar por una columna que admite vacíos (según el esquema; hoy, solo la promoción), los vacíos no forman un grupo. Si no, las ventas sin promoción encabezaban el ranking de promociones. El resultado lo avisa en una `nota`, y el total y la participación siguen siendo sobre todo lo filtrado.
+- `glosario.md`: las ventas de una promoción son las que llevan su código; lo que una promoción **agregó** frente a no hacerla es otra pregunta, que se compara con las semanas vecinas sin promoción. Si la pregunta no dice cuál, se responde la primera y se aclara en los supuestos.
+- `agente.py`: «respondé como un analista a un gerente: no nombres tools, parámetros ni columnas; si algo no se puede responder, decí qué dato falta, no qué herramienta».
+
+Medido, con lo esperado calculado antes con SQL a mano: 4 preguntas de promociones (la que más vendió, la que más unidades, la de Bebidas en el AF2026, cuánto vendió PROMO014), las 4 con el valor correcto, y la primera 3 veces más, siempre PROMO001 con $17.929.170. Tests unitarios 36 de 36 (dos nuevos), evaluador 17 de 17 y 4 de 4 dos veces, test 4 (no inventar) 25 de 36 contra 26 de 36 antes, dentro del ruido.
+
+**Lo que no resolvió:** en 2 de las 4 corridas de la primera pregunta, la respuesta dijo que PROMO001 es «el 9 %» de las ventas, cuando es el 0,09 %: Haiku leyó una participación de 0,0899 % como si fuera una fracción. El control de números no la frenó por dos razones que ya existían: no controla los enteros de hasta 12 sin decimales («cerca del 9 %»), y acepta como respaldo cualquier número de un resultado, incluidos los meses del 1 al 12 que trae `ver_modelo` («9,0 %»). Quedó como límite conocido (evaluación, límite 7).
+
+<a id="d121"></a>
+### 121. Las sugerencias tienen memoria de la conversación y no se repiten
+
+Probando la interfaz, el usuario hizo tres preguntas seguidas («¿qué producto se vende más en el Norte?», «¿y en el Sur?», «¿y en todas las sucursales?») y las tres veces le aparecieron las mismas dos sugerencias: abrir las unidades del primero por sucursal, y «¿Y en el AF2026?». Había cuatro causas: cada respuesta se miraba sola, sin memoria; se usaba la última consulta de la respuesta, que era la de unidades (una de apoyo), y no la principal, de ventas; un ranking tenía solo dos pasos posibles; y la redacción decía «en todo el período de la base».
+
+Se mantiene lo de la decisión 86: las sugerencias las arma el código, sin modelo, así que toda sugerencia se puede responder y no cuesta nada. Que las escriba Haiku daría más variedad, pero puede sugerir algo que la base no tiene (lo que el test 4 mide como falla) y suma una llamada por respuesta; queda como mejora posible, con el código armando las candidatas y Haiku eligiendo.
+
+Cambios en `sugerir.py`:
+
+- **Memoria** (`Memoria`, una por conversación, en la interfaz y en el chat de la terminal): no repite una sugerencia ya mostrada ni una pregunta ya hecha, y pone primero los pasos que menos se propusieron en la conversación. Sin memoria, sale como antes.
+- **La consulta principal**: la primera de la respuesta; las demás sirven solo para no sugerir lo ya hecho.
+- **Dos pasos nuevos**: el hermano («¿Y en el Centro?», con una región o categoría que no se preguntó) y el primero de un ranking contra el año anterior.
+- **Redacción**: «entre mayo de 2024 y abril de 2026» en vez de «en todo el período de la base».
+
+Medido: la conversación del usuario, repetida en un test, pasa de las mismas dos sugerencias tres veces a 9 distintas, sin repetir y sin volver a regiones ya preguntadas. Tres de las nuevas, preguntadas al agente, se responden bien (US$ 0,005). Tests unitarios: 46 de 46 (10 nuevos). No toca a Haiku: la versión del diseño no cambia y el evaluador no usa las sugerencias.
 

@@ -50,3 +50,5 @@ La foto de stock se toma los lunes. Un producto está en quiebre cuando la foto 
 ## Promociones y marca propia
 
 Una promoción es un descuento sobre un producto en todas las sucursales entre dos fechas. Puede quitarle ventas a productos parecidos de la misma subcategoría (canibalización), así que se evalúa mirando la subcategoría completa. Al revés también: si un producto vende menos, conviene revisar si en ese período hubo promociones en otros productos de su subcategoría. La marca propia es **Del Sur**, y tiene más margen que las marcas de proveedores.
+
+Las ventas de una promoción son las que llevan su código (dimensión `promocion`): su producto, durante su vigencia, con el descuento. «Qué promoción vendió más» se responde con las ventas por promoción; su nombre, con el listado de promociones. Lo que una promoción **agregó** (contra no haberla hecho) es otra pregunta: se compara con las semanas vecinas sin promoción del mismo producto. Si la pregunta no dice cuál de las dos, se responde la primera y se aclara en los supuestos.

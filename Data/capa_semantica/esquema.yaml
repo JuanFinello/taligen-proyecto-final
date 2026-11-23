@@ -331,4 +331,5 @@ dimensiones:
   es_marca_propia: p.es_marca_propia
   proveedor: pr.proveedor_id
   nombre_proveedor: pr.nombre
-nota_dimensiones: presupuesto solo se puede abrir por fecha (mes o más), sucursal, región, formato y categoría.
+  promocion: v.promocion_id
+nota_dimensiones: presupuesto solo se puede abrir por fecha (mes o más), sucursal, región, formato y categoría. promocion es el código de la promoción de cada venta (PROMO001…); al abrir por promoción, las ventas sin promoción no aparecen como grupo.

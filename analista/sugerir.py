@@ -2,14 +2,17 @@
 Como Tableau Pulse, salen del resultado y no de un modelo: el código mira la última consulta y propone los pasos
 típicos de un analista (los operadores de la literatura de OLAP): comparar con el período anterior, pasar a
 comparables, bajar un nivel (región → sucursal, categoría → subcategoría) y buscar la causa del grupo que más cayó.
-Solo combina medidas y dimensiones de la capa, así que toda sugerencia se puede responder; no cuesta nada."""
+Solo combina medidas y dimensiones de la capa, así que toda sugerencia se puede responder; no cuesta nada.
+Con memoria de la conversación (decisión 121): no repite una sugerencia ya mostrada ni una pregunta ya hecha, y pone
+primero los pasos que menos se propusieron."""
 from datetime import date
 
 import duckdb
 
 from explicar import MESES
 from graficos import NOMBRES
-from procesador_capa_semantica import BASE, COBERTURA, dimensiones_validas
+from controles import sin_tildes
+from procesador_capa_semantica import BASE, COBERTURA, dimensiones_validas, ver_modelo
 
 MAXIMO = 3
 # Bajar un nivel: el que sigue a lo que ya se filtró; si no se filtró nada, el primero que la medida admita
@@ -38,6 +41,9 @@ NOMBRE = {"region": "región", "sucursal": "sucursal", "categoria": "categoría"
           "producto": "producto", "proveedor": "proveedor", "marca": "marca", "formato": "formato"}
 DESDE = date.fromisoformat(COBERTURA["ventas_desde"])
 HASTA = date.fromisoformat(COBERTURA["ventas_hasta"])
+TODA_LA_BASE = f"entre {MESES[DESDE.month - 1]} de {DESDE.year} y {MESES[HASTA.month - 1]} de {HASTA.year}"
+# Los hermanos de un filtro, para «¿Y en el Centro?»: los valores válidos de la dimensión, leídos de la base
+VALORES = {d: info.get("valores", []) for d, info in ver_modelo()["dimensiones"].items()}
 with duckdb.connect(BASE, read_only=True) as _con:
     PRODUCTOS = dict(_con.execute("SELECT sku, descripcion FROM productos").fetchall())
 
@@ -121,16 +127,29 @@ def grupo_que_mas_cayo(resultado, dimension):
     return None
 
 
-def sugerencias(respuesta):
-    """Hasta MAXIMO preguntas para seguir. Mira la última consulta de calcular y, para no sugerir lo que ya se hizo,
-    todas las de la respuesta (el agente suele hacer la total y la comparable)."""
+class Memoria:
+    """Lo que ya se vio en una conversación: las sugerencias mostradas, las preguntas hechas y cuántas veces se propuso
+    cada paso (operador). Una por conversación; sin ella, las sugerencias salen sin memoria."""
+    def __init__(self):
+        self.vistas, self.usos = set(), {}
+
+
+def _normal(texto):
+    return " ".join(sin_tildes(texto).lower().strip(" ¿?").split())
+
+
+def candidatas(respuesta, ya_dicho=""):
+    """Todas las preguntas para seguir, en orden de prioridad, cada una con su paso (operador). Mira la consulta
+    principal de calcular (la primera: la que responde lo pedido; las siguientes suelen ser la comparable o una medida
+    de apoyo) y, para no sugerir lo que ya se hizo, todas las de la respuesta. ya_dicho: lo ya preguntado o sugerido
+    en la conversación, sin tildes, para no proponer un hermano que ya se vio."""
     if respuesta.get("ruta") != "agente" or respuesta.get("tipo") == "sin_dato":
         return []  # sin dato: sugerir otra medida sería responder con otra cosa. Una ambigua sí: el agente ya eligió
                    # una lectura y respondió con ella (y si no consultó nada, abajo no hay de dónde sugerir)
     consultas = [c for c in respuesta.get("consultas", []) if c["tool"] == "calcular"]
     if not consultas:
         return []
-    a, r = consultas[-1]["argumentos"], consultas[-1]["resultado"]
+    a, r = consultas[0]["argumentos"], consultas[0]["resultado"]
     medida, filtros = a.get("medida"), a.get("filtros") or {}
     # Abrir por una dimensión que ya está filtrada en un valor da un solo grupo: no cuenta como abierto
     agrupar = [d for d in a.get("agrupar_por") or [] if not d.startswith("nombre_") and not isinstance(filtros.get(d), (str, int))]
@@ -144,55 +163,61 @@ def sugerencias(respuesta):
                  and c["resultado"]["variacion"] < 0), None)
     validas = dimensiones_validas(medida)
     sin_periodo = not any(k in filtros for k in PERIODO)
-    periodo = corto(filtros) or ("todo el período de la base" if sin_periodo else None)
+    periodo = corto(filtros) or (TODA_LA_BASE if sin_periodo else None)
     nombre = NOMBRE_MEDIDA.get(medida)
     if not periodo or not nombre:
         return []
+    en_periodo = f" {periodo}" if periodo == TODA_LA_BASE else f" en {periodo}"
     plural = nombre.startswith(("las", "los"))
     abre, vino = ("se abren", "vinieron") if plural else ("se abre", "vino")
     salida = []
 
     # 1. La causa: un grupo que cae más que el total (eso es un diagnóstico: la puerta lo manda al coordinador)
     if agrupar and a.get("comparar_con") and (grupo := grupo_que_mas_cayo(r, agrupar[0])):
-        salida.append(f"¿Qué explica la caída de {con_nombre(grupo)} en {nombre.split(' ', 1)[1]} en {periodo}?")
+        salida.append(("causa", f"¿Qué explica la caída de {con_nombre(grupo)} en {nombre.split(' ', 1)[1]}{en_periodo}?"))
         hijo = SIGUIENTE.get(agrupar[0])
         if hijo in validas:
-            salida.append(f"¿Cómo {abre} {nombre} de {con_nombre(grupo)} por {NOMBRE[hijo]} en {periodo}?")
+            salida.append(("bajar", f"¿Cómo {abre} {nombre} de {con_nombre(grupo)} por {NOMBRE[hijo]}{en_periodo}?"))
     elif cayo:
         en_comparables = " en sucursales comparables" if cayo["argumentos"].get("comparables") else ""
-        salida.append(f"¿Qué explica la caída de {nombre}{de(filtros)}{en_comparables} en {periodo}?")
+        salida.append(("causa", f"¿Qué explica la caída de {nombre}{de(filtros)}{en_comparables}{en_periodo}?"))
     # 1b. Un ranking (abierto y sin comparar): mirar al primero por otra dimensión
     primero = r["filas"][0].get(agrupar[0]) if agrupar and r.get("filas") else None
     if agrupar and not a.get("comparar_con") and primero is not None:
         otra = next((d for d in DEL_PRIMERO.get(agrupar[0], []) if d in validas and not isinstance(filtros.get(d), (str, int))), None)
         if otra:
-            salida.append(f"¿Cómo {abre} {nombre} de {con_nombre(primero)}{en(filtros)} por {NOMBRE[otra]} en {periodo}?")
+            salida.append(("primero_por_otra", f"¿Cómo {abre} {nombre} de {con_nombre(primero)}{en(filtros)} por {NOMBRE[otra]}{en_periodo}?"))
+        # 1c. El primero contra el año anterior: si el período tiene uno en la base, o el último AF si no hay período
+        sujeto = ("el " if agrupar[0] == "region" else "") + con_nombre(primero)
+        if sin_periodo and date(HASTA.year - 2, 5, 1) >= DESDE:
+            af = HASTA.year if (HASTA.month, HASTA.day) == (4, 30) else HASTA.year - (HASTA.month < 5)
+            salida.append(("primero_anio", f"¿Cómo {vino} {nombre} de {sujeto}{en(filtros)} en el AF{af} contra el AF{af - 1}?"))
+        elif not sin_periodo and (previo := anterior(filtros)):
+            salida.append(("primero_anio", f"¿Cómo {vino} {nombre} de {sujeto}{en(filtros)}{en_periodo} contra {corto({**filtros, **previo})}?"))
     # 2. El desvío con presupuesto sospechoso (decisión 84): mirar los meses vecinos
     if medida == "desvio_presupuesto_pct" and r.get("aviso") and isinstance(filtros.get("mes"), int):
         mes, anio = filtros["mes"], filtros.get("anio")
         antes = (MESES[(mes - 2) % 12], anio - 1 if mes == 1 else anio)
         despues = (MESES[mes % 12], anio + 1 if mes == 12 else anio)
-        salida.append(f"¿Cuál fue {nombre}{de(filtros)} en {antes[0]} de {antes[1]} y en {despues[0]} de {despues[1]}?")
+        salida.append(("meses_vecinos", f"¿Cuál fue {nombre}{de(filtros)} en {antes[0]} de {antes[1]} y en {despues[0]} de {despues[1]}?"))
     # 3. Comparar con el año anterior
     parejo = anio_parejo(filtros)
     if not comparo and medida != "desvio_presupuesto_pct" and parejo:
-        salida.append(f"¿Cómo {vino} {nombre}{de(filtros)} de {parejo[0]} contra {parejo[1]}?")
+        salida.append(("anio_anterior", f"¿Cómo {vino} {nombre}{de(filtros)} de {parejo[0]} contra {parejo[1]}?"))
     elif not comparo and medida != "desvio_presupuesto_pct" and (previo := anterior(filtros)):
-        salida.append(f"¿Cómo {vino} {nombre}{de(filtros)} en {periodo} "
-                      f"contra {corto({**filtros, **previo})}?")
+        salida.append(("anio_anterior", f"¿Cómo {vino} {nombre}{de(filtros)}{en_periodo} contra {corto({**filtros, **previo})}?"))
     # 4. Comparables: las ventas de dos períodos con todas las sucursales (S39 y S40 abrieron en el medio)
     if comparo and not comparables and medida in ("ventas_netas", "unidades"):
-        salida.append("¿Y en sucursales comparables, las que estaban abiertas en los dos períodos?")
+        salida.append(("comparables", "¿Y en sucursales comparables, las que estaban abiertas en los dos períodos?"))
     # 5. El margen: ¿precio o costo?
     if medida == "margen_pct" and a.get("comparar_con"):
-        salida.append(f"¿El cambio del margen{de(filtros)} en {periodo} fue por precio o por costo?")
+        salida.append(("precio_costo", f"¿El cambio del margen{de(filtros)}{en_periodo} fue por precio o por costo?"))
     # 6. Bajar un nivel
     if not agrupar:
         ya = [SIGUIENTE[d] for d in SIGUIENTE if d in filtros and isinstance(filtros[d], str)]
         hijos = list(dict.fromkeys(d for d in ya + DE_ENTRADA if d in validas and d not in filtros))
-        # El nivel siguiente; y si no hay nada más que sugerir (no hay período anterior en la base), otro corte
-        for hijo in hijos[:1 if salida else 2]:
-            salida.append(f"¿Cómo {abre} {nombre}{de(filtros)} por {NOMBRE[hijo]} en {periodo}?")
+        for hijo in hijos[:2]:
+            salida.append(("bajar", f"¿Cómo {abre} {nombre}{de(filtros)} por {NOMBRE[hijo]}{en_periodo}?"))
     # 7. Cruzar con otra medida: del primero de un ranking, o de lo que se filtró
     otra_medida = CRUCE.get(medida)
     if otra_medida and not any(c["argumentos"].get("medida") == otra_medida for c in consultas):
@@ -202,13 +227,38 @@ def sugerencias(respuesta):
         if primero is None and de(filtros).startswith(" del "):
             sujeto = "el " + sujeto
         if otra_medida == "margen_pct":
-            salida.append(f"¿Qué margen tuvo {sujeto} en {periodo}?")
+            salida.append(("cruce", f"¿Qué margen tuvo {sujeto}{en_periodo}?"))
         elif otra_medida == "unidades":
-            salida.append(f"¿Cuántas unidades vendió {sujeto} en {periodo}?")
+            salida.append(("cruce", f"¿Cuántas unidades vendió {sujeto}{en_periodo}?"))
         else:
-            salida.append(f"¿Cuánto vendió {sujeto} en {periodo}?")
-    # 8. Sin período (toda la base): lo mismo en el último año fiscal completo, que es lo que suele importar
-    if sin_periodo and len(salida) < MAXIMO:
+            salida.append(("cruce", f"¿Cuánto vendió {sujeto}{en_periodo}?"))
+    # 8. El hermano: lo mismo en otra región o categoría que todavía no se preguntó («¿Y en el Centro?»)
+    for d in ("region", "categoria"):
+        actual = filtros.get(d)
+        if isinstance(actual, str):
+            otro = next((v for v in VALORES.get(d, []) if v != actual and sin_tildes(str(v)).lower() not in ya_dicho), None)
+            if otro:
+                salida.append(("hermano", f"¿Y en {'el ' if d == 'region' else ''}{otro}?"))
+    # 9. Sin período (toda la base): lo mismo en el último año fiscal completo, que es lo que suele importar
+    if sin_periodo:
         ultimo_af = HASTA.year if HASTA.month == 4 and HASTA.day == 30 else HASTA.year - (HASTA.month < 5)
-        salida.append(f"¿Y en el AF{ultimo_af}?")
-    return list(dict.fromkeys(salida))[:MAXIMO]
+        salida.append(("af", f"¿Y en el AF{ultimo_af}?"))
+    return list(dict.fromkeys(salida))
+
+
+def sugerencias(respuesta, memoria=None, pregunta=None):
+    """Hasta MAXIMO preguntas para seguir. Con memoria (una por conversación), no repite lo ya mostrado ni lo ya
+    preguntado, y pone primero los pasos que menos se propusieron (decisión 121)."""
+    if memoria is None:
+        return [texto for _, texto in candidatas(respuesta)][:MAXIMO]
+    if pregunta:
+        memoria.vistas.add(_normal(pregunta))
+    nuevas = [(op, texto) for op, texto in candidatas(respuesta, " ".join(memoria.vistas))
+              if _normal(texto) not in memoria.vistas]
+    # Primero los pasos menos propuestos en la conversación; a igualdad, el orden de prioridad (el sort es estable)
+    nuevas.sort(key=lambda par: memoria.usos.get(par[0], 0))
+    elegidas = nuevas[:MAXIMO]
+    memoria.vistas |= {_normal(texto) for _, texto in elegidas}
+    for op, _ in elegidas:
+        memoria.usos[op] = memoria.usos.get(op, 0) + 1
+    return [texto for _, texto in elegidas]

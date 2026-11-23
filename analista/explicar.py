@@ -14,7 +14,7 @@ DIMENSIONES = {"region": "región", "categoria": "categoría", "subcategoria": "
                "nombre_sucursal": "sucursal", "formato": "formato", "marca": "marca", "producto": "producto",
                "proveedor": "proveedor", "nombre_proveedor": "proveedor", "mes": "mes", "anio": "año",
                "anio_fiscal": "año fiscal", "trimestre_fiscal": "trimestre fiscal", "mes_fiscal": "mes fiscal",
-               "semana": "semana", "fecha": "día", "es_marca_propia": "marca propia o no"}
+               "semana": "semana", "fecha": "día", "es_marca_propia": "marca propia o no", "promocion": "promoción"}
 PERIODO = {"anio", "mes", "anio_fiscal", "trimestre_fiscal", "mes_fiscal", "fecha", "semana"}
 
 

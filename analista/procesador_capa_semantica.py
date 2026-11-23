@@ -429,6 +429,13 @@ def join_y_dimensiones(nombre_tabla):
     return join, columna_de, [d for d, c in columna_de.items() if c.split(".")[0] in alias_del_join]
 
 
+def admite_vacios(columna):
+    """Si la columna de una dimensión (alias.columna) tiene vacíos en la base, según el esquema."""
+    alias, nombre = columna.split(".")
+    tabla = next(datos for datos in ESQUEMA["tablas"].values() if datos["alias"] == alias)
+    return bool(tabla["columnas"].get(nombre, {}).get("nulos"))
+
+
 def dimensiones_validas(medida):
     """Las dimensiones con que se puede filtrar o abrir una medida (las calculadas, las de la medida que usan)."""
     base = {"desvio_presupuesto_pct": "presupuesto", "efectos_margen": "margen_bruto"}.get(medida, medida)
@@ -502,9 +509,14 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
         parametros.append(abiertas_hasta)
 
     # Paso 4: cada dimensión de agrupar_por va a su columna (decisión 10)
-    columnas = []
+    columnas, sin_vacios = [], []
     for dimension in agrupar_por:
         columnas.append(columna_de[dimension])
+        # Una columna que admite vacíos (la promoción de una venta) no abre un grupo «vacío»: las ventas sin promoción
+        # encabezarían el ranking de promociones (decisión 120). El total y la participación siguen siendo los reales
+        if admite_vacios(columna_de[dimension]):
+            condiciones.append(f"{columna_de[dimension]} IS NOT NULL")
+            sin_vacios.append(dimension)
 
     seleccion = [f"{c} AS {d}" for c, d in zip(columnas, agrupar_por)] + [f"{m['formula']} AS valor"]
     sql = f"SELECT {', '.join(seleccion)}\nFROM {join}"
@@ -525,6 +537,9 @@ def calcular(medida, filtros=None, agrupar_por=None, orden="desc", limite=None, 
         filas = [dict(zip(agrupar_por + ["valor"], fila)) for fila in resultado.fetchall()]
     respuesta = {"medida": medida, "filtros": filtros, **rango_de_fechas(filtros), "filas": filas, "unidad": m["unidad"],
                  "sql": sql, "parametros": parametros}
+    if sin_vacios:
+        respuesta["nota"] = (f"Las filas no incluyen lo que no tiene {', '.join(sin_vacios)} (por ejemplo, las ventas sin "
+                             "promoción); el total y la participación son sobre todo lo filtrado.")
 
     # Participación (decisión 29): solo en medidas aditivas, sobre el total real (con los mismos filtros, sin limite)
     if m.get("aditiva"):

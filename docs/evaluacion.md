@@ -14,11 +14,11 @@ Las mismas reglas valen para el evaluador y para los tests:
 
 | Nivel | Qué mide | Modelo | Comando |
 |---|---|---|---|
-| Tests unitarios (`tests/`) | que el código calcule y frene bien: `calcular()` contra los valores esperados, los controles de números sin respaldo, filtros y períodos, y las capas de seguridad | no · 1 s · sin costo | `make tests` |
+| Tests unitarios (`tests/`) | que el código calcule y frene bien: `calcular()` contra los valores esperados, los controles de números sin respaldo, filtros y períodos, las capas de seguridad y las preguntas sugeridas | no · 2 s · sin costo | `make tests` |
 | Evaluador (`evaluacion/`) | los casos del enunciado, de punta a punta | sí · ~1,5 min · ~US$ 0,05 | `make evaluar` |
 | Tests de robustez (`evaluacion/robustez/`) | lo que el enunciado no prueba | sí, salvo 1c y 9 | uno por test |
 
-Los tests unitarios usan los mismos valores esperados del evaluador (calculados con SQL escrito a mano), así que un error en una fórmula, un join o el calendario fiscal se ve sin gastar nada: rompiendo a propósito la fórmula de las ventas netas, fallan 3 de 34.
+Los tests unitarios usan los mismos valores esperados del evaluador (calculados con SQL escrito a mano), así que un error en una fórmula, un join o el calendario fiscal se ve sin gastar nada: rompiendo a propósito la fórmula de las ventas netas, fallan 3 tests.
 
 ## Las dos métricas del enunciado
 
@@ -94,6 +94,7 @@ Medidos con `registro.py` desde el 21-11 (el diseño actual), con el caché del 
 4. **El chequeo mira las consultas, no el texto.** Si la consulta es correcta pero el texto destaca otra cifra, el turno aprueba igual.
 5. **Muestras chicas.** La mayoría de los tests tiene 3 corridas y la reserva tiene 4 casos: alcanza para ver patrones sistemáticos, no para estimar fallas raras.
 6. **Los informes son lo menos medido.** Se califican con 18 chequeos de contenido, y la redacción se juzga leyendo.
+7. **Un porcentaje chico puede salir mal escrito.** Una participación de 0,09 % se escribió «9 %» en 2 de 4 corridas (decisión 120). El control no lo frena: no controla enteros de hasta 12, y acepta como respaldo cualquier número de un resultado, incluidos los meses 1–12 de `ver_modelo`.
 
 ## Mejoras propuestas
 
@@ -107,3 +108,4 @@ No se implementaron a propósito: cambiar el sistema invalidaría las mediciones
 | 4 | Controlar que el primer número del texto sea el esperado, y un juez LLM validado contra calificación humana para lo que el código no puede juzgar | Acuerdo con la calificación humana |
 | 5 | Reserva de unos 20 casos, 10 corridas por test e intervalos de confianza | Intervalos que no se superpongan entre versiones |
 | 6 | Más pedidos de informe y una evaluación a ciegas hecha por personas | Chequeos de contenido y preferencia a ciegas |
+| 7 | Que un número seguido de «%» tenga que coincidir con un porcentaje de una consulta (participación, variación, margen), aunque sea chico, y que `ver_modelo` no cuente como respaldo | La pregunta de la promoción, 10 veces, sin «9 %»; evaluador sin cambios |

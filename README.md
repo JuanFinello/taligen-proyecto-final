@@ -16,7 +16,7 @@ Proyecto final del Taligen Spring Camp, de Juan Finello. Usa Claude Haiku 5.5 (`
 | Todo el enunciado con un comando (28 casos) | **US$ 0,14** · 182 s |
 | Una pregunta | mediana **US$ 0,0009–0,0018** · 7–12 s |
 | Un informe | mediana **US$ 0,020** · 75 s |
-| Tests unitarios del código, sin modelo (capa semántica, controles, seguridad) | **34 de 34** · 1 s |
+| Tests unitarios del código, sin modelo (capa semántica, controles, seguridad, sugerencias) | **46 de 46** · 2 s |
 | 9 tests de robustez (lenguaje, fechas, ataques, no inventar, conversación…) | [ver la tabla](docs/evaluacion.md#tests-de-robustez) |
 
 Los valores esperados se calcularon con SQL escrito a mano antes de correr el agente, y los califica el código. Las fallas que quedan están medidas y documentadas en [límites conocidos](docs/evaluacion.md#límites-conocidos).
@@ -52,7 +52,7 @@ Requiere Python 3.12 y una `ANTHROPIC_API_KEY` (en `.env`, a partir de `.env.exa
 
 ```bash
 make instalar   # crea .venv e instala las dependencias
-make tests      # tests unitarios del código, sin modelo (~1 s, sin costo)
+make tests      # tests unitarios del código, sin modelo (~2 s, sin costo)
 make interfaz   # interfaz: chat y, al lado, de dónde sale cada número
 make chat       # chat en la terminal; «?» muestra el origen de cada número
 make evaluar    # evaluador: 21 casos contra lo esperado (~1,5 min, ~US$ 0,05)
@@ -119,13 +119,13 @@ Los informes programados los lanza un temporizador de systemd los lunes a las 8 
 | [Arquitectura](docs/arquitectura.md) | el flujo de una pregunta, los controles, los informes y los módulos |
 | [Datos](docs/datos.md) | el modelo de datos, lo que encontré en la base y qué decidió en el diseño |
 | [Evaluación](docs/evaluacion.md) | método, evaluador, los 9 tests, costos, límites y mejoras propuestas |
-| [Decisiones](docs/decisiones.md) | las 119 decisiones de diseño con su porqué, con un índice por tema |
+| [Decisiones](docs/decisiones.md) | las 121 decisiones de diseño con su porqué, con un índice por tema |
 | [Diagramas](docs/diagramas/diseno_del_agente.md) | los dos canvas de trabajo: [diseño del agente](docs/diagramas/diseno_del_agente.md) y [modelo de datos](docs/diagramas/modelo_de_datos.md) |
 | [Trazas](trazas/README.md) | corridas reales, una por cada cosa que pide el enunciado y por cada test |
 
 ## Decisiones clave
 
-Las 119 decisiones están en [docs/decisiones.md](docs/decisiones.md). Estas son las que definen el diseño:
+Las 121 decisiones están en [docs/decisiones.md](docs/decisiones.md). Estas son las que definen el diseño:
 
 1. **El modelo elige la medida y los filtros; la fórmula la pone el código** ([2](docs/decisiones.md#d2), [14](docs/decisiones.md#d14)). Así no puede confundir ventas brutas con netas ni el año fiscal con el calendario, y cada número queda con su consulta.
 2. **Al agente se le da el criterio, no los hallazgos** ([7](docs/decisiones.md#d7)). Los eventos de la base (un proveedor que subió costos, un quiebre de stock) no están en el prompt; el glosario dice dónde mirar. Si los supiera, la evaluación no mediría nada.

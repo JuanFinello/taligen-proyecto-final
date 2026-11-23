@@ -22,7 +22,7 @@ import informes
 import registro
 from agente import cliente, con_cache, glosario_del_servidor, guardar_traza, responder, resumen
 from explicar import explicar
-from sugerir import sugerencias
+from sugerir import Memoria, sugerencias
 from procesador_capa_semantica import sqls, ver_modelo
 
 MODELO = "claude-haiku-5-5"
@@ -229,6 +229,7 @@ async def chat():
     """El chat en la terminal (decisión 83): una pregunta por vez, la conversación hereda lo anterior, y «?» muestra
     de dónde salió la última respuesta. Lo que va imprimiendo el agente (tools, planes) va a un .log, no a la pantalla."""
     conversacion = Conversacion(varios_turnos=True)
+    memoria = Memoria()  # lo ya sugerido y preguntado, para no repetir (decisión 121)
     log = Path(f"salidas/chat-{registro.CORRIDA}.log")
     log.parent.mkdir(parents=True, exist_ok=True)
     print("Analista de Almacenes del Sur. Preguntá lo que necesites (ventas, margen, presupuesto, stock, promociones),\n"
@@ -266,7 +267,7 @@ async def chat():
         print(f"\n{ultima['texto']}\n")
         print(f"[{ultima['tipo'] or 'sin clasificar'} → {ultima['ruta']} · {len(ultima['consultas'])} consulta{'s' * (len(ultima['consultas']) != 1)} · "
               f"US$ {costo:.4f} · {time.monotonic() - inicio:.0f} s]  «?» para ver de dónde salió")
-        propuestas = sugerencias(ultima)
+        propuestas = sugerencias(ultima, memoria, texto)
         if propuestas:
             print("\n¿Seguimos? (escribí el número)\n" + "\n".join(f"  {i}. {x}" for i, x in enumerate(propuestas, 1)))
     print(f"\nConversación: {len(conversacion.anteriores)} preguntas · US$ {total:.4f} · detalle en {log}")

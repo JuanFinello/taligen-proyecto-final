@@ -77,3 +77,17 @@ def test_los_valores_van_como_parametros_no_dentro_del_sql():
 def test_rechaza_lo_que_no_puede_calcular_bien(medida, filtros, kwargs, mensaje):
     with pytest.raises(ValueError, match=mensaje):
         calcular(medida, filtros, **kwargs)
+
+
+def test_ranking_de_promociones_sin_el_grupo_vacio():
+    """Decisión 120: las ventas sin promoción no encabezan el ranking (esperado con SQL a mano, 23-11)."""
+    resultado = calcular("ventas_netas", agrupar_por=["promocion"], limite=3)
+    assert [fila["promocion"] for fila in resultado["filas"]] == ["PROMO001", "PROMO014", "PROMO133"]
+    assert resultado["filas"][0]["valor"] == pytest.approx(17929170.0, abs=0.5)
+    assert "nota" in resultado
+
+
+def test_una_promocion_se_filtra_como_cualquier_dimension():
+    assert calcular("ventas_netas", {"promocion": "PROMO014"})["valor"] == pytest.approx(17479663.5, abs=0.5)
+    with pytest.raises(ValueError, match="no se puede usar con stock_promedio"):
+        calcular("stock_promedio", agrupar_por=["promocion"])

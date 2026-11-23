@@ -31,7 +31,9 @@ INSTRUCCIONES = ("Sos un analista de datos de Almacenes del Sur. Respondé en es
                  "consultar_sql es solo para lo que calcular no cubre (listados como promociones vigentes), nunca para medidas. "
                  "Empezá llamando a ver_modelo para conocer las medidas y dimensiones.\n"
                  "- Al nombrar sucursales o proveedores, mostrá código y nombre (agrupá por las dos dimensiones).\n"
-                 "- Si comparás ventas de dos períodos, informá la variación total y la comparable (comparables=True).\n\n")
+                 "- Si comparás ventas de dos períodos, informá la variación total y la comparable (comparables=True).\n"
+                 "- Respondé como un analista a un gerente: no nombres tools, parámetros ni columnas (calcular, consultar_sql, "
+                 "sku). Si algo no se puede responder, decí qué dato falta, no qué herramienta.\n\n")
 # El servidor no hereda el entorno: si se eligió otra base (BASE_ALMACENES), se la pasa
 SERVIDOR = StdioServerParameters(command=".venv/bin/python", args=[str(Path(__file__).with_name("servidor_mcp.py"))],
                                  env={**get_default_environment(), **{k: v for k, v in os.environ.items()
