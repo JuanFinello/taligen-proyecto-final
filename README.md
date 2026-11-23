@@ -1,8 +1,8 @@
 # Analista de datos · Almacenes del Sur
 
-Un agente que responde preguntas de negocio sobre una cadena de supermercados y arma informes ejecutivos en PDF. **Cada número sale de una consulta registrada, que se puede mostrar y volver a correr.**
+Un agente que responde preguntas de negocio de la gerencia de una cadena de supermercados y arma informes ejecutivos en PDF. **Cada número sale de una consulta registrada, que se puede mostrar y volver a correr.**
 
-Proyecto final del Taligen Spring Camp. Usa Claude Haiku 5.5 (`claude-haiku-5-5`), un servidor MCP propio y DuckDB.
+Proyecto final del Taligen Spring Camp, de Juan Finello. Usa Claude Haiku 5.5 (`claude-haiku-5-5`), un servidor MCP propio y DuckDB, sobre una cadena ficticia con dos años de datos simulados (2,8 millones de ventas).
 
 > **El modelo elige qué medir; el código mide.** Haiku interpreta la pregunta y elige la medida, los filtros y el período. La fórmula, el SQL, las variaciones, los gráficos y los controles son código. Un número no puede salir de una cuenta del modelo.
 
