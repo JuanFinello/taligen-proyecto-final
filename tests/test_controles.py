@@ -46,3 +46,33 @@ def test_un_periodo_fuera_de_la_base_se_detecta():
 def test_un_valor_que_no_existe_se_detecta():
     assert valores_que_no_estan("¿Cuánto vendió la sucursal S77 en el AF2026?") == [("sucursal", "S77")]
     assert valores_que_no_estan("¿Cuánto vendió la sucursal S02 en el AF2026?") == []
+
+
+def mensajes_con(*tools):
+    """Un historial del loop: cada (nombre, resultado) como tool_use del modelo y tool_result de vuelta."""
+    import json
+    mensajes = [{"role": "user", "content": "¿Cuál es la promoción que más ventas trajo?"}]
+    for i, (nombre, resultado) in enumerate(tools):
+        mensajes.append({"role": "assistant", "content": [{"type": "tool_use", "id": f"t{i}", "name": nombre, "input": {}}]})
+        mensajes.append({"role": "user", "content": [{"type": "tool_result", "tool_use_id": f"t{i}",
+                                                      "content": json.dumps(resultado, default=str)}]})
+    return mensajes
+
+
+def test_un_porcentaje_chico_tiene_que_salir_de_un_porcentaje():
+    """Decisión 122: «PROMO001 es el 9 %» (era 0,09 %) pasaba por entero chico y por el mes 9 de ver_modelo."""
+    from controles import numeros_sin_respaldo
+    from procesador_capa_semantica import ver_modelo
+    ranking = calcular("ventas_netas", agrupar_por=["promocion"], limite=3)
+    mensajes = mensajes_con(("ver_modelo", ver_modelo()), ("calcular", ranking))
+    assert numeros_sin_respaldo("PROMO001 trajo el 9 % de las ventas.", mensajes) == ["9"]
+    assert numeros_sin_respaldo("PROMO001 trajo el 0,09 % de las ventas.", mensajes) == []
+    assert numeros_sin_respaldo("Las 3 primeras promociones, en 12 meses.", mensajes) == []  # chicos sin %: como antes
+
+
+def test_una_variacion_en_porcentaje_pasa():
+    from controles import numeros_sin_respaldo
+    variacion = calcular("ventas_netas", {"anio_fiscal": 2026}, comparar_con={"anio_fiscal": 2025})
+    mensajes = mensajes_con(("calcular", variacion))
+    assert numeros_sin_respaldo("Las ventas crecieron 4,3 % (4 %) contra el AF2025.", mensajes) == []
+    assert numeros_sin_respaldo("Las ventas crecieron 5 % contra el AF2025.", mensajes) == ["5"]

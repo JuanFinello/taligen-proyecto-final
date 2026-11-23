@@ -38,7 +38,7 @@ Corre 16 preguntas y las 5 conversaciones (21 casos) contra [`Data/preguntas/esp
 
 **Resultado:** 17 de 17 casos de trabajo y 4 de 4 de reserva. Con 10 corridas por caso: 170 de 170 y 39 de 40 ([test 6](../trazas/consistencia.md)).
 
-`correr_todo.py` corre todo el enunciado con un comando: 20 preguntas, 5 conversaciones y 3 informes (28 casos), en 182 s y por US$ 0,14 ([traza](../trazas/corrida_completa.md)). Los informes se califican aparte con `chequeos_informes.py`, que verifica que cada uno diga lo que tiene que decir (6 chequeos por informe, 18 en total). Con el diseño actual, en 6 corridas: **95 de 108 (88 %)** ([comparación](../trazas/comparacion_informes.md)). Varía entre corridas: el 23-11 una pasó 18 de 18 (sus PDF y trazas están en [`informes/`](informes/)) y otra 14 de 18.
+`correr_todo.py` corre todo el enunciado con un comando: 20 preguntas, 5 conversaciones y 3 informes (28 casos), en 185 s y por US$ 0,15 ([traza](../trazas/corrida_completa.md)). Los informes se califican aparte con `chequeos_informes.py`, que verifica que cada uno diga lo que tiene que decir (6 chequeos por informe, 18 en total). Con el diseño actual, en 6 corridas: **95 de 108 (88 %)** ([comparación](../trazas/comparacion_informes.md)). Varía entre corridas: el 23-11 una pasó 18 de 18 (sus PDF y trazas están en [`informes/`](informes/)) y otra 14 de 18. Con el control de porcentajes (decisión 122), una corrida pasó 16 de 18.
 
 ## Tests de robustez
 
@@ -83,7 +83,7 @@ Medidos con `registro.py` desde el 21-11 (el diseño actual), con el caché del 
 | Un diagnóstico (mediana) | 0,0108 | 47 s |
 | Un informe (mediana) | 0,0199 | 75 s |
 | El evaluador (21 casos) | ~0,05 | ~90 s |
-| Todo el enunciado (`correr_todo.py`, 28 casos) | 0,14 | 182 s |
+| Todo el enunciado (`correr_todo.py`, 28 casos) | 0,15 | 185 s |
 | Un año de informes programados (69 informes) | ~1,37 | |
 
 ## Límites conocidos
@@ -94,7 +94,6 @@ Medidos con `registro.py` desde el 21-11 (el diseño actual), con el caché del 
 4. **El chequeo mira las consultas, no el texto.** Si la consulta es correcta pero el texto destaca otra cifra, el turno aprueba igual.
 5. **Muestras chicas.** La mayoría de los tests tiene 3 corridas y la reserva tiene 4 casos: alcanza para ver patrones sistemáticos, no para estimar fallas raras.
 6. **Los informes son lo menos medido.** Se califican con 18 chequeos de contenido, y la redacción se juzga leyendo.
-7. **Un porcentaje chico puede salir mal escrito.** Una participación de 0,09 % se escribió «9 %» en 2 de 4 corridas (decisión 120). El control no lo frena: no controla enteros de hasta 12, y acepta como respaldo cualquier número de un resultado, incluidos los meses 1–12 de `ver_modelo`.
 
 ## Mejoras propuestas
 
@@ -108,4 +107,3 @@ No se implementaron a propósito: cambiar el sistema invalidaría las mediciones
 | 4 | Controlar que el primer número del texto sea el esperado, y un juez LLM validado contra calificación humana para lo que el código no puede juzgar | Acuerdo con la calificación humana |
 | 5 | Reserva de unos 20 casos, 10 corridas por test e intervalos de confianza | Intervalos que no se superpongan entre versiones |
 | 6 | Más pedidos de informe y una evaluación a ciegas hecha por personas | Chequeos de contenido y preferencia a ciegas |
-| 7 | Que un número seguido de «%» tenga que coincidir con un porcentaje de una consulta (participación, variación, margen), aunque sea chico, y que `ver_modelo` no cuente como respaldo | La pregunta de la promoción, 10 veces, sin «9 %»; evaluador sin cambios |

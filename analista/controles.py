@@ -16,6 +16,11 @@ MAX_SIN_CONTROL = 12  # enteros chicos sin decimales (los 4 trimestres, las 6 ca
 
 def numeros_del_texto(texto):
     """[(valor, tolerancia, como_esta_escrito)] de cada número del texto, con la tolerancia de su redondeo."""
+    return [numero[:3] for numero in _numeros(texto)]
+
+
+def _numeros(texto):
+    """Como numeros_del_texto, con un cuarto dato: si el número está escrito como porcentaje («9 %»)."""
     numeros = []
     coincidencias = list(NUMERO.finditer(texto))
     for i, coincidencia in enumerate(coincidencias):
@@ -40,18 +45,20 @@ def numeros_del_texto(texto):
             entero, _, decimales = escrito.replace(",", ".").partition(".")
         valor = float(f"{entero}.{decimales}" if decimales else entero)
         escala = 1e6 if millones else 1
-        numeros.append((valor * escala, 0.5001 * 10 ** -len(decimales) * escala, coincidencia.group(0).strip()))
+        porcentaje = bool(re.match(r"\s*%", texto[coincidencia.end():]))
+        numeros.append((valor * escala, 0.5001 * 10 ** -len(decimales) * escala, coincidencia.group(0).strip(), porcentaje))
     return numeros
 
 
-def _valores(objeto, salida):
-    """Todos los números de un resultado de una tool (y el año, mes y día de sus fechas)."""
+def _valores(objeto, salida, fechas=True):
+    """Todos los números de un resultado de una tool (y el año, mes y día de sus fechas, salvo con fechas=False)."""
     if isinstance(objeto, bool):
         return
     if isinstance(objeto, (int, float)):
         salida.append(float(objeto))
     elif isinstance(objeto, str) and FECHA.match(objeto):
-        salida.extend(float(parte) for parte in objeto[:10].split("-"))
+        if fechas:
+            salida.extend(float(parte) for parte in objeto[:10].split("-"))
     elif isinstance(objeto, str):
         # De un texto solo valen los tamaños («Gaseosa cola Del Sur 2,25 L», «300 g»), no cualquier número: un texto
         # puede traer cifras que no son datos, como el «crecieron 50 %» de la descripción de P0040 (decisión 57)
@@ -60,15 +67,22 @@ def _valores(objeto, salida):
     elif isinstance(objeto, dict):
         for clave, valor in objeto.items():
             if clave != "sql":  # el SQL tiene números de la fórmula (100, 0) que no son datos
-                _valores(valor, salida)
+                _valores(valor, salida, fechas)
     elif isinstance(objeto, list):
         for valor in objeto:
-            _valores(valor, salida)
+            _valores(valor, salida, fechas)
 
 
-def respaldos(mensajes):
-    """Los números que el modelo puede usar: los de los resultados de las tools y los que escribió quien pregunta."""
+def _nombre(bloque, campo):
+    return bloque.get(campo) if isinstance(bloque, dict) else getattr(bloque, campo, None)
+
+
+def respaldos(mensajes, para_porcentajes=False):
+    """Los números que el modelo puede usar: los de los resultados de las tools y los que escribió quien pregunta.
+    Con para_porcentajes, sin las partes de las fechas ni ver_modelo (meses 1 a 12): un «9 %» no sale de un mes 9."""
     valores = []
+    tools = {_nombre(b, "id"): _nombre(b, "name") for m in mensajes if m["role"] == "assistant" and isinstance(m["content"], list)
+             for b in m["content"] if _nombre(b, "type") == "tool_use"}
     for mensaje in mensajes:
         if mensaje["role"] != "user":
             continue
@@ -80,8 +94,10 @@ def respaldos(mensajes):
         for bloque in mensaje["content"]:
             if bloque.get("type") != "tool_result" or bloque.get("is_error"):
                 continue
+            if para_porcentajes and tools.get(bloque.get("tool_use_id")) == "ver_modelo":
+                continue
             try:
-                _valores(json.loads(bloque["content"]), valores)
+                _valores(json.loads(bloque["content"]), valores, fechas=not para_porcentajes)
             except (json.JSONDecodeError, TypeError):
                 pass
     return valores
@@ -90,7 +106,7 @@ def respaldos(mensajes):
 def numeros_sin_respaldo(texto, mensajes):
     """Los números del texto que no coinciden (redondeados como están escritos) con ningún número de respaldo.
     Compara en valor absoluto: «cayó 0,24 pp» respalda a una variación de −0,24."""
-    return sin_respaldo(texto, respaldos(mensajes))
+    return sin_respaldo(texto, respaldos(mensajes), respaldos(mensajes, para_porcentajes=True))
 
 
 def valores_de(resultados):
@@ -100,16 +116,20 @@ def valores_de(resultados):
     return valores
 
 
-def sin_respaldo(texto, valores):
+def sin_respaldo(texto, valores, valores_pct=None):
+    """Con valores_pct (decisión 122), un número escrito con % se controla aunque sea un entero chico, y solo contra
+    esos valores: el «9 %» de PROMO001 (era 0,09 %) pasaba por chico y por el mes 9 de ver_modelo."""
     valores = [abs(v) for v in valores]
+    pct = None if valores_pct is None else [abs(v) for v in valores_pct]
     sueltos = []
-    for valor, tolerancia, escrito in numeros_del_texto(texto):
-        if valor.is_integer() and valor <= MAX_SIN_CONTROL and "," not in escrito:
+    for valor, tolerancia, escrito, porcentaje in _numeros(texto):
+        controlar_pct = porcentaje and pct is not None
+        if valor.is_integer() and valor <= MAX_SIN_CONTROL and "," not in escrito and not controlar_pct:
             continue
         # Redondeado (25,6664 → 25,67) o truncado (→ 25,66): los dos salen de la consulta. Truncar no es inventar,
         # y marcarlo costaba una vuelta de corrección (P07, decisión 71). La tolerancia es medio dígito del último decimal
         digito = tolerancia / 0.5001
-        if not any(abs(valor - v) <= tolerancia or 0 <= v - valor < digito for v in valores):
+        if not any(abs(valor - v) <= tolerancia or 0 <= v - valor < digito for v in (pct if controlar_pct else valores)):
             sueltos.append(escrito)
     return sueltos
 

@@ -76,6 +76,7 @@ Cada decisión importante, con su porqué, en el orden en que se tomó (de la 1,
 - [73. El registro de cada respuesta sale por salida estructurada y se valida antes de guardarse](#d73)
 - [82. Una respuesta vacía se devuelve para corregir, y un rango comparte la escala](#d82)
 - [84. El código avisa cuando un desvío incluye presupuesto sospechoso](#d84)
+- [122. Un número escrito con % se controla aunque sea chico, y no lo respalda una fecha](#d122)
 
 **Informes**
 
@@ -775,7 +776,7 @@ No es un parche para esa pregunta sino un hueco de la capa: con datos que la bas
 
 Medido, con lo esperado calculado antes con SQL a mano: 4 preguntas de promociones (la que más vendió, la que más unidades, la de Bebidas en el AF2026, cuánto vendió PROMO014), las 4 con el valor correcto, y la primera 3 veces más, siempre PROMO001 con $17.929.170. Tests unitarios 36 de 36 (dos nuevos), evaluador 17 de 17 y 4 de 4 dos veces, test 4 (no inventar) 25 de 36 contra 26 de 36 antes, dentro del ruido.
 
-**Lo que no resolvió:** en 2 de las 4 corridas de la primera pregunta, la respuesta dijo que PROMO001 es «el 9 %» de las ventas, cuando es el 0,09 %: Haiku leyó una participación de 0,0899 % como si fuera una fracción. El control de números no la frenó por dos razones que ya existían: no controla los enteros de hasta 12 sin decimales («cerca del 9 %»), y acepta como respaldo cualquier número de un resultado, incluidos los meses del 1 al 12 que trae `ver_modelo` («9,0 %»). Quedó como límite conocido (evaluación, límite 7).
+**Lo que no resolvió:** en 2 de las 4 corridas de la primera pregunta, la respuesta dijo que PROMO001 es «el 9 %» de las ventas, cuando es el 0,09 %: Haiku leyó una participación de 0,0899 % como si fuera una fracción. El control de números no la frenó por dos razones que ya existían: no controla los enteros de hasta 12 sin decimales («cerca del 9 %»), y acepta como respaldo cualquier número de un resultado, incluidos los meses del 1 al 12 que trae `ver_modelo` («9,0 %»). Quedó como límite conocido, y lo resolvió la decisión 122.
 
 <a id="d121"></a>
 ### 121. Las sugerencias tienen memoria de la conversación y no se repiten
@@ -792,4 +793,20 @@ Cambios en `sugerir.py`:
 - **Redacción**: «entre mayo de 2024 y abril de 2026» en vez de «en todo el período de la base».
 
 Medido: la conversación del usuario, repetida en un test, pasa de las mismas dos sugerencias tres veces a 9 distintas, sin repetir y sin volver a regiones ya preguntadas. Tres de las nuevas, preguntadas al agente, se responden bien (US$ 0,005). Tests unitarios: 46 de 46 (10 nuevos). No toca a Haiku: la versión del diseño no cambia y el evaluador no usa las sugerencias.
+
+<a id="d122"></a>
+### 122. Un número escrito con % se controla aunque sea chico, y no lo respalda una fecha
+
+En la decisión 120 quedó un error que el control de números (decisión 49) no frenaba. En 2 de 4 corridas, la respuesta decía que PROMO001 es «el 9 %» de las ventas, cuando es el 0,09 %. Había dos agujeros. El control no mira los enteros de hasta 12 sin decimales, para no frenar «los 4 trimestres» o «3 sucursales». Y acepta como respaldo cualquier número de un resultado, incluidos el mes y el día de las fechas y los meses 1 a 12 de `ver_modelo`: un «9,0 %» quedaba respaldado por un mes 9.
+
+Cambio en `controles.py`: un número seguido de «%» se controla aunque sea un entero chico. Además, solo lo respaldan los números de las consultas y de la pregunta, sin las partes de las fechas y sin `ver_modelo`. Para los demás números no cambia nada. Es más simple que la mejora que se había propuesto: no exige que el respaldo sea un porcentaje, porque la estructura de los resultados no lo marca siempre (participación, margen %, variación, columnas de `consultar_sql`). Alcanzó con sacar los dos respaldos falsos. El control del texto de un informe (`informes.py`) y el del valor que revisa el evaluador no pasan el respaldo de porcentajes, así que siguen como estaban.
+
+Medido con la versión `a3747b`:
+
+- **La pregunta de la promoción, 10 veces:** ninguna respuesta final dice «9 %». En 9 de las 10, Haiku escribió primero «9,0 %» o «9 %». El control lo frenó, la respuesta volvió a Haiku y salió corregida: «0,09 %», o sin el porcentaje.
+- **Evaluador:** 17 de 17 y 4 de 4, dos veces (sola y dentro de la corrida completa).
+- **Test 4 (no inventar):** 26 de 36, igual que antes.
+- **Corrida completa:** US$ 0,146 y 185 s, contra US$ 0,140 y 182 s. Los informes de esa corrida pasan 16 de 18 chequeos (con el diseño anterior, 88 % en 6 corridas).
+- **Vueltas de corrección por números sin respaldo:** 27 de 440 llamadas, contra 30 de 527 con la versión anterior. Contando las de la promoción, que antes pasaban sin control, la proporción es parecida.
+- **Tests unitarios:** 48 de 48 (dos nuevos, con el «9 %» de la promoción y una variación en %).
 

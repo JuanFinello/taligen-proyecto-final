@@ -284,7 +284,7 @@ Medido (*dec. 89, 91*): **420 de 420** errores con control, 30 semillas; un ×2 
 - **Antes de cada tool:** solo las tools permitidas a ese agente · `consultar_sql` solo un `SELECT` (lo dice el parser de DuckDB)
 - **Después de cada tool:** registra la consulta con su SQL (C1, C2…)
 - **Al terminar** (hasta 2 correcciones, compartidas):
-  - ningún número sin respaldo en una consulta · *dec. 49* (rangos y escala «1.722,1 millones frente a 1.825,6» · *dec. 82, 105*)
+  - ningún número sin respaldo en una consulta · *dec. 49* (rangos y escala «1.722,1 millones frente a 1.825,6» · *dec. 82, 105*); un número con **%** se controla aunque sea chico, y no lo respalda una fecha · *dec. 122* («9 %» por 0,09 %: 10 de 10 corregidas)
   - una **categoría o región** que nombra la pregunta tiene que estar en alguna consulta · *dec. 95* («Almacén:» se leía como la empresa: 81 → 84 de 84)
   - un **período escrito fuera de la base** no se responde con números de otro · *dec. 97* (fuera de la base: 6 → 9 de 9)
 

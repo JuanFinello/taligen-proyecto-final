@@ -29,5 +29,5 @@ chat:  ## chat en la terminal («?» muestra de dónde sale cada número)
 evaluar:  ## evaluador: 21 casos contra lo esperado (~1,5 min, ~US$ 0,05)
 	$(PY) evaluacion/evaluador.py
 
-todo:  ## todo el enunciado: 20 preguntas, 5 conversaciones y 3 informes (~3 min, ~US$ 0,14)
+todo:  ## todo el enunciado: 20 preguntas, 5 conversaciones y 3 informes (~3 min, ~US$ 0,15)
 	$(PY) evaluacion/correr_todo.py
