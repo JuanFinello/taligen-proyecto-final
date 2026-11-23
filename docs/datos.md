@@ -95,7 +95,7 @@ Antes de escribir el agente revisé las 8 tablas y sus joins contra la base. La 
 
 La base también tiene eventos reales que el agente tiene que saber explicar: la suba de costo del proveedor PR01 desde ago-2025, la caída de las comparables del Oeste desde la apertura de S39 y el quiebre de stock de PR09 en el Norte en sep-2025. **Al agente se le da el criterio de dónde mirar, no estos hallazgos** (decisión 7): si los supiera de antemano, la evaluación no mediría nada.
 
-El análisis completo, con un gráfico por cruce, está en [`diagramas/Modelo de datos.canvas`](diagramas/) (se abre con Obsidian).
+El análisis completo, con un gráfico por cruce, está en [`diagramas/modelo_de_datos.md`](diagramas/modelo_de_datos.md) (el canvas original, [`Modelo de datos.canvas`](diagramas/Modelo%20de%20datos.canvas), se abre con Obsidian).
 
 ## Las preguntas
 

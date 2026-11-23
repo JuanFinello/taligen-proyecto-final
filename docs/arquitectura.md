@@ -26,6 +26,8 @@ flowchart TD
     CH -->|"pasa"| PDF["Informe PDF<br/>gráficos y SQL anexos<br/><i>graficos.py · informe_pdf.py</i>"]
 ```
 
+El canvas de diseño, con cada pieza y su decisión, está en [`diagramas/diseno_del_agente.md`](diagramas/diseno_del_agente.md).
+
 1. **La puerta** (`puerta.py`) hace una llamada corta a Haiku que reconoce el tipo de la pregunta, uno de siete. El código decide el camino: las preguntas que se responden con pocas consultas van al agente; los diagnósticos y los informes, al coordinador (decisión 78). Elige el camino correcto en 192 de 192 casos ([test 8](../trazas/matriz_puerta.md)).
 2. **El agente** (`agente.py`) es un loop de Haiku con las tools de un servidor MCP propio, caché del prefijo y salida estructurada. Corta a las 10 llamadas al modelo.
 3. **La capa semántica** (`Data/capa_semantica/`) define cada medida una sola vez: `medidas.yaml` (qué se calcula), `esquema.yaml` (sobre qué tablas y joins) y `glosario.md` (con qué criterio: año fiscal de mayo a abril, comparables, devoluciones, «el margen» es %). `calcular()` arma el SQL desde ahí, con los valores de los filtros como parámetros, y calcula las variaciones, participaciones y desvíos. El SQL directo (`consultar_sql`, solo `SELECT`) queda para lo que la capa no cubre, como las promociones vigentes en un mes.

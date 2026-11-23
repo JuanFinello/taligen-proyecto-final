@@ -97,7 +97,7 @@ Los informes programados los lanza un temporizador de systemd los lunes a las 8 
 ├── pruebas/                       tests de robustez
 ├── trazas/                        corridas reales, con sus consultas y SQL (índice en trazas/README.md)
 ├── programado/                    servicio y temporizador de systemd
-└── docs/                          arquitectura · datos · evaluación · decisiones · informes de ejemplo
+└── docs/                          arquitectura · datos · evaluación · decisiones · informes · diagramas
 ```
 
 ## Documentación
@@ -108,6 +108,7 @@ Los informes programados los lanza un temporizador de systemd los lunes a las 8 
 | [Datos](docs/datos.md) | el modelo de datos, lo que encontré en la base y qué decidió en el diseño |
 | [Evaluación](docs/evaluacion.md) | método, evaluador, los 9 tests, costos, límites y mejoras propuestas |
 | [Decisiones](docs/decisiones.md) | las 118 decisiones de diseño con su porqué, con un índice por tema |
+| [Diagramas](docs/diagramas/diseno_del_agente.md) | los dos canvas de trabajo: [diseño del agente](docs/diagramas/diseno_del_agente.md) y [modelo de datos](docs/diagramas/modelo_de_datos.md) |
 | [Trazas](trazas/README.md) | corridas reales, una por cada cosa que pide el enunciado y por cada test |
 
 ## Decisiones clave
