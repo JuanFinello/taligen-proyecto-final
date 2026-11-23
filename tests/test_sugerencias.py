@@ -68,3 +68,11 @@ def test_respuestas_tipicas_tienen_sugerencias_bien_escritas(consulta):
     salida = sugerencias(respuesta(consulta), Memoria(), "pregunta")
     assert 1 <= len(salida) <= 3
     assert all(s.startswith("¿") and s.endswith("?") and "None" not in s for s in salida)
+
+
+def test_dice_del_y_no_de_el():
+    caida = {"medida": "margen_pct", "filtros": {"categoria": "Almacén", "anio_fiscal": 2026, "trimestre_fiscal": 2},
+             "comparar_con": {"anio_fiscal": 2025}}
+    salida = sugerencias(respuesta(caida), Memoria(), "pregunta")
+    assert not any(" de el " in s for s in salida)
+    assert any("del margen" in s for s in salida)

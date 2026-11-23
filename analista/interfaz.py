@@ -1,7 +1,6 @@
 """Interfaz mínima (decisión 101): la misma puerta que el chat de la terminal, con el comprobante de cada número al lado.
-- Preguntar: el chat a la izquierda; a la derecha, «De dónde sale» la última respuesta: cada consulta en castellano
-  (qué se midió, de qué, cuándo), su SQL y su resultado, y los controles en código que pasó.
-- Cómo sé que funciona: el resultado de cada test, leído de su traza.
+El chat a la izquierda; a la derecha, «De dónde sale» la última respuesta: cada consulta en castellano
+(qué se midió, de qué, cuándo), su SQL y su resultado, y los controles en código que pasó.
 El diseño sigue la bibliografía revisada (README, decisión 101) y el boceto que eligió el usuario: lo mínimo, con los
 comprobantes a la vista.
 
@@ -9,7 +8,6 @@ Uso: .venv/bin/streamlit run analista/interfaz.py      (cada pregunta gasta lo m
 import asyncio
 import base64
 import contextlib
-import re
 import time
 from pathlib import Path
 
@@ -128,7 +126,7 @@ def sin_rutas(texto):
 
 def pie(turno):
     r = turno["respuesta"]
-    return (f"{r.get('tipo')} → {r.get('ruta')} · {len(r['consultas'])} consulta(s) · "
+    return (f"{r.get('tipo')} → {r.get('ruta')} · {len(r['consultas'])} {'consulta' if len(r['consultas']) == 1 else 'consultas'} · "
             + f"US$ {turno['costo']:.4f}".replace(".", ",") + f" · {turno['segundos']:.0f} s")
 
 
@@ -175,7 +173,7 @@ def mostrar_pdf(r):
                            key=f"bajar-{pdf}")
 
 
-# ---------- Pestaña 1 ----------
+# ---------- La pantalla ----------
 def de_donde_sale(turno):
     st.markdown("##### De dónde sale")
     r = turno["respuesta"]
@@ -284,38 +282,5 @@ def pestania_preguntar():
                            "de qué y cuándo, con su SQL y su resultado, y los controles que pasó.")
 
 
-# ---------- Pestaña 2 ----------
-TESTS = [  # (test, qué prueba, traza, patrón del resultado)
-    ("Corrida completa", "las 20 preguntas, 5 conversaciones y 3 informes del curso", "corrida_completa.md", r"\*\*28 casos[^*]+\*\*"),
-    ("Datos nuevos", "el agente sobre un año simulado con cosas que nunca pasaron", "agente_anio.md", r"\*\*\d+ de \d+\*\* pasan"),
-    ("Errores de carga", "errores plantados al azar en 30 bases", "deteccion.md", r"\*\*Total:[^*]+\*\*"),
-    ("Lenguaje", "la misma pregunta dicha de 4 maneras", "lenguaje.md", r"\*\*Variantes[^*]+\*\*"),
-    ("Fechas", "año fiscal, «el mes pasado», ambiguas, fuera de la base", "fechas.md", r"\*\*\d+ de \d+\*\* pasan"),
-    ("No inventar", "preguntas que la base no puede responder", "no_inventar.md", r"\*\*\d+ de \d+\*\* pasan"),
-    ("Ataques", "inyección, borrar datos, leer archivos", "ataques.md", r"\*\*Capas de código[^*]+\*\*"),
-    ("Consistencia", "cada caso 10 veces: ¿acierta siempre o solo a veces? (pass^k)", "consistencia.md",
-     r"\*\*(?:De trabajo|Reserva)[^*]+\*\*"),
-    ("Conversación", "qué arrastra de un turno al otro y qué suelta", "conversacion.md", r"\*\*Turnos correctos[^*]+\*\*"),
-    ("La puerta", "quién responde cada pregunta", "matriz_puerta.md", r"\*\*Camino correcto[^*]+\*\*"),
-    ("Costo", "por pregunta, de los registros", "costos.md", r"mediana US\$ [^)]+"),
-]
-
-
-def pestania_calidad():
-    st.caption("Cada resultado sale de un test que se vuelve a correr con un comando (`evaluacion/robustez/`), calificado por código "
-               "contra valores calculados con SQL antes de correr el agente.")
-    filas = []
-    for test, que, archivo, patron in TESTS:
-        ruta = Path("trazas") / archivo
-        hallados = re.findall(patron, ruta.read_text()) if ruta.exists() else []  # consistencia: trabajo y reserva
-        filas.append({"Test": test, "Qué prueba": que,
-                      "Resultado": " · ".join(h.replace("**", "").strip() for h in hallados) or "—"})
-    st.dataframe(filas, hide_index=True, width="stretch")
-
-
 st.markdown("### Almacenes del Sur · Analista de datos")
-preguntar_tab, calidad_tab = st.tabs(["Preguntar", "Cómo sé que funciona"])
-with preguntar_tab:
-    pestania_preguntar()
-with calidad_tab:
-    pestania_calidad()
+pestania_preguntar()

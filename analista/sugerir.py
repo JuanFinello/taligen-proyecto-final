@@ -180,7 +180,7 @@ def candidatas(respuesta, ya_dicho=""):
             salida.append(("bajar", f"¿Cómo {abre} {nombre} de {con_nombre(grupo)} por {NOMBRE[hijo]}{en_periodo}?"))
     elif cayo:
         en_comparables = " en sucursales comparables" if cayo["argumentos"].get("comparables") else ""
-        salida.append(("causa", f"¿Qué explica la caída de {nombre}{de(filtros)}{en_comparables}{en_periodo}?"))
+        salida.append(("causa", f"¿Qué explica la caída de {nombre}{de(filtros)}{en_comparables}{en_periodo}?".replace(" de el ", " del ")))
     # 1b. Un ranking (abierto y sin comparar): mirar al primero por otra dimensión
     primero = r["filas"][0].get(agrupar[0]) if agrupar and r.get("filas") else None
     if agrupar and not a.get("comparar_con") and primero is not None:

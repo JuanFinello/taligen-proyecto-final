@@ -87,7 +87,6 @@ El tipo no viene escrito: reconocerlo es parte del trabajo → lo hace la **puer
 - **Derecha, «De dónde sale»:** cada consulta en castellano (qué se midió, de qué, cuándo), su **SQL** y su **resultado**, y los **controles que pasó**
 - **Pregunta siguiente:** 2 o 3 botones, armados por reglas, sin modelo; con memoria de la conversación, no se repiten · *dec. 86, 103, 121*
 - **Generar informe:** sobre la conversación del chat, el semanal, el mensual u otro escrito; el PDF se baja solo
-- **Cómo sé que funciona:** el resultado de cada test
 
 Bibliografía: Microsoft (Amershi, CHI 2019: qué puede y qué tan bien), Google PAIR (calibrar la confianza), Databricks Genie y Snowflake Cortex (mostrar el SQL), Gu y otros (CHI 2024). Colores: tema oscuro de Material Design, contraste WCAG.
 

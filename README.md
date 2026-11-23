@@ -6,6 +6,10 @@ Proyecto final del Taligen Spring Camp, de Juan Finello. Usa Claude Haiku 5.5 (`
 
 > **El modelo elige qué medir; el código mide.** Haiku interpreta la pregunta y elige la medida, los filtros y el período. La fórmula, el SQL, las variaciones, los gráficos y los controles son código. Un número no puede salir de una cuenta del modelo.
 
+![La interfaz: a la izquierda, la pregunta, la respuesta con sus supuestos y las preguntas sugeridas; a la derecha, «De dónde sale», cada consulta en castellano con su SQL y su resultado](docs/imagenes/interfaz.png)
+
+*La interfaz (`make interfaz`): cada número de la respuesta tiene al lado la consulta de la que sale.*
+
 ## Resultados
 
 | Qué | Resultado |
@@ -16,7 +20,7 @@ Proyecto final del Taligen Spring Camp, de Juan Finello. Usa Claude Haiku 5.5 (`
 | Todo el enunciado con un comando (28 casos) | **US$ 0,15** · 185 s |
 | Una pregunta | mediana **US$ 0,0009–0,0018** · 7–12 s |
 | Un informe | mediana **US$ 0,020** · 75 s |
-| Tests unitarios del código, sin modelo (capa semántica, controles, seguridad, sugerencias) | **48 de 48** · 2 s |
+| Tests unitarios del código, sin modelo (capa semántica, controles, seguridad, sugerencias) | **49 de 49** · 2 s |
 | 9 tests de robustez (lenguaje, fechas, ataques, no inventar, conversación…) | [ver la tabla](docs/evaluacion.md#tests-de-robustez) |
 
 Los valores esperados se calcularon con SQL escrito a mano antes de correr el agente, y los califica el código. Las fallas que quedan están medidas y documentadas en [límites conocidos](docs/evaluacion.md#límites-conocidos).
