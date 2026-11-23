@@ -2,6 +2,10 @@
 __pycache__/
 .claude/
 .env
-taligent_vault/.obsidian/workspace.json
 registros/
 salidas/
+
+# En el disco, fuera del repo
+Proyecto Final Analista de datos.pdf
+Avances semanas 1 y 2.pdf
+Mapa del proyecto.canvas

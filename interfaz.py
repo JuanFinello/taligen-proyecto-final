@@ -286,7 +286,11 @@ TESTS = [  # (test, qué prueba, traza, patrón del resultado)
     ("Errores de carga", "errores plantados al azar en 30 bases", "deteccion.md", r"\*\*Total:[^*]+\*\*"),
     ("Lenguaje", "la misma pregunta dicha de 4 maneras", "lenguaje.md", r"\*\*Variantes[^*]+\*\*"),
     ("Fechas", "año fiscal, «el mes pasado», ambiguas, fuera de la base", "fechas.md", r"\*\*\d+ de \d+\*\* pasan"),
+    ("No inventar", "preguntas que la base no puede responder", "no_inventar.md", r"\*\*\d+ de \d+\*\* pasan"),
     ("Ataques", "inyección, borrar datos, leer archivos", "ataques.md", r"\*\*Capas de código[^*]+\*\*"),
+    ("Consistencia", "cada caso 10 veces: ¿acierta siempre o solo a veces? (pass^k)", "consistencia.md",
+     r"\*\*(?:De trabajo|Reserva)[^*]+\*\*"),
+    ("Conversación", "qué arrastra de un turno al otro y qué suelta", "conversacion.md", r"\*\*Turnos correctos[^*]+\*\*"),
     ("La puerta", "quién responde cada pregunta", "matriz_puerta.md", r"\*\*Camino correcto[^*]+\*\*"),
     ("Costo", "por pregunta, de los registros", "costos.md", r"mediana US\$ [^)]+"),
 ]
@@ -298,9 +302,9 @@ def pestania_calidad():
     filas = []
     for test, que, archivo, patron in TESTS:
         ruta = Path("trazas") / archivo
-        hallado = re.search(patron, ruta.read_text()) if ruta.exists() else None
+        hallados = re.findall(patron, ruta.read_text()) if ruta.exists() else []  # consistencia: trabajo y reserva
         filas.append({"Test": test, "Qué prueba": que,
-                      "Resultado": hallado.group(0).replace("**", "").strip() if hallado else "—"})
+                      "Resultado": " · ".join(h.replace("**", "").strip() for h in hallados) or "—"})
     st.dataframe(filas, hide_index=True, width="stretch")
 
 

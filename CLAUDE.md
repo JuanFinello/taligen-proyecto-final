@@ -51,9 +51,9 @@ Todo se corre desde esta carpeta con `.venv/bin/python` (los scripts usan rutas 
 - Los valores esperados van en `Data/preguntas/esperados.yaml`, no en el código. Los hallazgos de los diagnósticos también, como comentario.
 - P09, P12, P14, P18 y P19 se abrieron en la semana 5 (decisión 79) y quedan como **reserva** (decisión 80, `RESERVA` en `esperados.yaml`): **nunca se ajusta nada por una falla de ellas** (si un cambio las rompe, se deshace el cambio), los ajustes se diseñan mirando solo las otras, y el evaluador las informa aparte.
 - Para no sobreajustar, no se corrige el prompt o la capa por un detalle de estilo de una sola pregunta.
-- **Cada decisión nueva se agrega al `README.md` apenas se toma** (qué se hizo, alternativas, por qué). Al README van decisiones, no pasos de trabajo. Estilo: un párrafo por decisión, título en negrita, sin subsecciones.
+- **Cada decisión nueva se agrega a `docs/decisiones.md` apenas se toma** (qué se hizo, alternativas, por qué), con su ancla `<a id="dN"></a>`, su título `### N. …` y su entrada en el índice por tema. Van decisiones, no pasos de trabajo. Si cambia un resultado, se actualizan también `README.md` (Resultados) y `docs/evaluacion.md`.
 
-## Decisiones de diseño (el por qué; el detalle de todas está en el README)
+## Decisiones de diseño (el por qué; el detalle de todas está en docs/decisiones.md)
 - **Las medidas salen siempre de `calcular()`; el SQL libre es solo para lo que la capa no cubre** (decisiones 14 y 34). Así cada número sale de una métrica definida en la capa semántica y queda registrado su SQL, que es la regla central del proyecto. `consultar_sql` (listados, como promociones vigentes) abre la base en solo lectura y **sin acceso externo**: `read_only` solo no frena `COPY … TO` ni la lectura de archivos. `buscar_producto` pasa de un nombre a su sku (decisión 33). El servidor usa mcp 2.x (`MCPServer`, no `FastMCP`).
 - **Cada archivo de la capa responde una sola pregunta y nada está escrito dos veces** (decisiones 1 y 21). `medidas.yaml`: qué se calcula (solo métricas). `esquema.yaml`: sobre qué datos (tablas, alias, joins, dimensiones). `glosario.md`: con qué criterio; es la única fuente de criterio y va entero en el prompt de sistema. Las fórmulas usan los alias de `esquema.yaml`, así que los dos YAML van juntos.
 - **`esquema.yaml` se mantiene a mano, pero los valores válidos y rangos se leen de la base al arrancar** (`valores: de la base`, decisión 62), para que una ingesta entre sola. Nada de período fijo en el glosario: la cobertura la da `ver_modelo`. `une_con` se usa solo para relaciones que no están en ningún `join`.
@@ -72,7 +72,8 @@ Todo se corre desde esta carpeta con `.venv/bin/python` (los scripts usan rutas 
 - 308 productos con 282 descripciones: 24 nombres se repiten en 2 o 3 SKU que solo difieren en `precio_lista`. **Filtrar por `sku`, nunca por nombre.**
 
 ## Fuera del proyecto
-- Bóveda de Obsidian `../taligent_vault/`: `Modelo de datos.canvas` y `Diseño del agente.canvas` (la card `chequeos` tiene los valores verificados a mano con SQL). `Mapa del proyecto.canvas` está en esta carpeta, fuera de la bóveda.
+- Desde el 23-11-2026 la raíz del repo es esta carpeta (antes era `..`): en GitHub no hay carpetas con espacio. La bóveda de Obsidian `../taligent_vault/` quedó fuera del repo; sus canvas `Modelo de datos.canvas` y `Diseño del agente.canvas` (la card `chequeos` tiene los valores verificados a mano con SQL) se copiaron a `docs/diagramas/`. Si se editan en la bóveda, volver a copiarlos. `Mapa del proyecto.canvas` está en esta carpeta.
+- Documentación: `README.md` (portada), `docs/` (arquitectura, datos, evaluación, decisiones, `informes/` con los PDF de I1–I3) y `trazas/README.md` (índice).
 - Obsidian es un AppImage sin el enlace `obsidian://` registrado: se abre con `~/Documentos/programas/Obsidian-1.11.5.AppImage "obsidian://open?vault=taligent_vault&file=…"`.
 
 ## Dónde estamos
