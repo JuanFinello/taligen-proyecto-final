@@ -76,3 +76,15 @@ def test_una_variacion_en_porcentaje_pasa():
     mensajes = mensajes_con(("calcular", variacion))
     assert numeros_sin_respaldo("Las ventas crecieron 4,3 % (4 %) contra el AF2025.", mensajes) == []
     assert numeros_sin_respaldo("Las ventas crecieron 5 % contra el AF2025.", mensajes) == ["5"]
+
+
+def test_un_monto_grande_con_centavos_se_registra():
+    """El valor principal de la respuesta se compara con la consulta con los dígitos que tiene: con 10 decimales fijos,
+    460758207.27 quedaba 460758207,2699999809 y la respuesta no se guardaba en el registro."""
+    from salida import RespuestaFinal, validar
+    filtros = {"categoria": "Perfumería", "anio_fiscal": 2026}
+    resultado = calcular(medida="margen_bruto", filtros=filtros)
+    consulta = {"tool": "calcular", "argumentos": {"medida": "margen_bruto", "filtros": filtros}, "resultado": resultado}
+    final = RespuestaFinal(texto="El margen bruto fue de $ 460.758.207.", valor=round(resultado["valor"], 2),
+                           unidad="ARS", supuestos=[], cuentas=[])
+    assert validar(final, "¿margen?", [consulta])[1] == []

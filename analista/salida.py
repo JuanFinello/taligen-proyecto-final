@@ -4,6 +4,7 @@ las consultas las pone el código, con lo que de verdad corrió, para que la tra
 Forma: la del enunciado, Respuesta = {pregunta, tipo (el de la puerta, decisión 78), texto, valor, unidad, supuestos, consultas: [{medida, filtros, sql}],
 cuentas}. Las respuestas válidas se suman a registros/respuestas.jsonl (no se commitea)."""
 from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import List, Optional
 
@@ -94,7 +95,9 @@ def validar(final, pregunta, consultas, sin_respaldo_=(), tipo=None):
     if final.valor is not None:
         if not consultas:
             problemas.append("tiene un valor pero ninguna consulta")
-        elif sin_respaldo(f"{final.valor:.10f}".rstrip("0").rstrip(".").replace(".", ","),
+        # El valor escrito con los dígitos que tiene (repr), no con 10 decimales fijos: en un monto grande, ".10f"
+        # arrastra el error del float (460758207.27 → 460758207,2699999809) y no calzaba con la consulta.
+        elif sin_respaldo(format(Decimal(repr(final.valor)), "f").replace(".", ","),
                           valores_de([c["resultado"] for c in consultas])):
             problemas.append(f"el valor {final.valor} no sale de ninguna consulta")
         if not final.unidad:
