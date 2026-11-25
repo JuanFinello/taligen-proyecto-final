@@ -4,11 +4,10 @@ Instrucciones para agentes de código que trabajen en este repo. La presentació
 
 Agente que responde preguntas de negocio sobre **Almacenes del Sur** (cadena ficticia: 40 sucursales, AF2025 y AF2026; admite ingestas de datos nuevos) y arma informes en PDF. Regla central: **cada número sale de una consulta registrada** que se puede mostrar y volver a correr. Modelo obligatorio: `claude-haiku-5-5`.
 
-## Estructura y comandos
+## Comandos
 - Todo se corre desde la raíz del repo con `.venv/bin/python`: los scripts usan rutas relativas a la raíz. La API key va en `ANTHROPIC_API_KEY` (o en `.env`, que carga el `Makefile`).
-- `analista/`: el sistema. Los módulos se importan entre sí sin paquete, porque Python agrega la carpeta del script al path; los scripts de `evaluacion/` y `tests/` agregan `analista/`.
-- `evaluacion/`: evaluador, corrida completa, chequeos de informes y los tests de robustez (`evaluacion/robustez/`, uno por archivo; método y resultados en `docs/evaluacion.md`).
-- `tests/`: tests unitarios sin modelo (pytest, configurado en `pyproject.toml`). **Correrlos (`make tests`) después de tocar la capa, los controles o los hooks.**
+- Los módulos de `analista/` se importan entre sí sin paquete, porque Python agrega la carpeta del script al path; los scripts de `evaluacion/` y `tests/` agregan `analista/`.
+- **Correr `make tests` (sin modelo) después de tocar la capa, los controles o los hooks.** Los tests de robustez y sus resultados se explican en `docs/evaluacion.md`.
 - Atajos: `make ayuda`. Los demás comandos, con sus opciones, están en el README («Todos los comandos, sin make»).
 - Medir un cambio que afecta a Haiku: `CAMBIO="decisión N" .venv/bin/python evaluacion/evaluador.py` 2 o 3 veces por versión y `analista/registro.py --comparar A B`. Cada llamada al modelo queda en `registros/llamadas.jsonl` con la versión del diseño (huella de los archivos que leen o deciden por Haiku).
 - `salidas/` y `registros/` no se commitean; lo que se muestra va a `trazas/` (índice en `trazas/README.md`) y a `docs/informes/`.

@@ -138,6 +138,6 @@ Las 122 decisiones están en [docs/decisiones.md](docs/decisiones.md). Estas son
 5. **Ante dos lecturas, da las dos; sin dato, lo dice** ([35](docs/decisiones.md#d35)). Nunca elige una lectura en silencio ni responde con otro indicador.
 6. **Una puerta elige el camino** ([78](docs/decisiones.md#d78)). Una llamada corta reconoce el tipo, y el código decide entre el agente y el coordinador.
 7. **Informes en dos tipos de agente** ([42](docs/decisiones.md#d42), [47](docs/decisiones.md#d47)). El coordinador planifica en consultas y los analistas las resuelven; el texto no escribe cifras de los indicadores, y el código las controla antes del PDF.
-8. **Las preguntas apartadas son reserva** ([5](docs/decisiones.md#d5), [80](docs/decisiones.md#d80)). Nunca se usaron para ajustar el sistema, así que miden lo que el diseño no vio.
+8. **Las preguntas apartadas son reserva** ([5](docs/decisiones.md#d5), [80](docs/decisiones.md#d80)). Nunca se ajustó nada por una falla de ellas: si un cambio las rompe, se deshace el cambio.
 9. **El evaluador vuelve a correr las consultas** ([75](docs/decisiones.md#d75)). Un número correcto que sale de la medida equivocada no cuenta como acierto.
 10. **Los valores válidos salen de la base** ([62](docs/decisiones.md#d62), [63](docs/decisiones.md#d63)). Con datos nuevos no hay que tocar el código, y cada ingesta pasa por `verificar_base.py`.
