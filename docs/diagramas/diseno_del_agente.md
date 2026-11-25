@@ -130,7 +130,7 @@ Medido: **33 de 33** en la ruta, tres veces · US$ 0,005 los 33 casos. Apartadas
 4. Llama a una tool → el código la ejecuta
 5. Responde con lo que volvió
 
-**Prompt de sistema:** cada número sale de `calcular` · código y nombre al nombrar sucursales o proveedores · al comparar ventas, total y comparable · *dec. 18* · más el glosario
+**Prompt de sistema:** cada número sale de `calcular` · código y nombre al nombrar sucursales o proveedores · al comparar ventas, total y comparable · *dec. 18* · le habla a un gerente: no nombra tools, parámetros ni columnas · *dec. 120* · más el glosario
 
 **Conversaciones:** cada turno recibe el historial de los anteriores · *dec. 31*
 
@@ -214,6 +214,8 @@ Devuelve la **versión compacta**: métricas (id, nombre, **descripción**, sin�
 
 ##### `buscar_producto(texto)` · `consultar_sql(sql)`
 Nombre → sku · *dec. 33*. SQL solo para lo que la capa no cubre (promociones vigentes), sin acceso a archivos · *dec. 34*
+
+Las ventas se abren también **por promoción** (`v.promocion_id`); las ventas sin promoción no forman grupo · *dec. 120*
 
 ### calcular(medida, filtros, agrupar_por, orden, limite, comparar_con, comparables)
 
@@ -501,4 +503,5 @@ Ejemplo, dec. 50: la corrida del evaluador bajó de US$ 0,087 a 0,066.
 - ✅ **20-11:** ejemplos del coordinador aprobados por el usuario (dos al prompt) e informes calificados con código · *dec. 106–111*
 - ✅ Las pruebas que faltaban: no inventar, consistencia y conversación · *dec. 115–118*
 - ✅ **23-11:** repo ordenado, tests unitarios sin modelo y timeout del cliente · *dec. 119*
+- ✅ **23-11:** ventas por promoción, sugerencias con memoria y control de los % · *dec. 120–122*
 - 🟪 Guion de la defensa

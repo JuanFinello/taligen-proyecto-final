@@ -136,7 +136,10 @@ def supuestos(r):
 
 
 def avisos(r):
-    return [c["resultado"]["aviso"] for c in r["consultas"] if isinstance(c.get("resultado"), dict) and c["resultado"].get("aviso")]
+    """Los avisos de las consultas, cada uno una sola vez: en un informe, varias consultas pueden traer el mismo (el
+    presupuesto sospechoso de un mes aparece en cada consulta que lo suma) y antes se mostraba repetido."""
+    return list(dict.fromkeys(c["resultado"]["aviso"] for c in r["consultas"]
+                              if isinstance(c.get("resultado"), dict) and c["resultado"].get("aviso")))
 
 
 def sin_respaldo(r):
@@ -202,23 +205,58 @@ OTRO = "Otro (lo escribo yo)"
 CONVERSACION = "Sobre esta conversación"
 
 
+SEMANAL, MENSUAL = "Semanal: qué requiere atención", "Mensual: cumplimiento del presupuesto"
+
+
+def cobertura():
+    """Primer y último día con ventas en la base."""
+    c = ver_modelo()["cobertura"]
+    return date.fromisoformat(c["ventas_desde"]), date.fromisoformat(c["ventas_hasta"])
+
+
+def semanas_posibles():
+    """(primer lunes, último lunes) de las semanas completas que tienen la misma semana del año anterior en la base
+    (el semanal compara contra 52 semanas antes, informe_programado.informes_del)."""
+    desde, hasta = cobertura()
+    primero = desde + timedelta(days=364)
+    primero += timedelta(days=(7 - primero.weekday()) % 7)
+    ultimo = hasta - timedelta(days=(hasta.weekday() + 1) % 7) - timedelta(days=6)
+    return primero, ultimo
+
+
+def meses_posibles():
+    """Los meses completos que tienen el mismo mes del año anterior en la base (el mensual lo usa de contexto), del
+    más reciente al más viejo."""
+    desde, hasta = cobertura()
+    meses, mes = [], date(hasta.year, hasta.month, 1)
+    while date(mes.year - 1, mes.month, 1) >= desde:
+        fin = (mes.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+        if fin <= hasta:
+            meses.append(mes)
+        mes = (mes - timedelta(days=1)).replace(day=1)
+    return meses
+
+
+def pedido_semanal(dia):
+    """El pedido del informe semanal de la semana (lunes a domingo) que contiene ese día."""
+    lunes = dia - timedelta(days=dia.weekday())
+    return informes_del(lunes + timedelta(days=7))[0][3]
+
+
+def pedido_mensual(mes):
+    """El pedido del informe mensual de ese mes (el mismo texto que el informe programado)."""
+    siguiente = (mes.replace(day=28) + timedelta(days=4)).replace(day=1)
+    primer_lunes = siguiente + timedelta(days=(7 - siguiente.weekday()) % 7)
+    return next(p for clave, _, _, p in informes_del(primer_lunes) if clave == f"mes-{mes:%Y-%m}")
+
+
 def informes_listos(s):
-    """Los informes para elegir con un toque: uno sobre la conversación del chat, el semanal y el mensual de los
-    informes programados (decisión 66, cada uno responde otra pregunta) con los últimos períodos completos de la base,
-    y uno escrito por el usuario."""
-    hasta = date.fromisoformat(ver_modelo()["cobertura"]["ventas_hasta"])
-    ultimo_domingo = hasta - timedelta(days=(hasta.weekday() + 1) % 7)
+    """Los informes para elegir: uno sobre la conversación del chat, el semanal y el mensual de los informes
+    programados (decisión 66, cada uno responde otra pregunta), con el período que elija el usuario, y uno escrito
+    por el usuario."""
     preguntas = [t["pregunta"] for t in s.turnos]
-    opciones = {CONVERSACION: ("Informe ejecutivo con lo que vimos en esta conversación: " + "; ".join(preguntas))
-                if preguntas else ""}
-    semanal = informes_del(ultimo_domingo + timedelta(days=1))[0]
-    opciones[f"Semanal: del {semanal[1]:%d-%m} al {semanal[2]:%d-%m-%Y}, qué requiere atención"] = semanal[3]
-    lunes_de_cierre = hasta + timedelta(days=1 + (7 - (hasta + timedelta(days=1)).weekday()) % 7)
-    for clave, desde, fin, pedido in informes_del(lunes_de_cierre)[1:]:
-        if clave.startswith("mes-") and fin <= hasta:
-            opciones[f"Mensual: {MESES[desde.month - 1]} de {desde.year}, cumplimiento del presupuesto"] = pedido
-    opciones[OTRO] = ""
-    return opciones
+    return {CONVERSACION: ("Informe ejecutivo con lo que vimos en esta conversación: " + "; ".join(preguntas))
+            if preguntas else "", SEMANAL: "", MENSUAL: "", OTRO: ""}
 
 
 def pestania_preguntar():
@@ -231,7 +269,20 @@ def pestania_preguntar():
     with informe.popover("Generar informe", width="stretch"):
         opciones = informes_listos(s)
         elegido = st.radio("Qué informe querés", list(opciones), index=0 if s.turnos else 1)
-        pedido = st.text_area("Contame qué informe necesitás", height=90) if elegido == OTRO else opciones[elegido]
+        if elegido == SEMANAL:
+            primero, ultimo = semanas_posibles()
+            dia = st.date_input("Un día de la semana", value=ultimo, min_value=primero, max_value=ultimo + timedelta(days=6),
+                                format="DD/MM/YYYY")
+            lunes = dia - timedelta(days=dia.weekday())
+            st.caption(f"Semana del lunes {lunes:%d-%m-%Y} al domingo {lunes + timedelta(days=6):%d-%m-%Y}, contra la misma semana del año anterior")
+            pedido = pedido_semanal(dia)
+        elif elegido == MENSUAL:
+            meses = meses_posibles()
+            mes = st.selectbox("Mes", meses, format_func=lambda m: f"{MESES[m.month - 1]} de {m.year}")
+            st.caption("Con el acumulado del año fiscal y el mismo mes del año anterior como contexto")
+            pedido = pedido_mensual(mes)
+        else:
+            pedido = st.text_area("Contame qué informe necesitás", height=90) if elegido == OTRO else opciones[elegido]
         if elegido == CONVERSACION and not pedido:
             st.caption("Primero hacé alguna pregunta en el chat.")
         if st.button("Generar el PDF", type="primary", disabled=not pedido.strip()):
