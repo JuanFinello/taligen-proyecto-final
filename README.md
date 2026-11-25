@@ -20,7 +20,7 @@ Proyecto final del Taligen Spring Camp, de Juan Finello. Usa Claude Haiku 5.5 (`
 | Todo el enunciado con un comando (28 casos) | **US$ 0,15** · 185 s |
 | Una pregunta | mediana **US$ 0,0009–0,0018** · 7–12 s |
 | Un informe | mediana **US$ 0,020** · 75 s |
-| Tests unitarios del código, sin modelo (capa semántica, controles, seguridad, sugerencias) | **50 de 50** · 2 s |
+| Tests unitarios del código, sin modelo (capa semántica, controles, seguridad, sugerencias) | **51 de 51** · 2 s |
 | 9 tests de robustez (lenguaje, fechas, ataques, no inventar, conversación…) | [ver la tabla](docs/evaluacion.md#tests-de-robustez) |
 
 Los valores esperados se calcularon con SQL escrito a mano antes de correr el agente, y los califica el código. Las fallas que quedan están medidas y documentadas en [límites conocidos](docs/evaluacion.md#límites-conocidos).
